@@ -87,7 +87,16 @@ async function request<T>(
     config.body = JSON.stringify(body);
   }
 
-  const response = await fetch(url, config);
+  let response: Response;
+  try {
+    response = await fetch(url, config);
+  } catch (netErr: any) {
+    throw new ApiError(
+      0,
+      "NETWORK_ERROR",
+      `Unable to reach backend service (${netErr?.message || "Failed to fetch"}). Ensure backend is active.`
+    );
+  }
 
   // Handle non-JSON responses (e.g. 204 No Content)
   if (response.status === 204) {
