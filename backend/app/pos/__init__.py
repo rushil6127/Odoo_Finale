@@ -1,0 +1,1 @@
+"""POS / Bar module package."""
