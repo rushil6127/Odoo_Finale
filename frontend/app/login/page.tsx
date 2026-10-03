@@ -5,7 +5,6 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, Loader2, AlertCircle, Crown, ShieldAlert } from "lucide-react";
 import {
-  DEMO_MEMBERS,
   setStoredUser,
   setStoredToken,
   getStoredUser,
@@ -167,11 +166,6 @@ export default function LoginPage() {
       const currentUser = getStoredUser();
       router.push(getRoleProfilePath(currentUser));
     } catch (err: any) {
-      // Fallback: If backend is unreachable or demo testing, allow quick demo login
-      if (loginEmail.toLowerCase().includes("alex") || loginEmail === "") {
-        handleDemoLogin(DEMO_MEMBERS.alex);
-        return;
-      }
       setLoginError(err?.message || "Invalid email or password. Please try again.");
     } finally {
       setLoginLoading(false);
@@ -212,23 +206,22 @@ export default function LoginPage() {
     }
   };
 
-  const handleDemoLogin = async (user: AuthUserProfile) => {
-    try {
-      const res = await apiClient.post<{ access_token: string; user: any }>("/auth/demo-login", {
-        email: user.email,
-        role: user.role,
-        full_name: user.name,
-      });
-      if (res?.access_token) {
-        setStoredToken(res.access_token);
-      }
-    } catch {
-      setStoredToken("demo_token_user_" + user.id);
-    }
-    setStoredUser(user);
-    router.push(getRoleProfilePath(user));
-  };
+  const handleQuickFillAndLogin = async (email: string, pass: string) => {
+    setLoginEmail(email);
+    setLoginPassword(pass);
+    setLoginError(null);
+    setLoginLoading(true);
 
+    try {
+      await loginUser(email, pass);
+      const currentUser = getStoredUser();
+      router.push(getRoleProfilePath(currentUser));
+    } catch (err: any) {
+      setLoginError(err?.message || "Database login failed. Please ensure the backend is running.");
+    } finally {
+      setLoginLoading(false);
+    }
+  };
 
   return (
     <div className="auth-page-container">
@@ -251,33 +244,44 @@ export default function LoginPage() {
         </div>
       </div>
 
-      {/* Quick One-Click Demo Logins */}
+      {/* Quick 1-Click Database Logins */}
       <div className="w-full max-w-[720px] mb-4 p-3 rounded-2xl bg-sky-50/80 border border-sky-200/80 flex items-center justify-between flex-wrap gap-2 text-xs">
         <span className="font-bold text-sky-900 flex items-center gap-1.5">
           <Crown className="w-4 h-4 text-amber-500" />
-          <span>Quick 1-Click Demo Login:</span>
+          <span>1-Click Seeded Accounts (Real DB Auth):</span>
         </span>
         <div className="flex items-center gap-2">
           <button
             type="button"
-            onClick={() => handleDemoLogin(DEMO_MEMBERS.alex)}
-            className="px-3 py-1.5 rounded-xl bg-white hover:bg-sky-600 hover:text-white text-slate-800 font-extrabold border border-sky-200 shadow-sm transition-all"
+            disabled={loginLoading}
+            onClick={() => handleQuickFillAndLogin("pushplamba104@gmail.com", "Owner@12345")}
+            className="px-3 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-950 font-black border border-amber-400 shadow-xs transition-all disabled:opacity-50"
           >
-            Alex Morgan (Member)
+            Owner Pushp
           </button>
           <button
             type="button"
-            onClick={() => handleDemoLogin(DEMO_MEMBERS.coach_david)}
-            className="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold shadow-sm transition-all"
+            disabled={loginLoading}
+            onClick={() => handleQuickFillAndLogin("admin@championsclub.in", "Admin@12345")}
+            className="px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-extrabold shadow-xs transition-all disabled:opacity-50"
           >
-            Coach David (Sport Head)
+            Admin Priya
           </button>
           <button
             type="button"
-            onClick={() => handleDemoLogin(DEMO_MEMBERS.admin)}
-            className="px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-blue-700 text-white font-extrabold shadow-sm transition-all"
+            disabled={loginLoading}
+            onClick={() => handleQuickFillAndLogin("coach@championsclub.in", "Coach@12345")}
+            className="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold shadow-xs transition-all disabled:opacity-50"
           >
-            Priya Sharma (Staff & Admin)
+            Coach David
+          </button>
+          <button
+            type="button"
+            disabled={loginLoading}
+            onClick={() => handleQuickFillAndLogin("gold.member@championsclub.in", "Member@12345")}
+            className="px-3 py-1.5 rounded-xl bg-white hover:bg-sky-600 hover:text-white text-slate-800 font-extrabold border border-sky-200 shadow-xs transition-all disabled:opacity-50"
+          >
+            Gold Member
           </button>
         </div>
       </div>

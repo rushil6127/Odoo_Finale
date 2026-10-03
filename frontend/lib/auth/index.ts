@@ -639,7 +639,6 @@ export function enrichUserProfile(parsed: any): (AuthUserProfile & AuthUser) | n
   }
   if (!parsed.memberCode) parsed.memberCode = `CC-${(parsed.role || "MEM").toUpperCase()}-${parsed.id || 101}`;
   if (!parsed.phone) parsed.phone = "+91 98765 43210";
-
   // Dynamic membership plan binding
   if (parsed.membership_plan) {
     parsed.membershipPlan = parsed.membership_plan.toUpperCase();
@@ -679,12 +678,12 @@ export function enrichUserProfile(parsed: any): (AuthUserProfile & AuthUser) | n
     parsed.membershipStartDate = "October 3, 2026";
   }
 
-  if (parsed.walletBalance === undefined) parsed.walletBalance = 8500;
-  if (parsed.clubTabsOutstanding === undefined) parsed.clubTabsOutstanding = 1250;
-  if (!parsed.crmInquiries || !Array.isArray(parsed.crmInquiries)) parsed.crmInquiries = DEMO_MEMBERS.alex.crmInquiries;
-  if (!parsed.orders || !Array.isArray(parsed.orders)) parsed.orders = DEMO_MEMBERS.alex.orders;
-  if (!parsed.bookings || !Array.isArray(parsed.bookings)) parsed.bookings = DEMO_MEMBERS.alex.bookings;
-  if (!parsed.payments || !Array.isArray(parsed.payments)) parsed.payments = DEMO_MEMBERS.alex.payments;
+  if (parsed.walletBalance === undefined) parsed.walletBalance = 0;
+  if (parsed.clubTabsOutstanding === undefined) parsed.clubTabsOutstanding = 0;
+  if (!parsed.crmInquiries || !Array.isArray(parsed.crmInquiries)) parsed.crmInquiries = [];
+  if (!parsed.orders || !Array.isArray(parsed.orders)) parsed.orders = [];
+  if (!parsed.bookings || !Array.isArray(parsed.bookings)) parsed.bookings = [];
+  if (!parsed.payments || !Array.isArray(parsed.payments)) parsed.payments = [];
 
   return parsed as (AuthUserProfile & AuthUser);
 }

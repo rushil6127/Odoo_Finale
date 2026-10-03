@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, Suspense } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
@@ -164,7 +164,7 @@ function PlanIcon({ code }: { code: string }) {
   return <Shield className="w-6 h-6 text-slate-700" />;
 }
 
-export default function MembershipPage() {
+function MembershipContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const isNewMember = searchParams?.get("welcome") === "1";
@@ -1027,5 +1027,19 @@ export default function MembershipPage() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function MembershipPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-[#020617] flex items-center justify-center text-slate-400 text-sm">
+          Loading memberships...
+        </div>
+      }
+    >
+      <MembershipContent />
+    </Suspense>
   );
 }
