@@ -44,6 +44,7 @@ import {
   Key
 } from "lucide-react";
 import { useCurrentUser, setStoredUser, DEMO_MEMBERS, isStaffOrAdmin, isOwner, type AuthUserProfile } from "@/lib/auth";
+import EmployeeProfileView from "@/components/profile/EmployeeProfileView";
 
 type TabType = "overview" | "crm" | "orders" | "bookings" | "payments" | "settings";
 
@@ -74,6 +75,11 @@ export default function ProfilePage() {
     payments: user?.payments && user.payments.length > 0 ? user.payments : DEMO_MEMBERS.alex.payments,
     crmInquiries: user?.crmInquiries && user.crmInquiries.length > 0 ? user.crmInquiries : DEMO_MEMBERS.alex.crmInquiries,
   };
+
+  const isEmployeeWithData = !!activeUser.employeeData;
+  const [viewMode, setViewMode] = useState<"employee" | "member">(
+    isEmployeeWithData ? "employee" : "member"
+  );
 
   const canAccessConsole = isStaffOrAdmin(activeUser);
   const isSuperOwner = isOwner(activeUser);
@@ -359,6 +365,19 @@ export default function ProfilePage() {
   }
   for (let d = 1; d <= daysInMonth; d++) {
     calendarCells.push(d);
+  }
+
+  if (viewMode === "employee" && activeUser.employeeData) {
+    return (
+      <EmployeeProfileView
+        user={activeUser}
+        onLogout={() => {
+          logout();
+          router.push("/");
+        }}
+        onSwitchToMemberView={() => setViewMode("member")}
+      />
+    );
   }
 
   return (
@@ -651,6 +670,23 @@ export default function ProfilePage() {
                       <span>Owner Access Control</span>
                     </span>
                     <Key className="w-3.5 h-3.5 text-amber-900/70" />
+                  </button>
+                )}
+
+                {/* Switch to Staff Duty View if Employee */}
+                {isEmployeeWithData && (
+                  <button
+                    type="button"
+                    onClick={() => setViewMode("employee")}
+                    className="w-full flex items-center justify-between gap-2 px-3.5 py-2.5 rounded-2xl bg-emerald-100 hover:bg-emerald-200 text-emerald-950 font-extrabold text-xs border border-emerald-300 shadow-sm transition-all"
+                  >
+                    <span className="flex items-center gap-2">
+                      <span className="text-sm">🧑‍💼</span>
+                      <span>Staff / Duty Portal</span>
+                    </span>
+                    <span className="text-[10px] font-black uppercase text-emerald-800 bg-emerald-200/80 px-1.5 py-0.5 rounded">
+                      Switch
+                    </span>
                   </button>
                 )}
 

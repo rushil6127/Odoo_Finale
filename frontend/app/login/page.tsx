@@ -156,14 +156,8 @@ export default function LoginPage() {
     setLoginLoading(true);
 
     try {
-      const data = await loginUser(loginEmail, loginPassword);
-      const user = data.user;
-      
-      if (user?.role === "MEMBER") {
-        router.push("/profile");
-      } else {
-        router.push("/dashboard");
-      }
+      await loginUser(loginEmail, loginPassword);
+      router.push("/profile");
     } catch (err: any) {
       // Fallback: If backend is unreachable or demo testing, allow quick demo login
       if (loginEmail.toLowerCase().includes("alex") || loginEmail === "") {
@@ -203,11 +197,7 @@ export default function LoginPage() {
 
   const handleDemoLogin = (user: AuthUserProfile) => {
     setStoredUser(user);
-    if (user.role === "ADMIN") {
-      router.push("/dashboard");
-    } else {
-      router.push("/profile");
-    }
+    router.push("/profile");
   };
 
   return (
