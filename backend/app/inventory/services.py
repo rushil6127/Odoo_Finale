@@ -526,6 +526,13 @@ def record_stock_out(
                     "Stock deduction failed: stock cannot be negative.",
                     code="NEGATIVE_STOCK_CONFLICT",
                 )
+            if new_stock <= product.low_stock_threshold:
+                try:
+                    from backend.app.tasks.dispatcher import safe_enqueue_task
+                    from backend.app.tasks.jobs import check_and_alert_low_stock_task
+                    safe_enqueue_task(check_and_alert_low_stock_task)
+                except Exception:
+                    pass
         else:
             db.session.flush()
 

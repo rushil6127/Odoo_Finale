@@ -102,6 +102,7 @@ class TestingConfig(BaseConfig):
     JWT_SECRET_KEY = "test-jwt-secret-key-minimum-32-bytes-length-ok"
     SECRET_KEY = "test-secret-key-minimum-32-bytes-length-ok"
     CELERY_TASK_ALWAYS_EAGER = True
+    CELERY_TASK_EAGER_PROPAGATES = True
 
 
 class ProductionConfig(BaseConfig):
