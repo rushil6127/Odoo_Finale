@@ -110,7 +110,7 @@ def validate_item_amount(item_type: PaymentItemType, item_id: int, amount: Decim
         membership = db.session.get(Membership, item_id)
         if not membership:
             raise NotFoundException(f"Membership with ID {item_id} not found.")
-        expected_amount = Decimal(str(membership.plan.effective_annual_price))
+        expected_amount = Decimal(str(membership.price_paid if membership.price_paid is not None else membership.plan.effective_annual_price))
         if amount != expected_amount:
             raise ValidationException(
                 f"Payment amount ({amount}) does not match membership price ({expected_amount}).",
