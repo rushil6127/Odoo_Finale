@@ -1,165 +1,165 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import { 
   ShoppingBag, 
   Coffee, 
   Sparkles, 
-  Percent, 
-  Utensils, 
-  Tag, 
   ArrowRight,
-  ShieldCheck,
-  Check
+  Zap,
+  Activity,
+  Tv,
+  CheckCircle2
 } from "lucide-react";
 
 export default function ProShopAndCafe() {
+  const shopPills = [
+    { label: "Electronic 24h Stringing", icon: "⚡" },
+    { label: "Tour Rackets & Balls", icon: "🎾" },
+    { label: "Court-Specific Shoes", icon: "👟" },
+    { label: "Reserve Online & Pick Up", icon: "📦" },
+  ];
+
+  const cafePills = [
+    { label: "Recovery Whey Smoothies", icon: "🥤" },
+    { label: "Artisan Specialty Coffee", icon: "☕" },
+    { label: "High-Protein Bowls & Grill", icon: "🥗" },
+    { label: "4K Grand Slam Live Theater", icon: "📺" },
+  ];
+
   return (
-    <section id="facilities" className="py-20 bg-white relative">
+    <section id="facilities" className="py-20 bg-slate-50/60 relative overflow-hidden">
+      {/* Subtle Background Glows */}
+      <div className="absolute top-1/2 left-1/4 w-80 h-80 bg-sky-200/30 rounded-full blur-3xl pointer-events-none -z-10" />
+      <div className="absolute bottom-10 right-1/4 w-80 h-80 bg-lime-200/30 rounded-full blur-3xl pointer-events-none -z-10" />
+
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
-        <div className="text-center max-w-3xl mx-auto mb-16">
-          <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-sky-50 text-sky-700 text-xs font-bold uppercase tracking-wider mb-3 border border-sky-200">
+        <div className="text-center max-w-2xl mx-auto mb-12">
+          <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-sky-100 text-sky-800 text-xs font-bold uppercase tracking-wider mb-3">
             <Sparkles className="w-3.5 h-3.5" />
-            <span>Clubhouse Retail & Dining</span>
+            <span>Club Amenities</span>
           </div>
-          <h2 className="text-3xl sm:text-5xl font-extrabold text-slate-900 tracking-tight">
+          <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight font-[family-name:var(--font-outfit)]">
             Pro Shop & Champions Lounge
           </h2>
-          <p className="text-slate-600 text-base mt-3 leading-relaxed">
-            Everything you need on and off the court. Stock up on tour-level gear with member discounts, or refuel at our artisan espresso bar and sports lounge with seamless billing tabs.
+          <p className="text-slate-500 text-sm mt-1">
+            Tour-level gear and post-match athletic nutrition with seamless digital member account charging.
           </p>
         </div>
 
-        {/* Dual Feature Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-stretch">
-          {/* Pro Shop Card */}
-          <div id="shop" className="glass-card rounded-3xl p-8 border border-slate-200 flex flex-col justify-between relative overflow-hidden group">
-            <div className="absolute -top-10 -right-10 w-40 h-40 bg-sky-100/60 rounded-full blur-2xl pointer-events-none" />
-
+        {/* Minimalist Dual Cards */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8 max-w-5xl mx-auto">
+          {/* Card 1: Pro Shop */}
+          <div 
+            id="shop" 
+            className="group relative bg-white rounded-3xl p-7 sm:p-8 border border-slate-200/90 shadow-sm hover:shadow-xl hover:border-sky-300 transition-all duration-300 flex flex-col justify-between"
+          >
             <div>
-              <div className="flex items-center justify-between gap-2 mb-4">
-                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-sky-100 text-sky-800 text-xs font-bold">
-                  <ShoppingBag className="w-3.5 h-3.5" />
-                  <span>The Pro Shop</span>
+              {/* Header Badges */}
+              <div className="flex items-center justify-between gap-2 mb-6">
+                <div className="w-12 h-12 rounded-2xl bg-sky-50 text-sky-600 flex items-center justify-center border border-sky-100 group-hover:scale-110 transition-transform">
+                  <ShoppingBag className="w-6 h-6" />
                 </div>
-                <span className="text-xs font-bold text-green-700 bg-green-50 px-2.5 py-0.5 rounded-full border border-green-200">
-                  Member Discount 10% – 20%
+                <span className="px-3 py-1 rounded-full bg-lime-100 text-lime-900 text-xs font-extrabold border border-lime-300">
+                  10% – 20% Member Discount
                 </span>
               </div>
 
-              <h3 className="text-2xl font-extrabold text-slate-900 mb-2">
-                Tour-Grade Gear & Stringing
+              {/* Title & Headline */}
+              <div className="text-xs font-bold text-sky-600 uppercase tracking-wider mb-1">
+                Authorized Retail & Workshop
+              </div>
+              <h3 className="text-2xl font-extrabold text-slate-900 mb-3 font-[family-name:var(--font-outfit)]">
+                The Pro Shop
               </h3>
-              <p className="text-xs sm:text-sm text-slate-600 mb-6 leading-relaxed">
-                Authorized dealers for Head, Wilson, Babolat, Yonex, and Nike. Instant inventory synchronization across counter sales and online member pickup orders.
+              <p className="text-sm text-slate-600 font-normal leading-relaxed mb-6">
+                Official Head, Wilson, Babolat, and Nike equipment with certified same-day racket stringing and instant inventory synchronization.
               </p>
 
-              {/* Product Highlights */}
-              <div className="grid grid-cols-2 gap-3 mb-6">
-                <div className="bg-slate-50 rounded-2xl p-3.5 border border-slate-200/80">
-                  <div className="text-xs font-bold text-slate-900">Rackets & Strings</div>
-                  <div className="text-[11px] text-slate-500 mt-0.5">Professional electronic 24hr stringing</div>
-                </div>
-                <div className="bg-slate-50 rounded-2xl p-3.5 border border-slate-200/80">
-                  <div className="text-xs font-bold text-slate-900">Footwear & Grip</div>
-                  <div className="text-[11px] text-slate-500 mt-0.5">Clay & grass court specific outsoles</div>
-                </div>
-                <div className="bg-slate-50 rounded-2xl p-3.5 border border-slate-200/80">
-                  <div className="text-xs font-bold text-slate-900">Championship Balls</div>
-                  <div className="text-[11px] text-slate-500 mt-0.5">Slazenger, Dunlop Fort, Head Tour</div>
-                </div>
-                <div className="bg-slate-50 rounded-2xl p-3.5 border border-slate-200/80">
-                  <div className="text-xs font-bold text-slate-900">Club Apparel</div>
-                  <div className="text-[11px] text-slate-500 mt-0.5">Custom moisture-wicking jerseys</div>
-                </div>
-              </div>
-
-              {/* Bullet Features */}
-              <div className="space-y-2 mb-6">
-                <div className="flex items-center gap-2 text-xs text-slate-700">
-                  <Check className="w-4 h-4 text-green-600 shrink-0" />
-                  <span>Same-day electronic racket stringing & grip customization</span>
-                </div>
-                <div className="flex items-center gap-2 text-xs text-slate-700">
-                  <Check className="w-4 h-4 text-green-600 shrink-0" />
-                  <span>Reserve items online & pick up directly before your court match</span>
-                </div>
+              {/* Interactive Feature Pills */}
+              <div className="grid grid-cols-2 gap-2.5 mb-8">
+                {shopPills.map((pill, idx) => (
+                  <div 
+                    key={idx}
+                    className="p-3 rounded-2xl bg-slate-50 hover:bg-sky-50/70 border border-slate-200/70 hover:border-sky-200 transition-colors flex items-center gap-2.5 text-xs font-semibold text-slate-800"
+                  >
+                    <span className="text-base shrink-0">{pill.icon}</span>
+                    <span className="truncate">{pill.label}</span>
+                  </div>
+                ))}
               </div>
             </div>
 
-            <Link
-              href="/login"
-              className="w-full py-3 px-4 rounded-xl text-xs font-bold text-center text-white bg-slate-900 hover:bg-sky-600 transition-colors flex items-center justify-center gap-2 shadow-md"
-            >
-              <span>Explore Pro Shop Catalog</span>
-              <ArrowRight className="w-3.5 h-3.5" />
-            </Link>
+            {/* Bottom Row */}
+            <div className="pt-5 border-t border-slate-100 flex items-center justify-between">
+              <div className="text-[11px] text-slate-400 font-medium">
+                Live Inventory Connected
+              </div>
+              <Link
+                href="/login"
+                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold text-white bg-slate-900 group-hover:bg-sky-600 transition-colors shadow-sm"
+              >
+                <span>Browse Catalog</span>
+                <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
+              </Link>
+            </div>
           </div>
 
-          {/* Cafeteria & Lounge Card */}
-          <div id="cafe" className="glass-card rounded-3xl p-8 border border-slate-200 flex flex-col justify-between relative overflow-hidden group">
-            <div className="absolute -top-10 -right-10 w-40 h-40 bg-lime-100/60 rounded-full blur-2xl pointer-events-none" />
-
+          {/* Card 2: Champions Lounge & Cafe */}
+          <div 
+            id="cafe" 
+            className="group relative bg-white rounded-3xl p-7 sm:p-8 border border-slate-200/90 shadow-sm hover:shadow-xl hover:border-sky-300 transition-all duration-300 flex flex-col justify-between"
+          >
             <div>
-              <div className="flex items-center justify-between gap-2 mb-4">
-                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-lime-100 text-lime-900 text-xs font-bold">
-                  <Coffee className="w-3.5 h-3.5" />
-                  <span>Champions Lounge & Bar</span>
+              {/* Header Badges */}
+              <div className="flex items-center justify-between gap-2 mb-6">
+                <div className="w-12 h-12 rounded-2xl bg-lime-50 text-lime-700 flex items-center justify-center border border-lime-200 group-hover:scale-110 transition-transform">
+                  <Coffee className="w-6 h-6" />
                 </div>
-                <span className="text-xs font-bold text-sky-700 bg-sky-50 px-2.5 py-0.5 rounded-full border border-sky-200">
-                  Member Charge Tab Ready
+                <span className="px-3 py-1 rounded-full bg-sky-100 text-sky-800 text-xs font-extrabold border border-sky-200">
+                  Member Charge Tab Enabled
                 </span>
               </div>
 
-              <h3 className="text-2xl font-extrabold text-slate-900 mb-2">
-                Athletic Nutrition & Match Viewing
+              {/* Title & Headline */}
+              <div className="text-xs font-bold text-lime-700 uppercase tracking-wider mb-1">
+                Athletic Nutrition & Dining
+              </div>
+              <h3 className="text-2xl font-extrabold text-slate-900 mb-3 font-[family-name:var(--font-outfit)]">
+                Champions Lounge & Café
               </h3>
-              <p className="text-xs sm:text-sm text-slate-600 mb-6 leading-relaxed">
-                Recharge after intense sets with fresh protein smoothies, electrolyte coolers, gourmet salads, and artisanal specialty coffees with panoramic court views.
+              <p className="text-sm text-slate-600 font-normal leading-relaxed mb-6">
+                Post-match recovery smoothies, organic cold-pressed juices, and healthy gourmet bowls overlooking center court with 4K match screenings.
               </p>
 
-              {/* Menu Highlights */}
-              <div className="grid grid-cols-2 gap-3 mb-6">
-                <div className="bg-slate-50 rounded-2xl p-3.5 border border-slate-200/80">
-                  <div className="text-xs font-bold text-slate-900">Recovery Smoothies</div>
-                  <div className="text-[11px] text-slate-500 mt-0.5">Whey isolate, berries & cold-pressed fruits</div>
-                </div>
-                <div className="bg-slate-50 rounded-2xl p-3.5 border border-slate-200/80">
-                  <div className="text-xs font-bold text-slate-900">Artisan Espresso</div>
-                  <div className="text-[11px] text-slate-500 mt-0.5">Single origin roasts & organic teas</div>
-                </div>
-                <div className="bg-slate-50 rounded-2xl p-3.5 border border-slate-200/80">
-                  <div className="text-xs font-bold text-slate-900">Healthy Kitchen</div>
-                  <div className="text-[11px] text-slate-500 mt-0.5">Quinoa bowls, wraps, high-protein grill</div>
-                </div>
-                <div className="bg-slate-50 rounded-2xl p-3.5 border border-slate-200/80">
-                  <div className="text-xs font-bold text-slate-900">Live Sports Theater</div>
-                  <div className="text-[11px] text-slate-500 mt-0.5">4K Grand Slam & Premier League broadcast</div>
-                </div>
-              </div>
-
-              {/* Bullet Features */}
-              <div className="space-y-2 mb-6">
-                <div className="flex items-center gap-2 text-xs text-slate-700">
-                  <Check className="w-4 h-4 text-green-600 shrink-0" />
-                  <span>Order table-side or charge directly to your digital member account</span>
-                </div>
-                <div className="flex items-center gap-2 text-xs text-slate-700">
-                  <Check className="w-4 h-4 text-green-600 shrink-0" />
-                  <span>Dedicated kitchen POS system for fast post-match refreshments</span>
-                </div>
+              {/* Interactive Feature Pills */}
+              <div className="grid grid-cols-2 gap-2.5 mb-8">
+                {cafePills.map((pill, idx) => (
+                  <div 
+                    key={idx}
+                    className="p-3 rounded-2xl bg-slate-50 hover:bg-lime-50/70 border border-slate-200/70 hover:border-lime-200 transition-colors flex items-center gap-2.5 text-xs font-semibold text-slate-800"
+                  >
+                    <span className="text-base shrink-0">{pill.icon}</span>
+                    <span className="truncate">{pill.label}</span>
+                  </div>
+                ))}
               </div>
             </div>
 
-            <Link
-              href="/login"
-              className="w-full py-3 px-4 rounded-xl text-xs font-bold text-center text-white bg-slate-900 hover:bg-lime-600 transition-colors flex items-center justify-center gap-2 shadow-md"
-            >
-              <span>View Cafe & Lounge Menu</span>
-              <ArrowRight className="w-3.5 h-3.5" />
-            </Link>
+            {/* Bottom Row */}
+            <div className="pt-5 border-t border-slate-100 flex items-center justify-between">
+              <div className="text-[11px] text-slate-400 font-medium">
+                Direct Tab & Kitchen POS
+              </div>
+              <Link
+                href="/login"
+                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold text-white bg-slate-900 group-hover:bg-lime-700 transition-colors shadow-sm"
+              >
+                <span>View Menu</span>
+                <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
+              </Link>
+            </div>
           </div>
         </div>
       </div>
