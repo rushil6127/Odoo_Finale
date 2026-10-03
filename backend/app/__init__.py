@@ -25,6 +25,16 @@ from backend.app.inventory import (  # noqa: F401
     seed_inventory_command,
 )
 from backend.app.shop import shop_bp, ShopOrder, ShopOrderItem  # noqa: F401
+from backend.app.pos import (  # noqa: F401
+    pos_bp,
+    POSTable,
+    POSMenuCategory,
+    POSMenuItem,
+    StaffShift,
+    POSTab,
+    POSOrderItem,
+    seed_pos_command,
+)
 
 
 def create_app(config_name: str = None) -> Flask:
@@ -71,11 +81,13 @@ def create_app(config_name: str = None) -> Flask:
     app.register_blueprint(payments_bp)
     app.register_blueprint(inventory_bp)
     app.register_blueprint(shop_bp)
+    app.register_blueprint(pos_bp)
 
     # Register CLI commands
     app.cli.add_command(create_owner_command)
     app.cli.add_command(seed_plans_command)
     app.cli.add_command(seed_courts_command)
     app.cli.add_command(seed_inventory_command)
+    app.cli.add_command(seed_pos_command)
 
     return app
