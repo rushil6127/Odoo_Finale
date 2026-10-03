@@ -328,9 +328,23 @@ def test_jwt_expired_token_returns_401_envelope(app, client):
 
 def test_jwt_valid_token_success(app, client):
     """Test accessing protected route with valid JWT token succeeds."""
+    from backend.app.auth.models import User
+    from backend.app.common.permissions import RoleEnum
+    from backend.app.extensions import db
+
     with app.app_context():
+        user = User(
+            email="testjwt@club.com",
+            first_name="Test",
+            last_name="JWT",
+            role=RoleEnum.MEMBER,
+        )
+        user.set_password("SecurePassword123!")
+        db.session.add(user)
+        db.session.commit()
+
         valid_token = create_access_token(
-            identity="user123",
+            identity=str(user.id),
             expires_delta=timedelta(hours=1),
         )
 
