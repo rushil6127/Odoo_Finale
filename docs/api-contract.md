@@ -897,3 +897,1739 @@ The system enforces 7 distinct hierarchical roles:
 - **Court Availability Date:** Query parameter `date` is required on `/api/v1/courts/availability` in `YYYY-MM-DD` format.
 - **Timezone Standardization:** The backend standardizes on `Asia/Kolkata` (UTC+05:30). Frontend clients should send ISO datetime strings or local datetime strings, and all responses return localized ISO strings.
 - **Razorpay Public Key:** When initiating an `ONLINE` payment via `POST /api/v1/payments`, the backend automatically includes `public_key_id` in the response payload to allow the Next.js frontend to open the Razorpay Checkout modal directly.
+
+---
+
+## Crm Endpoints (`/api/v1/crm`)
+
+### Api Update Follow Up
+- **Endpoint:** `PATCH /api/v1/crm/follow-ups/<int:follow_up_id>`
+- **Authentication:** Required
+- **Role Requirement:** (TODO: Fill role)
+- **Request Body:**
+```json
+{
+}
+```
+- **Success Response:**
+```json
+{
+  "success": true,
+  "data": {}
+}
+```
+- **Business Rules:** (TODO: Add rules)
+
+### Api Follow Ups Due Today
+- **Endpoint:** `GET /api/v1/crm/follow-ups/due-today`
+- **Authentication:** Required
+- **Role Requirement:** (TODO: Fill role)
+- **Query Parameters:** (TODO: Fill params)
+- **Success Response:**
+```json
+{
+  "success": true,
+  "data": {}
+}
+```
+- **Business Rules:** (TODO: Add rules)
+
+### Api List Leads
+- **Endpoint:** `GET /api/v1/crm/leads`
+- **Authentication:** Required
+- **Role Requirement:** (TODO: Fill role)
+- **Query Parameters:** (TODO: Fill params)
+- **Success Response:**
+```json
+{
+  "success": true,
+  "data": {}
+}
+```
+- **Business Rules:** (TODO: Add rules)
+
+### Api Get Lead
+- **Endpoint:** `GET /api/v1/crm/leads/<int:lead_id>`
+- **Authentication:** Required
+- **Role Requirement:** (TODO: Fill role)
+- **Query Parameters:** (TODO: Fill params)
+- **Success Response:**
+```json
+{
+  "success": true,
+  "data": {}
+}
+```
+- **Business Rules:** (TODO: Add rules)
+
+### Api Update Lead
+- **Endpoint:** `PATCH /api/v1/crm/leads/<int:lead_id>`
+- **Authentication:** Required
+- **Role Requirement:** (TODO: Fill role)
+- **Request Body:**
+```json
+{
+}
+```
+- **Success Response:**
+```json
+{
+  "success": true,
+  "data": {}
+}
+```
+- **Business Rules:** (TODO: Add rules)
+
+### Api Convert Lead
+- **Endpoint:** `POST /api/v1/crm/leads/<int:lead_id>/convert`
+- **Authentication:** Required
+- **Role Requirement:** (TODO: Fill role)
+- **Request Body:**
+```json
+{
+}
+```
+- **Success Response:**
+```json
+{
+  "success": true,
+  "data": {}
+}
+```
+- **Business Rules:** (TODO: Add rules)
+
+### Api Create Follow Up
+- **Endpoint:** `POST /api/v1/crm/leads/<int:lead_id>/follow-ups`
+- **Authentication:** Required
+- **Role Requirement:** (TODO: Fill role)
+- **Request Body:**
+```json
+{
+}
+```
+- **Success Response:**
+```json
+{
+  "success": true,
+  "data": {}
+}
+```
+- **Business Rules:** (TODO: Add rules)
+
+### Api Mark Lost
+- **Endpoint:** `POST /api/v1/crm/leads/<int:lead_id>/lost`
+- **Authentication:** Required
+- **Role Requirement:** (TODO: Fill role)
+- **Request Body:**
+```json
+{
+}
+```
+- **Success Response:**
+```json
+{
+  "success": true,
+  "data": {}
+}
+```
+- **Business Rules:** (TODO: Add rules)
+
+### Api Add Note
+- **Endpoint:** `POST /api/v1/crm/leads/<int:lead_id>/notes`
+- **Authentication:** Required
+- **Role Requirement:** (TODO: Fill role)
+- **Request Body:**
+```json
+{
+}
+```
+- **Success Response:**
+```json
+{
+  "success": true,
+  "data": {}
+}
+```
+- **Business Rules:** (TODO: Add rules)
+
+### Api Create Quote
+- **Endpoint:** `POST /api/v1/crm/leads/<int:lead_id>/quotes`
+- **Authentication:** Required
+- **Role Requirement:** (TODO: Fill role)
+- **Request Body:**
+```json
+{
+}
+```
+- **Success Response:**
+```json
+{
+  "success": true,
+  "data": {}
+}
+```
+- **Business Rules:** (TODO: Add rules)
+
+### Api Request Trial
+- **Endpoint:** `POST /api/v1/crm/leads/<int:lead_id>/trial`
+- **Authentication:** Required
+- **Role Requirement:** (TODO: Fill role)
+- **Request Body:**
+```json
+{
+}
+```
+- **Success Response:**
+```json
+{
+  "success": true,
+  "data": {}
+}
+```
+- **Business Rules:** (TODO: Add rules)
+
+### Api Public Availability
+- **Endpoint:** `GET /api/v1/crm/public/availability`
+- **Authentication:** Required
+- **Role Requirement:** (TODO: Fill role)
+- **Query Parameters:** (TODO: Fill params)
+- **Success Response:**
+```json
+{
+  "success": true,
+  "data": {}
+}
+```
+- **Business Rules:** (TODO: Add rules)
+
+### Api Public Club Info
+- **Endpoint:** `GET /api/v1/crm/public/club-info`
+- **Authentication:** Required
+- **Role Requirement:** (TODO: Fill role)
+- **Query Parameters:** (TODO: Fill params)
+- **Success Response:**
+```json
+{
+  "success": true,
+  "data": {}
+}
+```
+- **Business Rules:** (TODO: Add rules)
+
+### Api Public Enquiry
+- **Endpoint:** `POST /api/v1/crm/public/enquiries`
+- **Authentication:** Required
+- **Role Requirement:** (TODO: Fill role)
+- **Request Body:**
+```json
+{
+}
+```
+- **Success Response:**
+```json
+{
+  "success": true,
+  "data": {}
+}
+```
+- **Business Rules:** (TODO: Add rules)
+
+### Api Public Plans
+- **Endpoint:** `GET /api/v1/crm/public/plans`
+- **Authentication:** Required
+- **Role Requirement:** (TODO: Fill role)
+- **Query Parameters:** (TODO: Fill params)
+- **Success Response:**
+```json
+{
+  "success": true,
+  "data": {}
+}
+```
+- **Business Rules:** (TODO: Add rules)
+
+### Api Public Products
+- **Endpoint:** `GET /api/v1/crm/public/products`
+- **Authentication:** Required
+- **Role Requirement:** (TODO: Fill role)
+- **Query Parameters:** (TODO: Fill params)
+- **Success Response:**
+```json
+{
+  "success": true,
+  "data": {}
+}
+```
+- **Business Rules:** (TODO: Add rules)
+
+### Api Confirm Trial
+- **Endpoint:** `POST /api/v1/crm/trial-sessions/<int:trial_id>/confirm`
+- **Authentication:** Required
+- **Role Requirement:** (TODO: Fill role)
+- **Request Body:**
+```json
+{
+}
+```
+- **Success Response:**
+```json
+{
+  "success": true,
+  "data": {}
+}
+```
+- **Business Rules:** (TODO: Add rules)
+
+
+---
+
+## Employees Endpoints (`/api/v1/employees`)
+
+### Get Employees
+- **Endpoint:** `GET /api/v1/employees`
+- **Authentication:** Required
+- **Role Requirement:** (TODO: Fill role)
+- **Query Parameters:** (TODO: Fill params)
+- **Success Response:**
+```json
+{
+  "success": true,
+  "data": {}
+}
+```
+- **Business Rules:** (TODO: Add rules)
+
+### Post Employee
+- **Endpoint:** `POST /api/v1/employees`
+- **Authentication:** Required
+- **Role Requirement:** (TODO: Fill role)
+- **Request Body:**
+```json
+{
+}
+```
+- **Success Response:**
+```json
+{
+  "success": true,
+  "data": {}
+}
+```
+- **Business Rules:** (TODO: Add rules)
+
+### Get Single Employee
+- **Endpoint:** `GET /api/v1/employees/<int:employee_id>`
+- **Authentication:** Required
+- **Role Requirement:** (TODO: Fill role)
+- **Query Parameters:** (TODO: Fill params)
+- **Success Response:**
+```json
+{
+  "success": true,
+  "data": {}
+}
+```
+- **Business Rules:** (TODO: Add rules)
+
+### Put Employee
+- **Endpoint:** `PUT /api/v1/employees/<int:employee_id>`
+- **Authentication:** Required
+- **Role Requirement:** (TODO: Fill role)
+- **Request Body:**
+```json
+{
+}
+```
+- **Success Response:**
+```json
+{
+  "success": true,
+  "data": {}
+}
+```
+- **Business Rules:** (TODO: Add rules)
+
+### Get Employee Linked Shifts
+- **Endpoint:** `GET /api/v1/employees/<int:employee_id>/shifts`
+- **Authentication:** Required
+- **Role Requirement:** (TODO: Fill role)
+- **Query Parameters:** (TODO: Fill params)
+- **Success Response:**
+```json
+{
+  "success": true,
+  "data": {}
+}
+```
+- **Business Rules:** (TODO: Add rules)
+
+### Get Leave Requests
+- **Endpoint:** `GET /api/v1/employees/leave`
+- **Authentication:** Required
+- **Role Requirement:** (TODO: Fill role)
+- **Query Parameters:** (TODO: Fill params)
+- **Success Response:**
+```json
+{
+  "success": true,
+  "data": {}
+}
+```
+- **Business Rules:** (TODO: Add rules)
+
+### Post Leave Request
+- **Endpoint:** `POST /api/v1/employees/leave`
+- **Authentication:** Required
+- **Role Requirement:** (TODO: Fill role)
+- **Request Body:**
+```json
+{
+}
+```
+- **Success Response:**
+```json
+{
+  "success": true,
+  "data": {}
+}
+```
+- **Business Rules:** (TODO: Add rules)
+
+### Put Approve Leave
+- **Endpoint:** `POST /api/v1/employees/leave/<int:leave_id>/approve`
+- **Authentication:** Required
+- **Role Requirement:** (TODO: Fill role)
+- **Request Body:**
+```json
+{
+}
+```
+- **Success Response:**
+```json
+{
+  "success": true,
+  "data": {}
+}
+```
+- **Business Rules:** (TODO: Add rules)
+
+### Put Approve Leave
+- **Endpoint:** `PUT /api/v1/employees/leave/<int:leave_id>/approve`
+- **Authentication:** Required
+- **Role Requirement:** (TODO: Fill role)
+- **Request Body:**
+```json
+{
+}
+```
+- **Success Response:**
+```json
+{
+  "success": true,
+  "data": {}
+}
+```
+- **Business Rules:** (TODO: Add rules)
+
+### Put Reject Leave
+- **Endpoint:** `POST /api/v1/employees/leave/<int:leave_id>/reject`
+- **Authentication:** Required
+- **Role Requirement:** (TODO: Fill role)
+- **Request Body:**
+```json
+{
+}
+```
+- **Success Response:**
+```json
+{
+  "success": true,
+  "data": {}
+}
+```
+- **Business Rules:** (TODO: Add rules)
+
+### Put Reject Leave
+- **Endpoint:** `PUT /api/v1/employees/leave/<int:leave_id>/reject`
+- **Authentication:** Required
+- **Role Requirement:** (TODO: Fill role)
+- **Request Body:**
+```json
+{
+}
+```
+- **Success Response:**
+```json
+{
+  "success": true,
+  "data": {}
+}
+```
+- **Business Rules:** (TODO: Add rules)
+
+### Get Payroll
+- **Endpoint:** `GET /api/v1/employees/payroll`
+- **Authentication:** Required
+- **Role Requirement:** (TODO: Fill role)
+- **Query Parameters:** (TODO: Fill params)
+- **Success Response:**
+```json
+{
+  "success": true,
+  "data": {}
+}
+```
+- **Business Rules:** (TODO: Add rules)
+
+### Post Payroll
+- **Endpoint:** `POST /api/v1/employees/payroll`
+- **Authentication:** Required
+- **Role Requirement:** (TODO: Fill role)
+- **Request Body:**
+```json
+{
+}
+```
+- **Success Response:**
+```json
+{
+  "success": true,
+  "data": {}
+}
+```
+- **Business Rules:** (TODO: Add rules)
+
+### Put Pay Payroll
+- **Endpoint:** `POST /api/v1/employees/payroll/<int:payroll_id>/pay`
+- **Authentication:** Required
+- **Role Requirement:** (TODO: Fill role)
+- **Request Body:**
+```json
+{
+}
+```
+- **Success Response:**
+```json
+{
+  "success": true,
+  "data": {}
+}
+```
+- **Business Rules:** (TODO: Add rules)
+
+### Put Pay Payroll
+- **Endpoint:** `PUT /api/v1/employees/payroll/<int:payroll_id>/pay`
+- **Authentication:** Required
+- **Role Requirement:** (TODO: Fill role)
+- **Request Body:**
+```json
+{
+}
+```
+- **Success Response:**
+```json
+{
+  "success": true,
+  "data": {}
+}
+```
+- **Business Rules:** (TODO: Add rules)
+
+
+---
+
+## Inventory Endpoints (`/api/v1/inventory`)
+
+### Create New Category
+- **Endpoint:** `POST /api/v1/inventory/categories`
+- **Authentication:** Required
+- **Role Requirement:** (TODO: Fill role)
+- **Request Body:**
+```json
+{
+}
+```
+- **Success Response:**
+```json
+{
+  "success": true,
+  "data": {}
+}
+```
+- **Business Rules:** (TODO: Add rules)
+
+### Get Categories
+- **Endpoint:** `GET /api/v1/inventory/categories`
+- **Authentication:** Required
+- **Role Requirement:** (TODO: Fill role)
+- **Query Parameters:** (TODO: Fill params)
+- **Success Response:**
+```json
+{
+  "success": true,
+  "data": {}
+}
+```
+- **Business Rules:** (TODO: Add rules)
+
+### Get Category Detail
+- **Endpoint:** `GET /api/v1/inventory/categories/<int:category_id>`
+- **Authentication:** Required
+- **Role Requirement:** (TODO: Fill role)
+- **Query Parameters:** (TODO: Fill params)
+- **Success Response:**
+```json
+{
+  "success": true,
+  "data": {}
+}
+```
+- **Business Rules:** (TODO: Add rules)
+
+### Update Category Endpoint
+- **Endpoint:** `PATCH /api/v1/inventory/categories/<int:category_id>`
+- **Authentication:** Required
+- **Role Requirement:** (TODO: Fill role)
+- **Request Body:**
+```json
+{
+}
+```
+- **Success Response:**
+```json
+{
+  "success": true,
+  "data": {}
+}
+```
+- **Business Rules:** (TODO: Add rules)
+
+### Update Category Endpoint
+- **Endpoint:** `PUT /api/v1/inventory/categories/<int:category_id>`
+- **Authentication:** Required
+- **Role Requirement:** (TODO: Fill role)
+- **Request Body:**
+```json
+{
+}
+```
+- **Success Response:**
+```json
+{
+  "success": true,
+  "data": {}
+}
+```
+- **Business Rules:** (TODO: Add rules)
+
+### Low Stock List Endpoint
+- **Endpoint:** `GET /api/v1/inventory/low-stock`
+- **Authentication:** Required
+- **Role Requirement:** (TODO: Fill role)
+- **Query Parameters:** (TODO: Fill params)
+- **Success Response:**
+```json
+{
+  "success": true,
+  "data": {}
+}
+```
+- **Business Rules:** (TODO: Add rules)
+
+### All Movements Endpoint
+- **Endpoint:** `GET /api/v1/inventory/movements`
+- **Authentication:** Required
+- **Role Requirement:** (TODO: Fill role)
+- **Query Parameters:** (TODO: Fill params)
+- **Success Response:**
+```json
+{
+  "success": true,
+  "data": {}
+}
+```
+- **Business Rules:** (TODO: Add rules)
+
+### Create New Product
+- **Endpoint:** `POST /api/v1/inventory/products`
+- **Authentication:** Required
+- **Role Requirement:** (TODO: Fill role)
+- **Request Body:**
+```json
+{
+}
+```
+- **Success Response:**
+```json
+{
+  "success": true,
+  "data": {}
+}
+```
+- **Business Rules:** (TODO: Add rules)
+
+### Get Products
+- **Endpoint:** `GET /api/v1/inventory/products`
+- **Authentication:** Required
+- **Role Requirement:** (TODO: Fill role)
+- **Query Parameters:** (TODO: Fill params)
+- **Success Response:**
+```json
+{
+  "success": true,
+  "data": {}
+}
+```
+- **Business Rules:** (TODO: Add rules)
+
+### Delete Product Endpoint
+- **Endpoint:** `DELETE /api/v1/inventory/products/<int:product_id>`
+- **Authentication:** Required
+- **Role Requirement:** (TODO: Fill role)
+- **Success Response:**
+```json
+{
+  "success": true,
+  "data": {}
+}
+```
+- **Business Rules:** (TODO: Add rules)
+
+### Get Product Detail
+- **Endpoint:** `GET /api/v1/inventory/products/<int:product_id>`
+- **Authentication:** Required
+- **Role Requirement:** (TODO: Fill role)
+- **Query Parameters:** (TODO: Fill params)
+- **Success Response:**
+```json
+{
+  "success": true,
+  "data": {}
+}
+```
+- **Business Rules:** (TODO: Add rules)
+
+### Update Product Endpoint
+- **Endpoint:** `PATCH /api/v1/inventory/products/<int:product_id>`
+- **Authentication:** Required
+- **Role Requirement:** (TODO: Fill role)
+- **Request Body:**
+```json
+{
+}
+```
+- **Success Response:**
+```json
+{
+  "success": true,
+  "data": {}
+}
+```
+- **Business Rules:** (TODO: Add rules)
+
+### Update Product Endpoint
+- **Endpoint:** `PUT /api/v1/inventory/products/<int:product_id>`
+- **Authentication:** Required
+- **Role Requirement:** (TODO: Fill role)
+- **Request Body:**
+```json
+{
+}
+```
+- **Success Response:**
+```json
+{
+  "success": true,
+  "data": {}
+}
+```
+- **Business Rules:** (TODO: Add rules)
+
+### Stock Adjust Endpoint
+- **Endpoint:** `POST /api/v1/inventory/products/<int:product_id>/adjust`
+- **Authentication:** Required
+- **Role Requirement:** (TODO: Fill role)
+- **Request Body:**
+```json
+{
+}
+```
+- **Success Response:**
+```json
+{
+  "success": true,
+  "data": {}
+}
+```
+- **Business Rules:** (TODO: Add rules)
+
+### Product Movements Endpoint
+- **Endpoint:** `GET /api/v1/inventory/products/<int:product_id>/movements`
+- **Authentication:** Required
+- **Role Requirement:** (TODO: Fill role)
+- **Query Parameters:** (TODO: Fill params)
+- **Success Response:**
+```json
+{
+  "success": true,
+  "data": {}
+}
+```
+- **Business Rules:** (TODO: Add rules)
+
+### Restock Product Endpoint
+- **Endpoint:** `POST /api/v1/inventory/products/<int:product_id>/stock-in`
+- **Authentication:** Required
+- **Role Requirement:** (TODO: Fill role)
+- **Request Body:**
+```json
+{
+}
+```
+- **Success Response:**
+```json
+{
+  "success": true,
+  "data": {}
+}
+```
+- **Business Rules:** (TODO: Add rules)
+
+### Stock Out Endpoint
+- **Endpoint:** `POST /api/v1/inventory/products/<int:product_id>/stock-out`
+- **Authentication:** Required
+- **Role Requirement:** (TODO: Fill role)
+- **Request Body:**
+```json
+{
+}
+```
+- **Success Response:**
+```json
+{
+  "success": true,
+  "data": {}
+}
+```
+- **Business Rules:** (TODO: Add rules)
+
+### Validate Cart Endpoint
+- **Endpoint:** `POST /api/v1/inventory/validate`
+- **Authentication:** Required
+- **Role Requirement:** (TODO: Fill role)
+- **Request Body:**
+```json
+{
+}
+```
+- **Success Response:**
+```json
+{
+  "success": true,
+  "data": {}
+}
+```
+- **Business Rules:** (TODO: Add rules)
+
+
+---
+
+## Invoices Endpoints (`/api/v1/invoices`)
+
+### Get Invoices
+- **Endpoint:** `GET /api/v1/invoices`
+- **Authentication:** Required
+- **Role Requirement:** (TODO: Fill role)
+- **Query Parameters:** (TODO: Fill params)
+- **Success Response:**
+```json
+{
+  "success": true,
+  "data": {}
+}
+```
+- **Business Rules:** (TODO: Add rules)
+
+### Post Invoice
+- **Endpoint:** `POST /api/v1/invoices`
+- **Authentication:** Required
+- **Role Requirement:** (TODO: Fill role)
+- **Request Body:**
+```json
+{
+}
+```
+- **Success Response:**
+```json
+{
+  "success": true,
+  "data": {}
+}
+```
+- **Business Rules:** (TODO: Add rules)
+
+### Get Single Invoice
+- **Endpoint:** `GET /api/v1/invoices/<int:invoice_id>`
+- **Authentication:** Required
+- **Role Requirement:** (TODO: Fill role)
+- **Query Parameters:** (TODO: Fill params)
+- **Success Response:**
+```json
+{
+  "success": true,
+  "data": {}
+}
+```
+- **Business Rules:** (TODO: Add rules)
+
+### Put Invoice
+- **Endpoint:** `PUT /api/v1/invoices/<int:invoice_id>`
+- **Authentication:** Required
+- **Role Requirement:** (TODO: Fill role)
+- **Request Body:**
+```json
+{
+}
+```
+- **Success Response:**
+```json
+{
+  "success": true,
+  "data": {}
+}
+```
+- **Business Rules:** (TODO: Add rules)
+
+### Post Issue Invoice
+- **Endpoint:** `POST /api/v1/invoices/<int:invoice_id>/issue`
+- **Authentication:** Required
+- **Role Requirement:** (TODO: Fill role)
+- **Request Body:**
+```json
+{
+}
+```
+- **Success Response:**
+```json
+{
+  "success": true,
+  "data": {}
+}
+```
+- **Business Rules:** (TODO: Add rules)
+
+### Post Pay Invoice
+- **Endpoint:** `POST /api/v1/invoices/<int:invoice_id>/pay`
+- **Authentication:** Required
+- **Role Requirement:** (TODO: Fill role)
+- **Request Body:**
+```json
+{
+}
+```
+- **Success Response:**
+```json
+{
+  "success": true,
+  "data": {}
+}
+```
+- **Business Rules:** (TODO: Add rules)
+
+### Post Void Invoice
+- **Endpoint:** `POST /api/v1/invoices/<int:invoice_id>/void`
+- **Authentication:** Required
+- **Role Requirement:** (TODO: Fill role)
+- **Request Body:**
+```json
+{
+}
+```
+- **Success Response:**
+```json
+{
+  "success": true,
+  "data": {}
+}
+```
+- **Business Rules:** (TODO: Add rules)
+
+### Get Clients
+- **Endpoint:** `GET /api/v1/invoices/clients`
+- **Authentication:** Required
+- **Role Requirement:** (TODO: Fill role)
+- **Query Parameters:** (TODO: Fill params)
+- **Success Response:**
+```json
+{
+  "success": true,
+  "data": {}
+}
+```
+- **Business Rules:** (TODO: Add rules)
+
+### Post Client
+- **Endpoint:** `POST /api/v1/invoices/clients`
+- **Authentication:** Required
+- **Role Requirement:** (TODO: Fill role)
+- **Request Body:**
+```json
+{
+}
+```
+- **Success Response:**
+```json
+{
+  "success": true,
+  "data": {}
+}
+```
+- **Business Rules:** (TODO: Add rules)
+
+### Get Single Client
+- **Endpoint:** `GET /api/v1/invoices/clients/<int:client_id>`
+- **Authentication:** Required
+- **Role Requirement:** (TODO: Fill role)
+- **Query Parameters:** (TODO: Fill params)
+- **Success Response:**
+```json
+{
+  "success": true,
+  "data": {}
+}
+```
+- **Business Rules:** (TODO: Add rules)
+
+### Put Client
+- **Endpoint:** `PUT /api/v1/invoices/clients/<int:client_id>`
+- **Authentication:** Required
+- **Role Requirement:** (TODO: Fill role)
+- **Request Body:**
+```json
+{
+}
+```
+- **Success Response:**
+```json
+{
+  "success": true,
+  "data": {}
+}
+```
+- **Business Rules:** (TODO: Add rules)
+
+### Get Tax Rates
+- **Endpoint:** `GET /api/v1/invoices/tax-rates`
+- **Authentication:** Required
+- **Role Requirement:** (TODO: Fill role)
+- **Query Parameters:** (TODO: Fill params)
+- **Success Response:**
+```json
+{
+  "success": true,
+  "data": {}
+}
+```
+- **Business Rules:** (TODO: Add rules)
+
+### Post Tax Rate
+- **Endpoint:** `POST /api/v1/invoices/tax-rates`
+- **Authentication:** Required
+- **Role Requirement:** (TODO: Fill role)
+- **Request Body:**
+```json
+{
+}
+```
+- **Success Response:**
+```json
+{
+  "success": true,
+  "data": {}
+}
+```
+- **Business Rules:** (TODO: Add rules)
+
+### Get Tax Report
+- **Endpoint:** `GET /api/v1/invoices/tax-summary`
+- **Authentication:** Required
+- **Role Requirement:** (TODO: Fill role)
+- **Query Parameters:** (TODO: Fill params)
+- **Success Response:**
+```json
+{
+  "success": true,
+  "data": {}
+}
+```
+- **Business Rules:** (TODO: Add rules)
+
+
+---
+
+## Pos Endpoints (`/api/v1/pos`)
+
+### Api Daily Sales
+- **Endpoint:** `GET /api/v1/pos/daily-sales`
+- **Authentication:** Required
+- **Role Requirement:** (TODO: Fill role)
+- **Query Parameters:** (TODO: Fill params)
+- **Success Response:**
+```json
+{
+  "success": true,
+  "data": {}
+}
+```
+- **Business Rules:** (TODO: Add rules)
+
+### Api Update Kitchen Status
+- **Endpoint:** `POST /api/v1/pos/kitchen/items/<int:item_id>/status`
+- **Authentication:** Required
+- **Role Requirement:** (TODO: Fill role)
+- **Request Body:**
+```json
+{
+}
+```
+- **Success Response:**
+```json
+{
+  "success": true,
+  "data": {}
+}
+```
+- **Business Rules:** (TODO: Add rules)
+
+### Api Kitchen Queue
+- **Endpoint:** `GET /api/v1/pos/kitchen/queue`
+- **Authentication:** Required
+- **Role Requirement:** (TODO: Fill role)
+- **Query Parameters:** (TODO: Fill params)
+- **Success Response:**
+```json
+{
+  "success": true,
+  "data": {}
+}
+```
+- **Business Rules:** (TODO: Add rules)
+
+### Api Create Menu Item
+- **Endpoint:** `POST /api/v1/pos/menu`
+- **Authentication:** Required
+- **Role Requirement:** (TODO: Fill role)
+- **Request Body:**
+```json
+{
+}
+```
+- **Success Response:**
+```json
+{
+  "success": true,
+  "data": {}
+}
+```
+- **Business Rules:** (TODO: Add rules)
+
+### Api List Menu
+- **Endpoint:** `GET /api/v1/pos/menu`
+- **Authentication:** Required
+- **Role Requirement:** (TODO: Fill role)
+- **Query Parameters:** (TODO: Fill params)
+- **Success Response:**
+```json
+{
+  "success": true,
+  "data": {}
+}
+```
+- **Business Rules:** (TODO: Add rules)
+
+### Api Update Menu Item
+- **Endpoint:** `PATCH /api/v1/pos/menu/<int:item_id>`
+- **Authentication:** Required
+- **Role Requirement:** (TODO: Fill role)
+- **Request Body:**
+```json
+{
+}
+```
+- **Success Response:**
+```json
+{
+  "success": true,
+  "data": {}
+}
+```
+- **Business Rules:** (TODO: Add rules)
+
+### Api Update Menu Item
+- **Endpoint:** `PUT /api/v1/pos/menu/<int:item_id>`
+- **Authentication:** Required
+- **Role Requirement:** (TODO: Fill role)
+- **Request Body:**
+```json
+{
+}
+```
+- **Success Response:**
+```json
+{
+  "success": true,
+  "data": {}
+}
+```
+- **Business Rules:** (TODO: Add rules)
+
+### Api Create Category
+- **Endpoint:** `POST /api/v1/pos/menu/categories`
+- **Authentication:** Required
+- **Role Requirement:** (TODO: Fill role)
+- **Request Body:**
+```json
+{
+}
+```
+- **Success Response:**
+```json
+{
+  "success": true,
+  "data": {}
+}
+```
+- **Business Rules:** (TODO: Add rules)
+
+### Api List Categories
+- **Endpoint:** `GET /api/v1/pos/menu/categories`
+- **Authentication:** Required
+- **Role Requirement:** (TODO: Fill role)
+- **Query Parameters:** (TODO: Fill params)
+- **Success Response:**
+```json
+{
+  "success": true,
+  "data": {}
+}
+```
+- **Business Rules:** (TODO: Add rules)
+
+### Api List Shifts
+- **Endpoint:** `GET /api/v1/pos/shifts`
+- **Authentication:** Required
+- **Role Requirement:** (TODO: Fill role)
+- **Query Parameters:** (TODO: Fill params)
+- **Success Response:**
+```json
+{
+  "success": true,
+  "data": {}
+}
+```
+- **Business Rules:** (TODO: Add rules)
+
+### Api Current Shift
+- **Endpoint:** `GET /api/v1/pos/shifts/current`
+- **Authentication:** Required
+- **Role Requirement:** (TODO: Fill role)
+- **Query Parameters:** (TODO: Fill params)
+- **Success Response:**
+```json
+{
+  "success": true,
+  "data": {}
+}
+```
+- **Business Rules:** (TODO: Add rules)
+
+### Api End Shift
+- **Endpoint:** `POST /api/v1/pos/shifts/end`
+- **Authentication:** Required
+- **Role Requirement:** (TODO: Fill role)
+- **Request Body:**
+```json
+{
+}
+```
+- **Success Response:**
+```json
+{
+  "success": true,
+  "data": {}
+}
+```
+- **Business Rules:** (TODO: Add rules)
+
+### Api Start Shift
+- **Endpoint:** `POST /api/v1/pos/shifts/start`
+- **Authentication:** Required
+- **Role Requirement:** (TODO: Fill role)
+- **Request Body:**
+```json
+{
+}
+```
+- **Success Response:**
+```json
+{
+  "success": true,
+  "data": {}
+}
+```
+- **Business Rules:** (TODO: Add rules)
+
+### Api Create Table
+- **Endpoint:** `POST /api/v1/pos/tables`
+- **Authentication:** Required
+- **Role Requirement:** (TODO: Fill role)
+- **Request Body:**
+```json
+{
+}
+```
+- **Success Response:**
+```json
+{
+  "success": true,
+  "data": {}
+}
+```
+- **Business Rules:** (TODO: Add rules)
+
+### Api List Tables
+- **Endpoint:** `GET /api/v1/pos/tables`
+- **Authentication:** Required
+- **Role Requirement:** (TODO: Fill role)
+- **Query Parameters:** (TODO: Fill params)
+- **Success Response:**
+```json
+{
+  "success": true,
+  "data": {}
+}
+```
+- **Business Rules:** (TODO: Add rules)
+
+### Api Get Table
+- **Endpoint:** `GET /api/v1/pos/tables/<int:table_id>`
+- **Authentication:** Required
+- **Role Requirement:** (TODO: Fill role)
+- **Query Parameters:** (TODO: Fill params)
+- **Success Response:**
+```json
+{
+  "success": true,
+  "data": {}
+}
+```
+- **Business Rules:** (TODO: Add rules)
+
+### Api Update Table
+- **Endpoint:** `PATCH /api/v1/pos/tables/<int:table_id>`
+- **Authentication:** Required
+- **Role Requirement:** (TODO: Fill role)
+- **Request Body:**
+```json
+{
+}
+```
+- **Success Response:**
+```json
+{
+  "success": true,
+  "data": {}
+}
+```
+- **Business Rules:** (TODO: Add rules)
+
+### Api Update Table
+- **Endpoint:** `PUT /api/v1/pos/tables/<int:table_id>`
+- **Authentication:** Required
+- **Role Requirement:** (TODO: Fill role)
+- **Request Body:**
+```json
+{
+}
+```
+- **Success Response:**
+```json
+{
+  "success": true,
+  "data": {}
+}
+```
+- **Business Rules:** (TODO: Add rules)
+
+### Api List Tabs
+- **Endpoint:** `GET /api/v1/pos/tabs`
+- **Authentication:** Required
+- **Role Requirement:** (TODO: Fill role)
+- **Query Parameters:** (TODO: Fill params)
+- **Success Response:**
+```json
+{
+  "success": true,
+  "data": {}
+}
+```
+- **Business Rules:** (TODO: Add rules)
+
+### Api Open Tab
+- **Endpoint:** `POST /api/v1/pos/tabs`
+- **Authentication:** Required
+- **Role Requirement:** (TODO: Fill role)
+- **Request Body:**
+```json
+{
+}
+```
+- **Success Response:**
+```json
+{
+  "success": true,
+  "data": {}
+}
+```
+- **Business Rules:** (TODO: Add rules)
+
+### Api Get Tab
+- **Endpoint:** `GET /api/v1/pos/tabs/<int:tab_id>`
+- **Authentication:** Required
+- **Role Requirement:** (TODO: Fill role)
+- **Query Parameters:** (TODO: Fill params)
+- **Success Response:**
+```json
+{
+  "success": true,
+  "data": {}
+}
+```
+- **Business Rules:** (TODO: Add rules)
+
+### Api Close Tab
+- **Endpoint:** `POST /api/v1/pos/tabs/<int:tab_id>/close`
+- **Authentication:** Required
+- **Role Requirement:** (TODO: Fill role)
+- **Request Body:**
+```json
+{
+}
+```
+- **Success Response:**
+```json
+{
+  "success": true,
+  "data": {}
+}
+```
+- **Business Rules:** (TODO: Add rules)
+
+### Api Add Items
+- **Endpoint:** `POST /api/v1/pos/tabs/<int:tab_id>/items`
+- **Authentication:** Required
+- **Role Requirement:** (TODO: Fill role)
+- **Request Body:**
+```json
+{
+}
+```
+- **Success Response:**
+```json
+{
+  "success": true,
+  "data": {}
+}
+```
+- **Business Rules:** (TODO: Add rules)
+
+### Api Send To Kitchen
+- **Endpoint:** `POST /api/v1/pos/tabs/<int:tab_id>/kitchen/send`
+- **Authentication:** Required
+- **Role Requirement:** (TODO: Fill role)
+- **Request Body:**
+```json
+{
+}
+```
+- **Success Response:**
+```json
+{
+  "success": true,
+  "data": {}
+}
+```
+- **Business Rules:** (TODO: Add rules)
+
+### Api Pay Tab
+- **Endpoint:** `POST /api/v1/pos/tabs/<int:tab_id>/pay`
+- **Authentication:** Required
+- **Role Requirement:** (TODO: Fill role)
+- **Request Body:**
+```json
+{
+}
+```
+- **Success Response:**
+```json
+{
+  "success": true,
+  "data": {}
+}
+```
+- **Business Rules:** (TODO: Add rules)
+
+### Api Void Tab
+- **Endpoint:** `POST /api/v1/pos/tabs/<int:tab_id>/void`
+- **Authentication:** Required
+- **Role Requirement:** (TODO: Fill role)
+- **Request Body:**
+```json
+{
+}
+```
+- **Success Response:**
+```json
+{
+  "success": true,
+  "data": {}
+}
+```
+- **Business Rules:** (TODO: Add rules)
+
+
+---
+
+## Reports Endpoints (`/api/v1/reports`)
+
+### Get Bar Report
+- **Endpoint:** `GET /api/v1/reports/bar`
+- **Authentication:** Required
+- **Role Requirement:** (TODO: Fill role)
+- **Query Parameters:** (TODO: Fill params)
+- **Success Response:**
+```json
+{
+  "success": true,
+  "data": {}
+}
+```
+- **Business Rules:** (TODO: Add rules)
+
+### Get Courts Report
+- **Endpoint:** `GET /api/v1/reports/courts`
+- **Authentication:** Required
+- **Role Requirement:** (TODO: Fill role)
+- **Query Parameters:** (TODO: Fill params)
+- **Success Response:**
+```json
+{
+  "success": true,
+  "data": {}
+}
+```
+- **Business Rules:** (TODO: Add rules)
+
+### Get Overview
+- **Endpoint:** `GET /api/v1/reports/dashboard`
+- **Authentication:** Required
+- **Role Requirement:** (TODO: Fill role)
+- **Query Parameters:** (TODO: Fill params)
+- **Success Response:**
+```json
+{
+  "success": true,
+  "data": {}
+}
+```
+- **Business Rules:** (TODO: Add rules)
+
+### Export Report Excel
+- **Endpoint:** `POST /api/v1/reports/export`
+- **Authentication:** Required
+- **Role Requirement:** (TODO: Fill role)
+- **Request Body:**
+```json
+{
+}
+```
+- **Success Response:**
+```json
+{
+  "success": true,
+  "data": {}
+}
+```
+- **Business Rules:** (TODO: Add rules)
+
+### Get Memberships Report
+- **Endpoint:** `GET /api/v1/reports/memberships`
+- **Authentication:** Required
+- **Role Requirement:** (TODO: Fill role)
+- **Query Parameters:** (TODO: Fill params)
+- **Success Response:**
+```json
+{
+  "success": true,
+  "data": {}
+}
+```
+- **Business Rules:** (TODO: Add rules)
+
+### Get Operations
+- **Endpoint:** `GET /api/v1/reports/operations`
+- **Authentication:** Required
+- **Role Requirement:** (TODO: Fill role)
+- **Query Parameters:** (TODO: Fill params)
+- **Success Response:**
+```json
+{
+  "success": true,
+  "data": {}
+}
+```
+- **Business Rules:** (TODO: Add rules)
+
+### Get Overview
+- **Endpoint:** `GET /api/v1/reports/overview`
+- **Authentication:** Required
+- **Role Requirement:** (TODO: Fill role)
+- **Query Parameters:** (TODO: Fill params)
+- **Success Response:**
+```json
+{
+  "success": true,
+  "data": {}
+}
+```
+- **Business Rules:** (TODO: Add rules)
+
+### Get Revenue
+- **Endpoint:** `GET /api/v1/reports/revenue`
+- **Authentication:** Required
+- **Role Requirement:** (TODO: Fill role)
+- **Query Parameters:** (TODO: Fill params)
+- **Success Response:**
+```json
+{
+  "success": true,
+  "data": {}
+}
+```
+- **Business Rules:** (TODO: Add rules)
+
+### Get Shop Report
+- **Endpoint:** `GET /api/v1/reports/shop`
+- **Authentication:** Required
+- **Role Requirement:** (TODO: Fill role)
+- **Query Parameters:** (TODO: Fill params)
+- **Success Response:**
+```json
+{
+  "success": true,
+  "data": {}
+}
+```
+- **Business Rules:** (TODO: Add rules)
+
+
+---
+
+## Shop Endpoints (`/api/v1/shop`)
+
+### Create Order Endpoint
+- **Endpoint:** `POST /api/v1/shop/orders`
+- **Authentication:** Required
+- **Role Requirement:** (TODO: Fill role)
+- **Request Body:**
+```json
+{
+}
+```
+- **Success Response:**
+```json
+{
+  "success": true,
+  "data": {}
+}
+```
+- **Business Rules:** (TODO: Add rules)
+
+### List Orders Endpoint
+- **Endpoint:** `GET /api/v1/shop/orders`
+- **Authentication:** Required
+- **Role Requirement:** (TODO: Fill role)
+- **Query Parameters:** (TODO: Fill params)
+- **Success Response:**
+```json
+{
+  "success": true,
+  "data": {}
+}
+```
+- **Business Rules:** (TODO: Add rules)
+
+### Get Order Endpoint
+- **Endpoint:** `GET /api/v1/shop/orders/<int:order_id>`
+- **Authentication:** Required
+- **Role Requirement:** (TODO: Fill role)
+- **Query Parameters:** (TODO: Fill params)
+- **Success Response:**
+```json
+{
+  "success": true,
+  "data": {}
+}
+```
+- **Business Rules:** (TODO: Add rules)
+
+### Cancel Order Endpoint
+- **Endpoint:** `POST /api/v1/shop/orders/<int:order_id>/cancel`
+- **Authentication:** Required
+- **Role Requirement:** (TODO: Fill role)
+- **Request Body:**
+```json
+{
+}
+```
+- **Success Response:**
+```json
+{
+  "success": true,
+  "data": {}
+}
+```
+- **Business Rules:** (TODO: Add rules)
+
+### Update Status Endpoint
+- **Endpoint:** `POST /api/v1/shop/orders/<int:order_id>/status`
+- **Authentication:** Required
+- **Role Requirement:** (TODO: Fill role)
+- **Request Body:**
+```json
+{
+}
+```
+- **Success Response:**
+```json
+{
+  "success": true,
+  "data": {}
+}
+```
+- **Business Rules:** (TODO: Add rules)
+
+### My Orders Endpoint
+- **Endpoint:** `GET /api/v1/shop/orders/my-orders`
+- **Authentication:** Required
+- **Role Requirement:** (TODO: Fill role)
+- **Query Parameters:** (TODO: Fill params)
+- **Success Response:**
+```json
+{
+  "success": true,
+  "data": {}
+}
+```
+- **Business Rules:** (TODO: Add rules)
+
