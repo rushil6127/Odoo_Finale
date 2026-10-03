@@ -8,14 +8,22 @@ def success_response(
     status_code: int = 200,
     meta: Optional[Dict[str, Any]] = None,
 ):
-    """Generate a standard success JSON response."""
+    """Generate a standard success JSON response.
+
+    Envelope:
+    {
+        "success": true,
+        "data": {},
+        "message": "optional",
+        "meta": {}
+    }
+    """
     payload = {
         "success": True,
+        "data": data if data is not None else {},
     }
     if message is not None:
         payload["message"] = message
-    if data is not None:
-        payload["data"] = data
     if meta is not None:
         payload["meta"] = meta
 
@@ -28,7 +36,18 @@ def error_response(
     status_code: int = 400,
     details: Optional[Any] = None,
 ):
-    """Generate a standard error JSON response."""
+    """Generate a standard error JSON response.
+
+    Envelope:
+    {
+        "success": false,
+        "error": {
+            "code": "ERROR_CODE",
+            "message": "Human readable message",
+            "details": {}
+        }
+    }
+    """
     error_obj = {
         "code": code,
         "message": message,

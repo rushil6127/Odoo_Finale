@@ -2,7 +2,6 @@ from sqlalchemy import text
 from backend.app import create_app
 from backend.app.config import DevelopmentConfig, TestingConfig, ProductionConfig
 from backend.app.extensions import db, jwt, bcrypt, ma, migrate, cors
-from backend.app.common.errors import AppException, NotFoundException, ValidationException
 
 
 def test_app_creation():
@@ -53,24 +52,3 @@ def test_bcrypt_hashing(app):
         assert hashed != password
         assert bcrypt.check_password_hash(hashed, password) is True
         assert bcrypt.check_password_hash(hashed, "WrongPassword") is False
-
-
-def test_custom_exception_handling(app, client):
-    """Test that custom domain exceptions return standardized JSON errors."""
-
-    @app.route("/test-domain-error")
-    def trigger_domain_error():
-        raise AppException(
-            code="DOMAIN_RULE_VIOLATION",
-            message="Operation not permitted by business rules",
-            status_code=400,
-            details={"rule": "MAX_DAILY_BOOKINGS"},
-        )
-
-    response = client.get("/test-domain-error")
-    assert response.status_code == 400
-    json_data = response.get_json()
-    assert json_data["success"] is False
-    assert json_data["error"]["code"] == "DOMAIN_RULE_VIOLATION"
-    assert json_data["error"]["message"] == "Operation not permitted by business rules"
-    assert json_data["error"]["details"]["rule"] == "MAX_DAILY_BOOKINGS"

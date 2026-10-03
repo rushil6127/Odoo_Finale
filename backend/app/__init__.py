@@ -36,8 +36,8 @@ def create_app(config_name: str = None) -> Flask:
         resources={r"/api/*": {"origins": cors_origins}, r"/health": {"origins": "*"}},
     )
 
-    # Register custom error handlers
-    register_error_handlers(app)
+    # Register custom JSON error handlers & JWT callbacks
+    register_error_handlers(app, jwt)
 
     # Register blueprints
     app.register_blueprint(health_bp)
