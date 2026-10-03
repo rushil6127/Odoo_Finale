@@ -175,6 +175,12 @@ export interface AuthUserProfile {
   membershipStatus: MembershipStatus;
   membershipExpiry: string;
   joinDate: string;
+  membershipStartDate?: string;
+  membership_plan?: string;
+  membership_status?: string;
+  membership_start_date?: string;
+  membership_end_date?: string;
+  active_membership?: any;
   walletBalance: number;
   clubTabsOutstanding: number;
   avatarUrl?: string;
@@ -633,10 +639,46 @@ export function enrichUserProfile(parsed: any): (AuthUserProfile & AuthUser) | n
   }
   if (!parsed.memberCode) parsed.memberCode = `CC-${(parsed.role || "MEM").toUpperCase()}-${parsed.id || 101}`;
   if (!parsed.phone) parsed.phone = "+91 98765 43210";
-  if (!parsed.membershipPlan) parsed.membershipPlan = "GOLD";
-  if (!parsed.membershipStatus) parsed.membershipStatus = "ACTIVE";
-  if (!parsed.membershipExpiry) parsed.membershipExpiry = "March 31, 2027";
-  if (!parsed.joinDate) parsed.joinDate = "January 15, 2024";
+
+  // Dynamic membership plan binding
+  if (parsed.membership_plan) {
+    parsed.membershipPlan = parsed.membership_plan.toUpperCase();
+  } else if (parsed.active_membership?.plan?.code) {
+    parsed.membershipPlan = parsed.active_membership.plan.code.toUpperCase();
+  } else if (!parsed.membershipPlan) {
+    parsed.membershipPlan = "GOLD";
+  }
+
+  // Dynamic membership status binding
+  if (parsed.membership_status) {
+    parsed.membershipStatus = parsed.membership_status;
+  } else if (parsed.active_membership?.status) {
+    parsed.membershipStatus = parsed.active_membership.status;
+  } else if (!parsed.membershipStatus) {
+    parsed.membershipStatus = "ACTIVE";
+  }
+
+  // Dynamic membership expiry / end date
+  if (parsed.membership_end_date) {
+    parsed.membershipExpiry = parsed.membership_end_date;
+  } else if (parsed.active_membership?.end_date) {
+    parsed.membershipExpiry = parsed.active_membership.end_date;
+  } else if (!parsed.membershipExpiry) {
+    parsed.membershipExpiry = "October 2, 2027";
+  }
+
+  // Dynamic membership start date
+  if (parsed.membership_start_date) {
+    parsed.joinDate = parsed.membership_start_date;
+    parsed.membershipStartDate = parsed.membership_start_date;
+  } else if (parsed.active_membership?.start_date) {
+    parsed.joinDate = parsed.active_membership.start_date;
+    parsed.membershipStartDate = parsed.active_membership.start_date;
+  } else if (!parsed.joinDate) {
+    parsed.joinDate = "October 3, 2026";
+    parsed.membershipStartDate = "October 3, 2026";
+  }
+
   if (parsed.walletBalance === undefined) parsed.walletBalance = 8500;
   if (parsed.clubTabsOutstanding === undefined) parsed.clubTabsOutstanding = 1250;
   if (!parsed.crmInquiries || !Array.isArray(parsed.crmInquiries)) parsed.crmInquiries = DEMO_MEMBERS.alex.crmInquiries;

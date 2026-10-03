@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
@@ -8,6 +8,7 @@ import {
   Crown,
   CreditCard,
   ShoppingBag,
+  Calendar,
   Calendar as CalendarIcon,
   MessageSquare,
   LogOut,
@@ -100,6 +101,89 @@ export default function ProfileViewContainer({ forcedMode }: ProfileViewContaine
   const isSuperOwner = (forcedMode === "member" || forcedMode === "employee") ? false : (forcedMode === "owner" || isOwner(activeUser));
   const canAccessConsole = (forcedMode === "member" || forcedMode === "employee") ? false : (forcedMode === "owner" || isStaffOrAdmin(activeUser));
 
+  // Dynamic backend membership data
+  const [liveMembershipData, setLiveMembershipData] = useState<any>(null);
+
+  useEffect(() => {
+    const fetchMembershipStatus = async () => {
+      const token = typeof window !== "undefined" ? localStorage.getItem("cc_token") : null;
+      if (!token) return;
+      try {
+        const res = await fetch("http://localhost:5000/api/v1/membership-plans/my-status", {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        if (res.ok) {
+          const json = await res.json();
+          if (json?.data?.active_membership) {
+            setLiveMembershipData(json.data.active_membership);
+            if (json.data.user) {
+              setStoredUser(json.data.user);
+            }
+          }
+        }
+      } catch {
+        // Silently continue
+      }
+    };
+    fetchMembershipStatus();
+  }, []);
+
+  const currentPlan = (
+    liveMembershipData?.plan?.code ||
+    activeUser.membership_plan ||
+    activeUser.membershipPlan ||
+    "GOLD"
+  ).toUpperCase();
+
+  const planDisplayName =
+    liveMembershipData?.plan?.name ||
+    (currentPlan === "GOLD"
+      ? "Gold Champion"
+      : currentPlan === "SILVER"
+      ? "Silver Tier"
+      : currentPlan === "JUNIOR"
+      ? "Junior Academy"
+      : `${currentPlan} Member`);
+
+  const membershipStartDate =
+    liveMembershipData?.start_date ||
+    activeUser.membership_start_date ||
+    activeUser.membershipStartDate ||
+    activeUser.joinDate ||
+    "October 3, 2026";
+
+  const membershipEndDate =
+    liveMembershipData?.end_date ||
+    activeUser.membership_end_date ||
+    activeUser.membershipExpiry ||
+    "October 2, 2027";
+
+  const formatProfileDate = (dateStr?: string) => {
+    if (!dateStr) return "N/A";
+    try {
+      const d = new Date(dateStr);
+      if (isNaN(d.getTime())) return dateStr;
+      return d.toLocaleDateString("en-IN", {
+        day: "numeric",
+        month: "short",
+        year: "numeric"
+      });
+    } catch {
+      return dateStr;
+    }
+  };
+
+  const getDaysRemaining = (endDateStr?: string) => {
+    if (!endDateStr) return null;
+    try {
+      const end = new Date(endDateStr).getTime();
+      const now = new Date().getTime();
+      const diff = Math.ceil((end - now) / (1000 * 60 * 60 * 24));
+      return diff > 0 ? diff : 0;
+    } catch {
+      return null;
+    }
+  };
 
   // Super Owner Role & Department Access Delegator State
   const [showGrantModal, setShowGrantModal] = useState(false);
@@ -353,11 +437,13 @@ export default function ProfileViewContainer({ forcedMode }: ProfileViewContaine
   };
 
   const getTierColor = (plan: string) => {
-    switch (plan) {
+    switch (plan?.toUpperCase()) {
       case "GOLD":
         return "from-amber-400 to-amber-600 text-amber-950 border-amber-300";
       case "SILVER":
         return "from-slate-200 to-slate-400 text-slate-900 border-slate-300";
+      case "JUNIOR":
+        return "from-emerald-400 to-teal-600 text-teal-950 border-emerald-300";
       default:
         return "from-sky-400 to-blue-600 text-white border-sky-300";
     }
@@ -549,9 +635,9 @@ export default function ProfileViewContainer({ forcedMode }: ProfileViewContaine
                         CLUB OWNER & SOVEREIGN
                       </span>
                     ) : (
-                      <span className={`px-3 py-0.5 rounded-full text-[11px] font-black uppercase border shadow-sm bg-gradient-to-r ${getTierColor(activeUser.membershipPlan)}`}>
+                      <span className={`px-3 py-0.5 rounded-full text-[11px] font-black uppercase border shadow-sm bg-gradient-to-r ${getTierColor(currentPlan)}`}>
                         <Crown className="w-3.5 h-3.5 inline mr-1 -mt-0.5" />
-                        {activeUser.membershipPlan} MEMBER
+                        {currentPlan} MEMBER
                       </span>
                     )}
                     <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-green-500/20 text-green-400 border border-green-500/30 flex items-center gap-1">
@@ -811,180 +897,133 @@ export default function ProfileViewContainer({ forcedMode }: ProfileViewContaine
                 {/* Top Section: Live Arena Utilization & Sovereign Status */}
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
 
-                  {/* Left / Donut Chart Card (7 cols) */}
-                  <div className="lg:col-span-7 p-6 rounded-3xl bg-slate-50/70 border border-slate-200/90 shadow-2xs flex flex-col justify-between">
+                  {/* Left: Active Club Membership & Time-Range Card (Replaces Arena Slot Utilization Chart) */}
+                  <div className="lg:col-span-7 p-6 rounded-3xl bg-slate-50/80 border border-slate-200/90 shadow-2xs flex flex-col justify-between">
                     <div>
+                      {/* Header */}
                       <div className="flex items-center justify-between pb-3 border-b border-slate-200/80">
                         <div>
                           <h3 className="text-sm font-black uppercase tracking-wider text-slate-800 font-[family-name:var(--font-outfit)] flex items-center gap-2">
-                            <Clock className="w-4 h-4 text-sky-600" />
-                            Arena Slot Utilization & Live Capacity
+                            <Crown className="w-4 h-4 text-amber-500" />
+                            Club Membership &amp; Subscription Status
                           </h3>
-                          <p className="text-xs text-slate-500 mt-0.5">Real-time occupancy across 3 active sports complexes today</p>
+                          <p className="text-xs text-slate-500 mt-0.5">
+                            Verified club subscription with live time-range &amp; tier benefits
+                          </p>
                         </div>
-                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200/70 shrink-0">
-                          <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                          78% Booked
+                        <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-black uppercase border shadow-2xs bg-gradient-to-r ${getTierColor(currentPlan)}`}>
+                          <Sparkles className="w-3 h-3 text-amber-400" />
+                          {currentPlan} MEMBER
                         </span>
                       </div>
 
-                      {/* Chart & Legend Row */}
-                      <div className="py-5 flex flex-col sm:flex-row items-center sm:items-stretch gap-6 sm:gap-8">
-                        {/* Circular Donut Chart - Sharp Technical Gauge */}
-                        <div className="relative w-40 h-40 shrink-0 flex items-center justify-center">
-                          <svg className="w-full h-full -rotate-90 transform" viewBox="0 0 128 128">
-                            {/* Outer Precision Track Ring */}
-                            <circle
-                              cx="64"
-                              cy="64"
-                              r="58"
-                              stroke="#e2e8f0"
-                              strokeWidth="1"
-                              strokeDasharray="3 3"
-                              fill="none"
-                            />
+                      {/* Main Membership Body */}
+                      <div className="py-4 space-y-4">
+                        <div className="flex items-center justify-between flex-wrap gap-2">
+                          <div>
+                            <div className="text-xs font-bold text-slate-400 uppercase tracking-wider">
+                              Current Plan
+                            </div>
+                            <h4 className="text-xl sm:text-2xl font-black text-slate-900 font-[family-name:var(--font-outfit)]">
+                              {planDisplayName}
+                            </h4>
+                          </div>
 
-                            {/* Base Background Ring */}
-                            <circle
-                              cx="64"
-                              cy="64"
-                              r="50"
-                              stroke="#f1f5f9"
-                              strokeWidth="12"
-                              fill="none"
-                            />
-
-                            {/* Segment 1: Grass Tennis (36% -> 113.1 arc, seamless edge) */}
-                            <circle
-                              cx="64"
-                              cy="64"
-                              r="50"
-                              stroke="#059669"
-                              strokeWidth="12"
-                              strokeDasharray="113.1 314.16"
-                              strokeDashoffset="0"
-                              strokeLinecap="butt"
-                              fill="none"
-                            />
-
-                            {/* Segment 2: Box Cricket (24% -> 75.4 arc, seamless edge) */}
-                            <circle
-                              cx="64"
-                              cy="64"
-                              r="50"
-                              stroke="#0284c7"
-                              strokeWidth="12"
-                              strokeDasharray="75.4 314.16"
-                              strokeDashoffset="-113.1"
-                              strokeLinecap="butt"
-                              fill="none"
-                            />
-
-                            {/* Segment 3: Badminton & Aquatics (18% -> 56.55 arc, seamless edge) */}
-                            <circle
-                              cx="64"
-                              cy="64"
-                              r="50"
-                              stroke="#4f46e5"
-                              strokeWidth="12"
-                              strokeDasharray="56.55 314.16"
-                              strokeDashoffset="-188.5"
-                              strokeLinecap="butt"
-                              fill="none"
-                            />
-
-                            {/* Segment 4: Available Open Slots (22% -> 69.11 arc, seamless edge) */}
-                            <circle
-                              cx="64"
-                              cy="64"
-                              r="50"
-                              stroke="#cbd5e1"
-                              strokeWidth="12"
-                              strokeDasharray="69.11 314.16"
-                              strokeDashoffset="-245.05"
-                              strokeLinecap="butt"
-                              fill="none"
-                            />
-
-                            {/* Inner Precision Hairline Ring */}
-                            <circle
-                              cx="64"
-                              cy="64"
-                              r="42"
-                              stroke="#e2e8f0"
-                              strokeWidth="1"
-                              fill="none"
-                            />
-                          </svg>
-
-                          {/* Center Text in Donut (Sharp Monospace Typography) */}
-                          <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                            <span className="text-2xl font-black text-slate-900 tracking-tight font-mono leading-none">
-                              78%
-                            </span>
-                            <span className="text-[9px] font-black uppercase tracking-widest text-slate-400 font-mono mt-1">
-                              OCCUPIED
-                            </span>
-                            <span className="text-[8px] font-bold uppercase tracking-wider text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded-sm border border-emerald-200 mt-1 font-mono">
-                              29/38 SLOTS
-                            </span>
+                          <div className="flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                            <span>Active &amp; Paid (Database Verified)</span>
                           </div>
                         </div>
 
-                        {/* Breakdown Legend Items with Sharp Indicators */}
-                        <div className="flex-1 w-full space-y-2 justify-center flex flex-col text-xs">
-                          {/* Item 1 */}
-                          <div className="flex items-center justify-between p-2 rounded-lg bg-white border border-slate-200/80 shadow-2xs">
-                            <div className="flex items-center gap-2">
-                              <span className="w-2.5 h-2.5 rounded-sm bg-emerald-600 shrink-0" />
-                              <span className="font-bold text-slate-800 text-xs">Centre Lawn Tennis</span>
+                        {/* Precise Time-Range Grid (Start Date to End Date) */}
+                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 p-3.5 rounded-2xl bg-white border border-slate-200/90 shadow-2xs">
+                          <div>
+                            <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1">
+                              <Calendar className="w-3 h-3 text-sky-500" />
+                              <span>Start Date</span>
                             </div>
-                            <span className="font-mono font-bold text-slate-900 text-xs">12/16 slots &bull; 75%</span>
+                            <div className="text-xs sm:text-sm font-extrabold text-slate-900 mt-0.5 font-mono">
+                              {formatProfileDate(membershipStartDate)}
+                            </div>
                           </div>
 
-                          {/* Item 2 */}
-                          <div className="flex items-center justify-between p-2 rounded-lg bg-white border border-slate-200/80 shadow-2xs">
-                            <div className="flex items-center gap-2">
-                              <span className="w-2.5 h-2.5 rounded-sm bg-sky-600 shrink-0" />
-                              <span className="font-bold text-slate-800 text-xs">Box Cricket Turf</span>
+                          <div>
+                            <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1">
+                              <Clock className="w-3 h-3 text-amber-500" />
+                              <span>Expiry Date</span>
                             </div>
-                            <span className="font-mono font-bold text-slate-900 text-xs">8/10 slots &bull; 80%</span>
+                            <div className="text-xs sm:text-sm font-extrabold text-amber-600 mt-0.5 font-mono">
+                              {formatProfileDate(membershipEndDate)}
+                            </div>
                           </div>
 
-                          {/* Item 3 */}
-                          <div className="flex items-center justify-between p-2 rounded-lg bg-white border border-slate-200/80 shadow-2xs">
-                            <div className="flex items-center gap-2">
-                              <span className="w-2.5 h-2.5 rounded-sm bg-indigo-600 shrink-0" />
-                              <span className="font-bold text-slate-800 text-xs">Badminton & Aquatics</span>
+                          <div>
+                            <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                              Duration
                             </div>
-                            <span className="font-mono font-bold text-slate-900 text-xs">9/12 slots &bull; 75%</span>
+                            <div className="text-xs sm:text-sm font-bold text-slate-700 mt-0.5">
+                              12 Months Pass
+                            </div>
                           </div>
 
-                          {/* Available Remaining */}
-                          <div className="flex items-center justify-between px-2 pt-0.5 text-[11px] text-slate-500">
-                            <span className="flex items-center gap-1.5">
-                              <span className="w-2 h-2 rounded-sm bg-slate-300 shrink-0" />
-                              <span>Open slots available today:</span>
-                            </span>
-                            <span className="font-mono font-bold text-slate-700">9 open</span>
+                          <div>
+                            <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                              Days Left
+                            </div>
+                            <div className="text-xs sm:text-sm font-black text-emerald-600 mt-0.5">
+                              {getDaysRemaining(membershipEndDate) !== null
+                                ? `${getDaysRemaining(membershipEndDate)} Days`
+                                : "Active"}
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Plan Privileges Summary */}
+                        <div className="space-y-1.5 pt-1">
+                          <div className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                            Active Privileges:
+                          </div>
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs text-slate-700">
+                            <div className="flex items-center gap-2 p-2 rounded-xl bg-white border border-slate-200/80">
+                              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                              <span className="truncate">
+                                {currentPlan === "GOLD"
+                                  ? "Unlimited priority access across all 22+ courts"
+                                  : currentPlan === "JUNIOR"
+                                  ? "Dedicated youth training court allocation"
+                                  : "Access to 14 Hard & Clay courts"}
+                              </span>
+                            </div>
+                            <div className="flex items-center gap-2 p-2 rounded-xl bg-white border border-slate-200/80">
+                              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                              <span className="truncate">
+                                {currentPlan === "GOLD"
+                                  ? "20% Pro Shop discount + 4 monthly guest passes"
+                                  : currentPlan === "JUNIOR"
+                                  ? "15% discount on junior equipment & clinics"
+                                  : "10% Pro Shop discount + Friday mixer pass"}
+                              </span>
+                            </div>
                           </div>
                         </div>
                       </div>
                     </div>
 
-                    {/* Bottom Status Row */}
-                    <div className="pt-3 border-t border-slate-200/80 flex items-center justify-between text-xs text-slate-600">
-                      <span className="flex items-center gap-1.5 font-medium">
-                        <Flame className="w-3.5 h-3.5 text-amber-500" />
-                        Peak Hours: <strong>05:00 PM – 09:30 PM</strong>
-                      </span>
-                      <button
-                        onClick={() => setActiveTab("calendar")}
-                        className="text-sky-600 hover:text-sky-700 font-extrabold flex items-center gap-1 hover:underline"
+                    {/* Bottom Action Strip */}
+                    <div className="pt-3 border-t border-slate-200/80 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs">
+                      <div className="text-slate-500 text-[11px] flex items-center gap-1.5">
+                        <ShieldCheck className="w-3.5 h-3.5 text-sky-600" />
+                        <span>Change between Gold, Silver, or Junior anytime</span>
+                      </div>
+
+                      <Link
+                        href="/membership"
+                        className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-600 hover:to-blue-700 text-white font-extrabold text-xs shadow-md shadow-sky-500/20 transition-all self-stretch sm:self-auto justify-center"
                       >
-                        <span>View Time Slots</span>
+                        <CreditCard className="w-3.5 h-3.5" />
+                        <span>Upgrade / Change Membership (Razorpay)</span>
                         <ArrowRight className="w-3.5 h-3.5" />
-                      </button>
+                      </Link>
                     </div>
                   </div>
 

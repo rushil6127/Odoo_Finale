@@ -21,8 +21,15 @@ import type { ApiResponse } from "@/types/api";
    Configuration
    ============================================================ */
 
-const BASE_URL: string =
-  process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5000/api/v1";
+const rawBaseUrl = (
+  process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api/v1"
+).replace(/\/+$/, "");
+
+const BASE_URL: string = rawBaseUrl.endsWith("/api/v1")
+  ? rawBaseUrl
+  : rawBaseUrl.endsWith("/api")
+  ? `${rawBaseUrl}/v1`
+  : `${rawBaseUrl}/api/v1`;
 
 /* ============================================================
    Token Accessor
