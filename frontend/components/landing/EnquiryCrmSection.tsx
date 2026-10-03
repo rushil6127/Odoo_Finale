@@ -212,9 +212,10 @@ export default function EnquiryCrmSection() {
                       >
                         <option value="Lawn Tennis">Lawn Tennis (Grass/Clay/Hard)</option>
                         <option value="Badminton">Badminton (Wooden Court)</option>
-                        <option value="Padel">Padel (Glass Arena)</option>
-                        <option value="Squash">Squash</option>
-                        <option value="Swimming">Olympic Swimming</option>
+                        <option value="Box Cricket">Box Cricket (Floodlit Arena)</option>
+                        <option value="Table Tennis">Table Tennis (Olympic Arena)</option>
+                        <option value="Volleyball">Beach Volleyball (Sand Pit)</option>
+                        <option value="Swimming">Olympic Swimming (Aquatic Pavilion)</option>
                       </select>
                     </div>
                   </div>

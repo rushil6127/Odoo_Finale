@@ -19,7 +19,8 @@ import {
   Waves,
   CircleDot,
   Target,
-  Layers
+  Layers,
+  Volleyball
 } from "lucide-react";
 
 export default function HeroSection() {
@@ -41,9 +42,9 @@ export default function HeroSection() {
   const sports = [
     { id: "tennis", name: "Lawn Tennis", count: "4 Courts", icon: CircleDot },
     { id: "cricket", name: "Box Cricket", count: "2 Arenas", icon: Target },
-    { id: "table-tennis", name: "Table Tennis", count: "6 Tables", icon: Layers },
+    { id: "table-tennis", name: "Table Tennis", count: "2 Tables", icon: Layers },
     { id: "badminton", name: "Badminton", count: "6 Arenas", icon: Activity },
-    { id: "padel", name: "Padel", count: "4 Courts", icon: Trophy },
+    { id: "volleyball", name: "Volleyball", count: "Sand Arena", icon: Volleyball },
     { id: "swimming", name: "Olympic Pool", count: "Heated 50m", icon: Waves },
   ];
 

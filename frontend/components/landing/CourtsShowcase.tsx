@@ -29,7 +29,9 @@ import {
   Layers,
   Waves,
   CircleDot,
-  Target
+  Target,
+  GraduationCap,
+  Volleyball
 } from "lucide-react";
 import { apiClient } from "@/lib/api/client";
 import { useCurrentUser, getStoredToken, setStoredToken, isOwner, setStoredUser } from "@/lib/auth";
@@ -505,76 +507,78 @@ export default function CourtsShowcase() {
             Dynamic real-time reservation connected to our club management system. Members enjoy exclusive tiered discounts with zero court booking fees for Gold Champions.
           </p>
 
-          {/* Member Tier Benefits Banner */}
-          <div className="mt-6 p-4 rounded-2xl bg-white border border-slate-200/90 shadow-xs flex flex-wrap items-center justify-around gap-4 text-xs">
-            <div className="flex items-center gap-2">
-              <span className="w-6 h-6 rounded-full bg-amber-100 flex items-center justify-center text-amber-700 font-black">
-                👑
+          {/* Member Tier Benefits Banner - Clean Responsive Grid with Professional Lucide Icons */}
+          <div className="mt-6 p-3 sm:p-4 rounded-2xl bg-white/95 border border-sky-100 shadow-sm backdrop-blur-md grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 text-xs max-w-4xl mx-auto">
+            <div className="flex items-center gap-2.5 p-2 rounded-xl bg-amber-50/70 border border-amber-100/80">
+              <span className="w-8 h-8 rounded-full bg-amber-100 flex items-center justify-center text-amber-700 shrink-0 shadow-xs">
+                <Crown className="w-4 h-4 text-amber-700" />
               </span>
-              <div>
-                <span className="font-extrabold text-slate-900 block">Gold Champion</span>
-                <span className="text-emerald-700 font-bold">100% OFF (Free Bookings)</span>
+              <div className="text-left min-w-0">
+                <span className="font-extrabold text-slate-900 block truncate">Gold Champion</span>
+                <span className="text-emerald-700 font-bold block text-[11px] truncate">100% OFF (Free)</span>
               </div>
             </div>
 
-            <div className="h-6 w-px bg-slate-200 hidden sm:block" />
-
-            <div className="flex items-center gap-2">
-              <span className="w-6 h-6 rounded-full bg-slate-100 flex items-center justify-center text-slate-700 font-black">
-                🥈
+            <div className="flex items-center gap-2.5 p-2 rounded-xl bg-sky-50/70 border border-sky-100/80">
+              <span className="w-8 h-8 rounded-full bg-sky-100 flex items-center justify-center text-sky-700 shrink-0 shadow-xs">
+                <ShieldCheck className="w-4 h-4 text-sky-700" />
               </span>
-              <div>
-                <span className="font-extrabold text-slate-900 block">Silver Member</span>
-                <span className="text-sky-700 font-bold">50% Privilege Discount</span>
+              <div className="text-left min-w-0">
+                <span className="font-extrabold text-slate-900 block truncate">Silver Member</span>
+                <span className="text-sky-700 font-bold block text-[11px] truncate">50% Privilege</span>
               </div>
             </div>
 
-            <div className="h-6 w-px bg-slate-200 hidden sm:block" />
-
-            <div className="flex items-center gap-2">
-              <span className="w-6 h-6 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-700 font-black">
-                🎾
+            <div className="flex items-center gap-2.5 p-2 rounded-xl bg-emerald-50/70 border border-emerald-100/80">
+              <span className="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-700 shrink-0 shadow-xs">
+                <GraduationCap className="w-4 h-4 text-emerald-700" />
               </span>
-              <div>
-                <span className="font-extrabold text-slate-900 block">Junior Academy</span>
-                <span className="text-emerald-700 font-bold">50% Youth Subsidy</span>
+              <div className="text-left min-w-0">
+                <span className="font-extrabold text-slate-900 block truncate">Junior Academy</span>
+                <span className="text-emerald-700 font-bold block text-[11px] truncate">50% Youth Subsidy</span>
               </div>
             </div>
 
-            <div className="h-6 w-px bg-slate-200 hidden sm:block" />
-
-            <div className="flex items-center gap-2">
-              <span className="w-6 h-6 rounded-full bg-blue-100 flex items-center justify-center text-blue-700 font-black">
-                🚶
+            <div className="flex items-center gap-2.5 p-2 rounded-xl bg-slate-50 border border-slate-100">
+              <span className="w-8 h-8 rounded-full bg-slate-200/80 flex items-center justify-center text-slate-700 shrink-0 shadow-xs">
+                <User className="w-4 h-4 text-slate-700" />
               </span>
-              <div>
-                <span className="font-extrabold text-slate-900 block">Walk-in Guests</span>
-                <span className="text-slate-600 font-semibold">Standard Club Rates</span>
+              <div className="text-left min-w-0">
+                <span className="font-extrabold text-slate-900 block truncate">Walk-in Guests</span>
+                <span className="text-slate-600 font-semibold block text-[11px] truncate">Standard Rates</span>
               </div>
             </div>
           </div>
 
-          {/* Filter Pills */}
+          {/* Filter Pills - Matching Hero UI/UX */}
           <div className="flex items-center justify-center gap-2 sm:gap-2.5 flex-wrap mt-6">
             {[
-              { id: "all", label: "All Arenas" },
-              { id: "tennis", label: "Lawn Tennis" },
-              { id: "badminton", label: "Badminton" },
-              { id: "cricket", label: "Box Cricket" },
-              { id: "table-tennis", label: "Table Tennis" },
-              { id: "volleyball", label: "Volleyball" },
-              { id: "swimming", label: "Swimming Pool" },
+              { id: "all", label: "All Arenas", count: "16 Arenas", icon: Trophy },
+              { id: "tennis", label: "Lawn Tennis", count: "4 Courts", icon: CircleDot },
+              { id: "cricket", label: "Box Cricket", count: "2 Arenas", icon: Target },
+              { id: "table-tennis", label: "Table Tennis", count: "2 Tables", icon: Layers },
+              { id: "badminton", label: "Badminton", count: "6 Arenas", icon: Activity },
+              { id: "volleyball", label: "Volleyball", count: "Sand Arena", icon: Volleyball },
+              { id: "swimming", label: "Swimming Pool", count: "Heated 50m", icon: Waves },
             ].map((btn) => (
               <button
                 key={btn.id}
                 onClick={() => setFilterSport(btn.id)}
-                className={`px-4 py-2 rounded-full text-xs font-bold transition-all duration-200 border ${
+                className={`px-4 py-2 rounded-full text-xs font-bold transition-all duration-200 flex items-center gap-2 ${
                   filterSport === btn.id
-                    ? "bg-slate-950 text-white border-slate-950 shadow-sm"
-                    : "bg-white text-slate-600 border-slate-200 hover:border-slate-300 hover:text-slate-950 hover:bg-slate-50"
+                    ? "bg-sky-600 text-white shadow-md shadow-sky-600/25 scale-105"
+                    : "bg-slate-100 hover:bg-slate-200 text-slate-700"
                 }`}
               >
-                {btn.label}
+                <btn.icon className="w-3.5 h-3.5 shrink-0" />
+                <span>{btn.label}</span>
+                <span
+                  className={`text-[10px] px-1.5 py-0.5 rounded-full font-semibold ${
+                    filterSport === btn.id ? "bg-white/20 text-white" : "bg-slate-200 text-slate-600"
+                  }`}
+                >
+                  {btn.count}
+                </span>
               </button>
             ))}
           </div>
