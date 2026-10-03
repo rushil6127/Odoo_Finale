@@ -39,7 +39,9 @@ import {
   Tag,
   Sliders,
   Layers,
-  Sparkle
+  Sparkle,
+  Menu,
+  X
 } from "lucide-react";
 import type { 
   AuthUserProfile, 
@@ -62,6 +64,7 @@ export default function EmployeeProfileView({
   onSwitchToMemberView,
 }: EmployeeProfileViewProps) {
   const [activeTab, setActiveTab] = useState<EmployeeTabType>("emp_overview");
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   
   const empData = user.employeeData!;
 
@@ -205,369 +208,527 @@ export default function EmployeeProfileView({
   };
 
   return (
-    <div className="w-full space-y-6">
-      
-      {/* Toast Notification Alert */}
-      {actionSuccessMsg && (
-        <div className="p-3.5 rounded-2xl bg-emerald-900/90 text-white border border-emerald-400 shadow-xl flex items-center justify-between gap-3 animate-in fade-in slide-in-from-top-2">
-          <div className="flex items-center gap-2 text-xs font-bold">
-            <CheckCircle2 className="w-4 h-4 text-emerald-300 shrink-0" />
-            <span>{actionSuccessMsg}</span>
-          </div>
-          <button 
-            onClick={() => setActionSuccessMsg(null)}
-            className="text-emerald-200 hover:text-white text-xs font-black"
-          >
-            ✕
-          </button>
+    <div className="min-h-screen bg-white text-slate-900 selection:bg-sky-200 selection:text-sky-900 flex flex-col hero-gradient-bg">
+
+      {/* ============================================================ */}
+      {/* FLOATING PILL NAVBAR (Clean, Spacious & Decongested) */}
+      {/* ============================================================ */}
+      <header className="fixed top-0 left-0 right-0 z-50 px-3 sm:px-6 pt-3 sm:pt-4 transition-all duration-300">
+        <div className="max-w-7xl mx-auto">
+          <nav className="pill-navbar-glass pill-navbar-shadow rounded-full px-4 sm:px-6 py-2.5 sm:py-3 transition-all duration-300 flex items-center justify-between bg-white/95 border border-sky-100 shadow-lg">
+
+            {/* Brand Emblem & Name */}
+            <Link href="/" className="flex items-center gap-2.5 sm:gap-3 group shrink-0">
+              <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-gradient-to-br from-sky-500 via-sky-600 to-blue-700 flex items-center justify-center text-white font-black text-sm sm:text-base tracking-wider shadow-md shadow-sky-500/25 border-2 border-white group-hover:scale-105 transition-transform duration-200">
+                <span className="text-[#CCFF00] drop-shadow-sm font-extrabold">CC</span>
+              </div>
+              <div className="flex flex-col">
+                <span className="font-extrabold text-sm sm:text-[15px] tracking-tight text-slate-900 leading-none group-hover:text-sky-600 transition-colors">
+                  The Champions Club
+                </span>
+                <span className="text-[10px] sm:text-[11px] font-semibold tracking-wider text-sky-600 uppercase mt-0.5">
+                  MEMBER PORTAL & DIGITAL PASS
+                </span>
+              </div>
+            </Link>
+
+            {/* Right Clean Action CTA Buttons */}
+            <div className="hidden md:flex items-center gap-3 shrink-0">
+              <Link
+                href="/"
+                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-extrabold bg-sky-50 hover:bg-sky-100 text-sky-700 border border-sky-200 transition-all shadow-sm"
+              >
+                <ChevronLeft className="w-3.5 h-3.5 text-sky-600" />
+                <span>Back to Club Sanctuary</span>
+              </Link>
+
+              <button
+                type="button"
+                onClick={onLogout}
+                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-extrabold text-red-600 hover:bg-red-50 border border-red-200 transition-all shadow-sm"
+                title="Sign Out"
+              >
+                <LogOut className="w-3.5 h-3.5" />
+                <span>Sign Out</span>
+              </button>
+            </div>
+
+            {/* Mobile Menu Button */}
+            <button
+              type="button"
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              className="p-2 rounded-full text-slate-700 hover:bg-slate-100 md:hidden focus:outline-none"
+              aria-label="Toggle Navigation Menu"
+            >
+              {mobileMenuOpen ? <X className="w-5 h-5 text-slate-900" /> : <Menu className="w-5 h-5 text-slate-900" />}
+            </button>
+          </nav>
         </div>
-      )}
+
+        {/* Mobile Drawer Dropdown */}
+        {mobileMenuOpen && (
+          <div className="md:hidden mt-2 mx-auto max-w-7xl px-2">
+            <div className="glass-card rounded-3xl p-4 shadow-xl border border-sky-100 flex flex-col gap-2 animate-in fade-in slide-in-from-top-4 duration-200">
+              <div className="flex flex-col gap-2 pt-1">
+                <Link
+                  href="/dashboard"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="flex items-center justify-center gap-2 py-2.5 rounded-xl text-xs font-bold bg-lime-100 text-lime-900 border border-lime-300"
+                >
+                  <TrendingUp className="w-4 h-4 text-lime-800" />
+                  <span>Open Staff & Admin Console</span>
+                </Link>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMobileMenuOpen(false);
+                    onSwitchToMemberView();
+                  }}
+                  className="flex items-center justify-center gap-2 py-2.5 rounded-xl text-xs font-bold bg-amber-100 text-amber-900 border border-amber-300"
+                >
+                  <Crown className="w-4 h-4 text-amber-700" />
+                  <span>Switch to Member Pass</span>
+                </button>
+
+                <Link
+                  href="/"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="flex items-center justify-center gap-2 py-2.5 rounded-xl text-xs font-bold bg-sky-50 text-sky-700 border border-sky-200"
+                >
+                  <ChevronLeft className="w-4 h-4 text-sky-600" />
+                  <span>Back to Club Sanctuary</span>
+                </Link>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMobileMenuOpen(false);
+                    onLogout();
+                  }}
+                  className="flex items-center justify-center gap-2 py-2.5 rounded-xl text-xs font-bold text-red-600 bg-red-50 border border-red-200"
+                >
+                  <LogOut className="w-4 h-4" />
+                  <span>Sign Out</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+      </header>
 
       {/* ============================================================ */}
-      {/* EMPLOYEE HERO BANNER (Luxury Coach & Supervisor Console)     */}
+      {/* MAIN CONTAINER */}
       {/* ============================================================ */}
-      <div className="bg-white rounded-3xl shadow-2xl border border-slate-200/90 overflow-hidden">
-        
-        {/* Header Gradient Strip with Employee Identity */}
-        <div className="bg-gradient-to-r from-slate-950 via-slate-900 to-emerald-950 text-white p-6 sm:p-8 relative overflow-hidden">
-          <div className="absolute top-0 right-0 w-80 h-80 bg-emerald-500/15 rounded-full blur-3xl pointer-events-none" />
-          <div className="absolute -bottom-10 -left-10 w-60 h-60 bg-sky-500/10 rounded-full blur-3xl pointer-events-none" />
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 sm:pt-32 pb-20 w-full flex-1 space-y-6">
 
-          <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6 relative z-10">
-            
-            {/* Coach Identity */}
-            <div className="flex items-center gap-4 sm:gap-5">
-              <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-gradient-to-tr from-emerald-500 via-teal-600 to-sky-700 flex items-center justify-center text-white font-black text-2xl sm:text-3xl shadow-xl border-2 border-emerald-400/50 shrink-0">
-                {user.name.split(" ").map((n) => n[0]).join("")}
+        {/* Toast Notification Alert */}
+        {actionSuccessMsg && (
+          <div className="p-3.5 rounded-2xl bg-emerald-900/90 text-white border border-emerald-400 shadow-xl flex items-center justify-between gap-3 animate-in fade-in slide-in-from-top-2">
+            <div className="flex items-center gap-2 text-xs font-bold">
+              <CheckCircle2 className="w-4 h-4 text-emerald-300 shrink-0" />
+              <span>{actionSuccessMsg}</span>
+            </div>
+            <button 
+              onClick={() => setActionSuccessMsg(null)}
+              className="text-emerald-200 hover:text-white text-xs font-black"
+            >
+              ✕
+            </button>
+          </div>
+        )}
+
+        {/* ============================================================ */}
+        {/* EMPLOYEE HERO BANNER (Signature Champions Luxury Theme)     */}
+        {/* ============================================================ */}
+        <div className="bg-white rounded-3xl shadow-2xl border border-slate-200/90 overflow-hidden">
+          
+          {/* Header Gradient Strip with Employee Identity */}
+          <div className="bg-gradient-to-r from-slate-900 via-slate-850 to-blue-950 text-white p-6 sm:p-8 relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-80 h-80 bg-sky-500/15 rounded-full blur-3xl pointer-events-none" />
+            <div className="absolute -bottom-10 -left-10 w-60 h-60 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
+
+            <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6 relative z-10">
+              
+              {/* Coach Identity */}
+              <div className="flex items-center gap-4 sm:gap-5">
+                <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-gradient-to-tr from-sky-400 via-sky-600 to-blue-700 flex items-center justify-center text-white font-black text-2xl sm:text-3xl shadow-xl border-2 border-white/40 shrink-0">
+                  {user.name.split(" ").map((n) => n[0]).join("")}
+                </div>
+
+                <div>
+                  <div className="flex items-center gap-2.5 flex-wrap">
+                    <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-white font-[family-name:var(--font-outfit)]">
+                      {user.name}
+                    </h1>
+                    <span className="px-3 py-0.5 rounded-full text-[11px] font-black uppercase border border-amber-300 shadow-sm bg-gradient-to-r from-amber-400 to-amber-600 text-amber-950">
+                      <Crown className="w-3.5 h-3.5 inline mr-1 -mt-0.5" />
+                      {empData.designation}
+                    </span>
+                    <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold border border-white/15 bg-white/10 text-emerald-400 flex items-center gap-1.5">
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                      {dutyStatus.replace("_", " ")}
+                    </span>
+                  </div>
+
+                  <div className="flex items-center gap-3 sm:gap-4 text-xs text-slate-300 mt-2 flex-wrap font-medium">
+                    <span className="flex items-center gap-1 font-mono text-sky-200 font-bold bg-white/10 px-2.5 py-0.5 rounded border border-white/15">
+                      <ShieldCheck className="w-3.5 h-3.5 text-sky-400" />
+                      {empData.employeeId}
+                    </span>
+                    <span className="flex items-center gap-1 text-slate-300 font-semibold bg-white/10 px-2 py-0.5 rounded border border-white/10">
+                      🎾 Primary Sport: <strong>{empData.primarySport}</strong>
+                    </span>
+                    <span className="flex items-center gap-1 text-slate-300">
+                      <Mail className="w-3.5 h-3.5 text-slate-400" />
+                      {user.email}
+                    </span>
+                    <span className="flex items-center gap-1 text-slate-300">
+                      <Phone className="w-3.5 h-3.5 text-slate-400" />
+                      {user.phone}
+                    </span>
+                  </div>
+                </div>
               </div>
 
-              <div>
-                <div className="flex items-center gap-2.5 flex-wrap">
-                  <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-white font-[family-name:var(--font-outfit)]">
-                    {user.name}
-                  </h1>
-                  <span className="px-3 py-0.5 rounded-full text-[11px] font-black uppercase border shadow-sm bg-gradient-to-r from-emerald-500 to-teal-700 text-white border-emerald-300">
-                    <Crown className="w-3.5 h-3.5 inline mr-1 -mt-0.5" />
-                    {empData.designation}
-                  </span>
-                  <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold border flex items-center gap-1.5 ${getDutyColor(dutyStatus)}`}>
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                    {dutyStatus.replace("_", " ")}
+              {/* Duty Status & Roster Box (Frosted Glass Container) */}
+              <div className="flex items-center gap-5 bg-white/10 backdrop-blur-md rounded-2xl p-4 border border-white/15 shrink-0 self-stretch sm:self-auto justify-around sm:justify-start">
+                
+                {/* Today's Slots */}
+                <div className="text-right">
+                  <div className="text-[10px] uppercase font-bold text-sky-300 tracking-wider">
+                    Today's Slots
+                  </div>
+                  <div className="text-xl sm:text-2xl font-black text-white font-[family-name:var(--font-outfit)]">
+                    {empSlots.length} Booked
+                  </div>
+                  <span className="text-[10px] font-bold text-emerald-300 block mt-0.5">
+                    88% Capacity
                   </span>
                 </div>
 
-                <div className="flex items-center gap-3 sm:gap-4 text-xs text-slate-300 mt-2 flex-wrap font-medium">
-                  <span className="flex items-center gap-1 font-mono text-emerald-300 font-bold bg-emerald-950/70 px-2.5 py-0.5 rounded border border-emerald-800">
-                    <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
-                    {empData.employeeId}
-                  </span>
-                  <span className="flex items-center gap-1 text-slate-300 font-semibold bg-white/10 px-2 py-0.5 rounded">
-                    🎾 Primary Sport: <strong>{empData.primarySport}</strong>
-                  </span>
-                  <span className="flex items-center gap-1 text-slate-300">
-                    <Mail className="w-3.5 h-3.5 text-slate-400" />
-                    {user.email}
-                  </span>
-                  <span className="flex items-center gap-1 text-slate-300">
-                    <Phone className="w-3.5 h-3.5 text-slate-400" />
-                    {user.phone}
-                  </span>
+                <div className="w-px h-10 bg-white/20" />
+
+                {/* Duty Shift Switcher */}
+                <div className="text-left">
+                  <div className="text-[10px] uppercase font-bold text-amber-300 tracking-wider">
+                    Live Duty Status
+                  </div>
+                  <div className="flex items-center gap-1 mt-1">
+                    {(["ON_DUTY", "IN_SESSION", "ON_BREAK", "OFF_DUTY"] as const).map((st) => (
+                      <button
+                        key={st}
+                        type="button"
+                        onClick={() => {
+                          setDutyStatus(st);
+                          setActionSuccessMsg(`Duty status updated to ${st.replace("_", " ")}!`);
+                          setTimeout(() => setActionSuccessMsg(null), 3000);
+                        }}
+                        className={`px-2.5 py-1 rounded-lg text-[10px] font-extrabold transition-all ${
+                          dutyStatus === st
+                            ? "bg-emerald-500 text-white shadow-sm"
+                            : "bg-white/10 hover:bg-white/20 text-slate-300"
+                        }`}
+                      >
+                        {st === "ON_DUTY" ? "Active" : st === "IN_SESSION" ? "Session" : st === "ON_BREAK" ? "Break" : "Off"}
+                      </button>
+                    ))}
+                  </div>
                 </div>
+
+              </div>
+
+            </div>
+
+            {/* Quick Sub-Banner with Assigned Arenas */}
+            <div className="mt-4 pt-3 border-t border-white/10 flex items-center justify-between flex-wrap gap-2 text-xs">
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="text-slate-400 font-medium">Allotted Arenas & Courts:</span>
+                {empData.assignedCourts.map((court, i) => (
+                  <span key={i} className="px-2.5 py-0.5 rounded-md bg-white/10 border border-white/15 text-slate-200 font-bold text-[11px]">
+                    🏟️ {court}
+                  </span>
+                ))}
+              </div>
+              <div className="flex items-center gap-2 text-[11px] text-slate-300">
+                <Clock className="w-3.5 h-3.5 text-sky-400" />
+                <span>Shift: <strong>{empData.shiftTiming}</strong></span>
               </div>
             </div>
 
-            {/* Duty Status & Roster Box */}
-            <div className="flex items-center gap-4 bg-white/10 backdrop-blur-md rounded-2xl p-3.5 sm:p-4 border border-white/15 shrink-0 self-stretch sm:self-auto justify-around sm:justify-start">
+          </div>
+        </div>
+
+        {/* ============================================================ */}
+        {/* TWO-COLUMN LAYOUT: LEFT SIDEBAR + RIGHT CONTENT               */}
+        {/* ============================================================ */}
+        <div className="flex flex-col lg:flex-row gap-6 items-start">
+
+          {/* ======== LEFT VERTICAL NAV SIDEBAR ======== */}
+          <aside className="hidden lg:flex flex-col w-64 shrink-0 sticky top-28 space-y-4">
+            <div className="bg-white rounded-3xl shadow-xl border border-slate-200/90 overflow-hidden">
               
-              {/* Today's Slots */}
-              <div className="text-right">
-                <div className="text-[10px] uppercase font-bold text-emerald-300 tracking-wider">
-                  Today's Slots
+              {/* Sidebar header (Image 2 style dark block) */}
+              <div className="bg-gradient-to-br from-slate-900 to-blue-950 p-5 text-white">
+                <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                  SPORT SUPERVISOR DESK
                 </div>
-                <div className="text-xl sm:text-2xl font-black text-white font-[family-name:var(--font-outfit)]">
-                  {empSlots.length} Booked
+                <div className="flex items-center justify-between mt-1">
+                  <span className="text-base font-black text-white font-[family-name:var(--font-outfit)]">
+                    {user.name.split(" ")[0]}'s Workspace
+                  </span>
+                  <span className="text-[9px] uppercase px-2 py-0.5 rounded font-black bg-emerald-400 text-emerald-950">
+                    COACH
+                  </span>
                 </div>
-                <span className="text-[10px] font-bold text-emerald-300 block mt-0.5">
-                  88% Capacity
-                </span>
               </div>
 
-              <div className="w-px h-10 bg-white/20" />
-
-              {/* Duty Shift Switcher */}
-              <div className="text-left">
-                <div className="text-[10px] uppercase font-bold text-amber-300 tracking-wider">
-                  Live Duty Status
-                </div>
-                <div className="flex items-center gap-1 mt-1">
-                  {(["ON_DUTY", "IN_SESSION", "ON_BREAK", "OFF_DUTY"] as const).map((st) => (
+              {/* Nav Items */}
+              <nav className="p-3 space-y-1">
+                {[
+                  { id: "emp_overview", label: "Duty & Sport Overview", icon: ClipboardCheck },
+                  { id: "emp_calendar", label: "Court Slot Calendar", icon: CalendarCheck, badge: empSlots.length },
+                  { id: "emp_trainees", label: "Assigned Trainees", icon: GraduationCap, badge: traineesList.length },
+                  { id: "emp_maintenance", label: "Court Readiness & Logs", icon: Wrench, badge: maintenanceList.length },
+                  { id: "emp_inquiries", label: "CRM Inquiries", icon: MessageSquare, badge: user.crmInquiries?.length || 2 },
+                  { id: "emp_settings", label: "Staff Profile & Sport Settings", icon: Settings },
+                ].map((tab) => {
+                  const Icon = tab.icon;
+                  const isActive = activeTab === tab.id;
+                  return (
                     <button
-                      key={st}
-                      type="button"
-                      onClick={() => {
-                        setDutyStatus(st);
-                        setActionSuccessMsg(`Duty status updated to ${st.replace("_", " ")}!`);
-                        setTimeout(() => setActionSuccessMsg(null), 3000);
-                      }}
-                      className={`px-2 py-1 rounded-lg text-[10px] font-extrabold transition-all ${
-                        dutyStatus === st
-                          ? "bg-emerald-500 text-white shadow-sm"
-                          : "bg-white/10 hover:bg-white/20 text-slate-300"
+                      key={tab.id}
+                      onClick={() => setActiveTab(tab.id as EmployeeTabType)}
+                      className={`w-full flex items-center justify-between gap-3 px-4 py-2.5 rounded-2xl text-xs font-bold transition-all text-left ${
+                        isActive
+                          ? "bg-slate-900 text-white shadow-md font-extrabold"
+                          : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
                       }`}
                     >
-                      {st === "ON_DUTY" ? "Active" : st === "IN_SESSION" ? "Session" : st === "ON_BREAK" ? "Break" : "Off"}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-            </div>
-
-          </div>
-
-          {/* Quick Sub-Banner with Assigned Arenas */}
-          <div className="mt-4 pt-3 border-t border-white/10 flex items-center justify-between flex-wrap gap-2 text-xs">
-            <div className="flex items-center gap-2 flex-wrap">
-              <span className="text-slate-400 font-medium">Allotted Arenas & Courts:</span>
-              {empData.assignedCourts.map((court, i) => (
-                <span key={i} className="px-2.5 py-0.5 rounded-md bg-emerald-950/80 border border-emerald-700/60 text-emerald-300 font-bold text-[11px]">
-                  🏟️ {court}
-                </span>
-              ))}
-            </div>
-            <div className="flex items-center gap-2 text-[11px] text-slate-300">
-              <Clock className="w-3.5 h-3.5 text-emerald-400" />
-              <span>Shift: <strong>{empData.shiftTiming}</strong></span>
-            </div>
-          </div>
-
-        </div>
-      </div>
-
-      {/* ============================================================ */}
-      {/* TWO-COLUMN LAYOUT: LEFT SIDEBAR + RIGHT CONTENT               */}
-      {/* ============================================================ */}
-      <div className="flex gap-6 items-start">
-
-        {/* ======== LEFT VERTICAL NAV SIDEBAR ======== */}
-        <aside className="hidden lg:flex flex-col w-64 shrink-0 sticky top-28">
-          <div className="bg-white rounded-2xl shadow-lg border border-slate-200/80 overflow-hidden">
-            
-            {/* Sidebar header */}
-            <div className="bg-gradient-to-br from-slate-950 via-slate-900 to-emerald-950 px-4 py-4">
-              <div className="text-[10px] font-black uppercase tracking-widest text-emerald-400 mb-1">
-                Sport Supervisor Desk
-              </div>
-              <div className="text-xs font-bold text-white">
-                {user.name.split(" ")[0]}'s Workspace (Tennis)
-              </div>
-            </div>
-
-            {/* Nav Items */}
-            <nav className="p-2 space-y-0.5">
-              {[
-                { id: "emp_overview", label: "Duty & Sport Overview", icon: ClipboardCheck },
-                { id: "emp_calendar", label: "Court Slot Calendar", icon: CalendarCheck, badge: empSlots.length },
-                { id: "emp_trainees", label: "Assigned Trainees", icon: GraduationCap, badge: traineesList.length },
-                { id: "emp_maintenance", label: "Court Readiness & Logs", icon: Wrench, badge: maintenanceList.length },
-                { id: "emp_inquiries", label: "CRM Inquiries", icon: MessageSquare, badge: user.crmInquiries?.length || 2 },
-                { id: "emp_settings", label: "Staff Profile & Sport Settings", icon: Settings },
-              ].map((tab) => {
-                const Icon = tab.icon;
-                const isActive = activeTab === tab.id;
-                return (
-                  <button
-                    key={tab.id}
-                    onClick={() => setActiveTab(tab.id as EmployeeTabType)}
-                    className={`w-full flex items-center justify-between gap-2.5 px-3 py-2.5 rounded-xl text-xs font-bold transition-all text-left ${
-                      isActive
-                        ? "bg-slate-900 text-white shadow-md"
-                        : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
-                    }`}
-                  >
-                    <span className="flex items-center gap-2.5">
-                      <Icon className={`w-4 h-4 shrink-0 ${
-                        isActive ? "text-emerald-400" : "text-slate-400"
-                      }`} />
-                      <span>{tab.label}</span>
-                    </span>
-                    {tab.badge !== undefined && tab.badge > 0 && (
-                      <span className={`text-[10px] font-black px-1.5 py-0.5 rounded-full ${
-                        isActive ? "bg-emerald-500 text-white" : "bg-slate-200 text-slate-700"
-                      }`}>{tab.badge}</span>
-                    )}
-                  </button>
-                );
-              })}
-            </nav>
-
-            {/* Sidebar Quick Actions for Coach */}
-            <div className="p-3 pt-1 border-t border-slate-100 space-y-1.5 mt-1">
-              <button
-                type="button"
-                onClick={() => setShowReportIssueModal(true)}
-                className="w-full flex items-center gap-2 px-3 py-2 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-200 font-extrabold text-[11px] shadow-sm transition-all"
-              >
-                <AlertCircle className="w-3.5 h-3.5 text-amber-600" />
-                Report Court Issue
-              </button>
-
-              <button
-                type="button"
-                onClick={onSwitchToMemberView}
-                className="w-full flex items-center gap-2 px-3 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 font-extrabold text-[11px] transition-all"
-              >
-                <Crown className="w-3.5 h-3.5 text-amber-500" />
-                Switch to Member Pass
-              </button>
-            </div>
-
-          </div>
-        </aside>
-
-        {/* ======== MOBILE TAB STRIP (shown below lg) ======== */}
-        <div className="lg:hidden w-full flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none mb-2">
-          {[
-            { id: "emp_overview", label: "Overview", icon: ClipboardCheck },
-            { id: "emp_calendar", label: `Slots (${empSlots.length})`, icon: CalendarCheck },
-            { id: "emp_trainees", label: `Trainees (${traineesList.length})`, icon: GraduationCap },
-            { id: "emp_maintenance", label: "Readiness", icon: Wrench },
-            { id: "emp_inquiries", label: "CRM", icon: MessageSquare },
-            { id: "emp_settings", label: "Settings", icon: Settings },
-          ].map((tab) => {
-            const Icon = tab.icon;
-            const isActive = activeTab === tab.id;
-            return (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id as EmployeeTabType)}
-                className={`px-3.5 py-2 rounded-xl text-[11px] font-extrabold transition-all flex items-center gap-1.5 whitespace-nowrap ${
-                  isActive
-                    ? "bg-slate-900 text-white shadow-md"
-                    : "bg-white border border-slate-200 text-slate-600 hover:bg-slate-50"
-                }`}
-              >
-                <Icon className={`w-3.5 h-3.5 ${isActive ? "text-emerald-400" : "text-slate-400"}`} />
-                {tab.label}
-              </button>
-            );
-          })}
-        </div>
-
-        {/* ======== RIGHT CONTENT PANEL ======== */}
-        <div className="flex-1 min-w-0 bg-white rounded-2xl shadow-lg border border-slate-200/80 overflow-hidden">
-
-          {/* ============================================================ */}
-          {/* TAB 1: EMPLOYEE DUTY & SPORT OVERVIEW                        */}
-          {/* ============================================================ */}
-          {activeTab === "emp_overview" && (
-            <div className="p-6 sm:p-8 space-y-6 sm:space-y-8 animate-in fade-in duration-200">
-              
-              {/* PRIORITY SPORT DISPATCH NOTICE */}
-              <div className="p-5 sm:p-6 rounded-3xl bg-gradient-to-r from-emerald-950 via-slate-900 to-teal-950 text-white shadow-xl border border-emerald-500/30 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 relative overflow-hidden">
-                <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-500/10 rounded-full blur-2xl pointer-events-none" />
-                <div className="flex items-start gap-3.5 relative z-10">
-                  <div className="p-3 rounded-2xl bg-white/10 text-emerald-300 border border-white/10 shrink-0">
-                    <Activity className="w-5 h-5 animate-pulse" />
-                  </div>
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-[10px] font-black uppercase tracking-wider bg-emerald-400 text-emerald-950 px-2 py-0.5 rounded-full">
-                        MATCH & ARENA DISPATCH
+                      <span className="flex items-center gap-2.5">
+                        <Icon className={`w-4 h-4 shrink-0 ${
+                          isActive ? "text-emerald-400" : "text-slate-400"
+                        }`} />
+                        <span>{tab.label}</span>
                       </span>
-                      <span className="text-xs text-slate-300">Today &bull; Centre Grass Court #1</span>
-                    </div>
-                    <h3 className="text-base sm:text-lg font-black text-white mt-1">
-                      Gujarat Open State Championship Night Matches Tonight!
-                    </h3>
-                    <p className="text-xs text-slate-300 mt-0.5 max-w-2xl leading-relaxed">
-                      Assigned Supervisor David: Ensure 800 LUX floodlight array is powered and line markings swept before 06:00 PM. First match starts at 08:00 PM.
-                    </p>
-                  </div>
+                      {tab.badge !== undefined && tab.badge > 0 && (
+                        <span className={`text-[10px] font-black px-2 py-0.5 rounded-full ${
+                          isActive ? "bg-emerald-500 text-white" : "bg-slate-100 text-slate-700"
+                        }`}>{tab.badge}</span>
+                      )}
+                    </button>
+                  );
+                })}
+              </nav>
+
+              {/* ACTIONS & CONTROLS (Exactly matching Image 2!) */}
+              <div className="p-3 pt-2 border-t border-slate-100 space-y-2">
+                <div className="text-[10px] font-black uppercase text-slate-400 tracking-wider px-2">
+                  ACTIONS & CONTROLS
                 </div>
 
-                <div className="flex items-center gap-2.5 shrink-0 self-end md:self-auto relative z-10">
-                  <button
-                    onClick={() => setActiveTab("emp_calendar")}
-                    className="px-4 py-2 rounded-xl bg-emerald-400 hover:bg-emerald-300 text-emerald-950 font-black text-xs shadow-md transition-all whitespace-nowrap"
-                  >
-                    View Slot Calendar &rarr;
-                  </button>
-                </div>
+                {/* Gold Button: Report Court Issue */}
+                <button
+                  type="button"
+                  onClick={() => setShowReportIssueModal(true)}
+                  className="w-full flex items-center justify-between px-4 py-3 rounded-2xl text-xs font-black bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-500 hover:to-amber-600 text-amber-950 shadow-md border border-amber-300 transition-all group"
+                >
+                  <span className="flex items-center gap-2">
+                    <AlertCircle className="w-4 h-4 text-amber-900" />
+                    <span>Report Court Issue</span>
+                  </span>
+                  <span>⚠️</span>
+                </button>
+
+                {/* Lime Button: Staff & Admin Console */}
+                <Link
+                  href="/dashboard"
+                  className="w-full flex items-center justify-between px-4 py-3 rounded-2xl text-xs font-black bg-lime-200 hover:bg-lime-300 text-lime-950 border border-lime-300 shadow-sm transition-all"
+                >
+                  <span className="flex items-center gap-2">
+                    <TrendingUp className="w-4 h-4 text-lime-900" />
+                    <span>Staff & Admin Console</span>
+                  </span>
+                  <ExternalLink className="w-3.5 h-3.5 text-lime-900" />
+                </Link>
+
+                {/* Blue Button: Switch to Member Pass */}
+                <button
+                  type="button"
+                  onClick={onSwitchToMemberView}
+                  className="w-full flex items-center justify-between px-4 py-3 rounded-2xl text-xs font-black bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-600 hover:to-blue-700 text-white shadow-md transition-all"
+                >
+                  <span className="flex items-center gap-2">
+                    <Crown className="w-4 h-4 text-amber-300" />
+                    <span>Switch to Member Pass</span>
+                  </span>
+                  <ArrowRight className="w-3.5 h-3.5" />
+                </button>
+
+                {/* White Button: Pro Shop & Café */}
+                <Link
+                  href="/pro-shop"
+                  className="w-full flex items-center justify-between px-4 py-3 rounded-2xl text-xs font-bold bg-white hover:bg-slate-50 text-slate-800 border border-slate-200 shadow-sm transition-all"
+                >
+                  <span className="flex items-center gap-2">
+                    <ShoppingBag className="w-4 h-4 text-slate-600" />
+                    <span>Pro Shop & Café</span>
+                  </span>
+                </Link>
               </div>
 
-              {/* Top 3 High-Visibility Coach KPI Cards */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
+            </div>
+          </aside>
+
+          {/* ======== MOBILE TAB STRIP (shown below lg) ======== */}
+          <div className="lg:hidden w-full flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none mb-2">
+            {[
+              { id: "emp_overview", label: "Overview", icon: ClipboardCheck },
+              { id: "emp_calendar", label: `Slots (${empSlots.length})`, icon: CalendarCheck },
+              { id: "emp_trainees", label: `Trainees (${traineesList.length})`, icon: GraduationCap },
+              { id: "emp_maintenance", label: "Readiness", icon: Wrench },
+              { id: "emp_inquiries", label: "CRM", icon: MessageSquare },
+              { id: "emp_settings", label: "Settings", icon: Settings },
+            ].map((tab) => {
+              const Icon = tab.icon;
+              const isActive = activeTab === tab.id;
+              return (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id as EmployeeTabType)}
+                  className={`px-3.5 py-2 rounded-xl text-[11px] font-extrabold transition-all flex items-center gap-1.5 whitespace-nowrap ${
+                    isActive
+                      ? "bg-slate-900 text-white shadow-md"
+                      : "bg-white border border-slate-200 text-slate-600 hover:bg-slate-50"
+                  }`}
+                >
+                  <Icon className={`w-3.5 h-3.5 ${isActive ? "text-emerald-400" : "text-slate-400"}`} />
+                  {tab.label}
+                </button>
+              );
+            })}
+          </div>
+
+          {/* ======== RIGHT CONTENT PANEL ======== */}
+          <div className="flex-1 min-w-0 bg-white rounded-3xl shadow-xl border border-slate-200/90 overflow-hidden">
+
+            {/* ============================================================ */}
+            {/* TAB 1: EMPLOYEE DUTY & SPORT OVERVIEW                        */}
+            {/* ============================================================ */}
+            {activeTab === "emp_overview" && (
+              <div className="p-6 sm:p-8 space-y-6 sm:space-y-8 animate-in fade-in duration-200">
                 
-                {/* 1. Allotted Sport & Supervised Arenas */}
-                <div className="p-5 rounded-2xl bg-emerald-50/80 border border-emerald-200/90 shadow-sm flex flex-col justify-between">
-                  <div>
-                    <div className="text-xs font-extrabold text-emerald-900 uppercase tracking-wider mb-2">
-                      Allotted Sport & Arenas
+                {/* PRIORITY SPORT DISPATCH NOTICE (Image 2 style notice banner) */}
+                <div className="bg-gradient-to-r from-slate-900 via-blue-950 to-slate-900 text-white rounded-3xl p-6 sm:p-7 shadow-xl border border-slate-850 relative overflow-hidden flex flex-col md:flex-row md:items-center justify-between gap-5">
+                  <div className="absolute top-0 right-0 w-80 h-80 bg-sky-500/10 rounded-full blur-3xl pointer-events-none" />
+                  <div className="flex items-start sm:items-center gap-4 relative z-10">
+                    <div className="w-12 h-12 rounded-2xl bg-white/10 border border-white/15 flex items-center justify-center shrink-0">
+                      <Activity className="w-6 h-6 text-emerald-300" />
                     </div>
-                    <div className="text-xl sm:text-2xl font-black text-slate-900 font-[family-name:var(--font-outfit)]">
-                      {empData.primarySport}
+                    <div>
+                      <div className="flex items-center gap-2 flex-wrap mb-1">
+                        <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase bg-emerald-400 text-emerald-950">
+                          MATCH & ARENA DISPATCH
+                        </span>
+                        <span className="text-xs text-slate-400">Today • Centre Grass Court #1</span>
+                      </div>
+                      <h3 className="text-lg sm:text-xl font-black text-white font-[family-name:var(--font-outfit)]">
+                        Gujarat Open State Championship Night Matches Tonight!
+                      </h3>
+                      <p className="text-xs text-slate-300 mt-1 max-w-2xl leading-relaxed">
+                        Assigned Supervisor David: Ensure 800 LUX floodlight array is powered and line markings swept before 06:00 PM. First match starts at 08:00 PM.
+                      </p>
                     </div>
-                    <p className="text-xs text-emerald-800 mt-1.5 font-medium">
-                      3 Arenas under supervision
-                    </p>
                   </div>
-                  <div className="mt-4 pt-3 border-t border-emerald-200/60 text-xs font-semibold text-slate-600 flex items-center justify-between">
-                    <span>Shift: <strong>Morning Roster</strong></span>
-                    <span className="text-emerald-700 font-bold">● Active</span>
-                  </div>
-                </div>
 
-                {/* 2. Next Upcoming Session */}
-                <div className="p-5 rounded-2xl bg-sky-50/80 border border-sky-200/90 shadow-sm flex flex-col justify-between">
-                  <div>
-                    <div className="text-xs font-extrabold text-sky-900 uppercase tracking-wider mb-2">
-                      Immediate Next Session
-                    </div>
-                    <div className="text-base sm:text-lg font-black text-slate-900 truncate font-[family-name:var(--font-outfit)]">
-                      Dev Patel (Trial Evaluation)
-                    </div>
-                    <p className="text-xs text-sky-800 mt-1.5 font-bold flex items-center gap-1.5">
-                      <Clock className="w-3.5 h-3.5 text-sky-700" />
-                      <span>03:00 PM – 04:00 PM (Grass #1)</span>
-                    </p>
-                  </div>
-                  <div className="mt-4 pt-3 border-t border-sky-200/60 text-xs font-semibold text-slate-600 flex items-center justify-between">
-                    <span>Status: <strong>Checked-In</strong></span>
-                    <button 
-                      onClick={() => handleCompleteSlot("SLOT-105")}
-                      className="text-sky-800 font-bold hover:underline"
+                  <div className="flex items-center gap-2.5 shrink-0 self-start md:self-auto relative z-10">
+                    <button
+                      onClick={() => setActiveTab("emp_calendar")}
+                      className="px-5 py-2.5 rounded-full text-xs font-black shadow-lg transition-transform hover:scale-105 shrink-0 bg-emerald-400 hover:bg-emerald-300 text-emerald-950 flex items-center gap-1.5"
                     >
-                      Start Drills &rarr;
+                      <span>View Slot Calendar</span>
+                      <ArrowRight className="w-3.5 h-3.5" />
                     </button>
                   </div>
                 </div>
 
-                {/* 3. Surface & Equipment Readiness */}
-                <div className="p-5 rounded-2xl bg-amber-50/80 border border-amber-200/90 shadow-sm flex flex-col justify-between">
-                  <div>
-                    <div className="text-xs font-extrabold text-amber-900 uppercase tracking-wider mb-2">
-                      Surface & Net Readiness
+                {/* Top 3 High-Visibility Coach KPI Cards (Image 2 style metric cards) */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+                  
+                  {/* 1. Allotted Sport & Supervised Arenas */}
+                  <div className="bg-white rounded-3xl p-6 border border-slate-200/90 shadow-xl flex flex-col justify-between">
+                    <div>
+                      <div className="text-xs font-black text-sky-600 uppercase tracking-wider mb-2">
+                        Allotted Sport & Arenas
+                      </div>
+                      <div className="text-2xl sm:text-3xl font-black text-slate-900 font-[family-name:var(--font-outfit)]">
+                        {empData.primarySport}
+                      </div>
+                      <p className="text-xs text-slate-500 mt-1.5 font-medium">
+                        3 Arenas under supervision
+                      </p>
                     </div>
-                    <div className="text-xl sm:text-2xl font-black text-slate-900 font-[family-name:var(--font-outfit)]">
-                      100% Prepared
+                    <div className="mt-4 pt-3 border-t border-slate-100 text-xs font-semibold text-slate-600 flex items-center justify-between">
+                      <span>Shift: <strong>Morning Roster</strong></span>
+                      <span className="text-emerald-600 font-bold flex items-center gap-1">
+                        <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                        Active
+                      </span>
                     </div>
-                    <p className="text-xs text-amber-800 mt-1.5 font-medium">
-                      Grass 8.5mm cut & clay moisture optimal
-                    </p>
                   </div>
-                  <div className="mt-4 pt-3 border-t border-amber-200/60 text-xs font-semibold text-slate-600 flex items-center justify-between">
-                    <span>Stringing jobs: <strong>1 Ready</strong></span>
-                    <button 
-                      onClick={() => setActiveTab("emp_maintenance")}
-                      className="text-amber-800 font-bold hover:underline"
-                    >
-                      View Logs ↓
-                    </button>
-                  </div>
-                </div>
 
-              </div>
+                  {/* 2. Next Upcoming Session */}
+                  <div className="bg-white rounded-3xl p-6 border border-slate-200/90 shadow-xl flex flex-col justify-between">
+                    <div>
+                      <div className="text-xs font-black text-sky-600 uppercase tracking-wider mb-2">
+                        Immediate Next Session
+                      </div>
+                      <div className="text-xl sm:text-2xl font-black text-slate-900 truncate font-[family-name:var(--font-outfit)]">
+                        Dev Patel (Trial Evaluation)
+                      </div>
+                      <p className="text-xs text-slate-500 mt-1.5 font-semibold flex items-center gap-1.5">
+                        <Clock className="w-3.5 h-3.5 text-sky-600" />
+                        <span>03:00 PM – 04:00 PM (Grass #1)</span>
+                      </p>
+                    </div>
+                    <div className="mt-4 pt-3 border-t border-slate-100 text-xs font-semibold text-slate-600 flex items-center justify-between">
+                      <span>Status: <strong>Checked-In</strong></span>
+                      <button 
+                        onClick={() => handleCompleteSlot("SLOT-105")}
+                        className="text-sky-600 hover:text-sky-700 font-bold flex items-center gap-1"
+                      >
+                        <span>Start Drills</span>
+                        <ArrowRight className="w-3 h-3" />
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* 3. Surface & Equipment Readiness */}
+                  <div className="bg-white rounded-3xl p-6 border border-amber-200/90 shadow-xl flex flex-col justify-between">
+                    <div>
+                      <div className="text-xs font-black text-amber-600 uppercase tracking-wider mb-2">
+                        Surface & Net Readiness
+                      </div>
+                      <div className="text-2xl sm:text-3xl font-black text-slate-900 font-[family-name:var(--font-outfit)]">
+                        100% Prepared
+                      </div>
+                      <p className="text-xs text-slate-500 mt-1.5 font-medium">
+                        Grass 8.5mm cut & clay moisture optimal
+                      </p>
+                    </div>
+                    <div className="mt-4 pt-3 border-t border-slate-100 text-xs font-semibold text-slate-600 flex items-center justify-between">
+                      <span>Stringing jobs: <strong>1 Ready</strong></span>
+                      <button 
+                        onClick={() => setActiveTab("emp_maintenance")}
+                        className="text-amber-600 hover:text-amber-700 font-bold flex items-center gap-1"
+                      >
+                        <span>View Logs</span>
+                        <span>↓</span>
+                      </button>
+                    </div>
+                  </div>
+
+                </div>
 
               {/* LIVE ARENA ALLOTMENT STATUS GRID */}
               <div className="space-y-3">
@@ -1431,6 +1592,7 @@ export default function EmployeeProfileView({
         </div>
       )}
 
+      </main>
     </div>
   );
 }
