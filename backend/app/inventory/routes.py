@@ -155,7 +155,7 @@ def get_products():
     )
 
     return success_response(
-        data={"products": [p.to_dict() for p in products]},
+        data={"products": [p.to_dict(include_cost=is_staff) for p in products]},
         meta={
             "total": total,
             "page": page,
@@ -176,7 +176,7 @@ def get_product_detail(product_id: int):
         raise NotFoundException(f"Product with ID {product_id} not found.")
 
     return success_response(
-        data={"product": product.to_dict()},
+        data={"product": product.to_dict(include_cost=is_staff)},
         status_code=200,
     )
 

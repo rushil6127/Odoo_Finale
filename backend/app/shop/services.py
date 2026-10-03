@@ -163,8 +163,24 @@ def create_shop_order(
 
     if enum_order_type == OrderType.ONLINE:
         # Online order must be linked to a member
+        # SECURITY: Non-staff users MUST only place orders under their own member account.
+        is_staff = requesting_user is not None and getattr(requesting_user, "is_staff", False)
         target_member_id = member_id
-        if not target_member_id and requesting_user:
+
+        if not is_staff and requesting_user:
+            member_record = Member.query.filter_by(user_id=requesting_user.id).first()
+            if not member_record:
+                raise ValidationException(
+                    "Online shop orders require an authenticated club member account.",
+                    code="MEMBER_ACCOUNT_REQUIRED",
+                )
+            if member_id and member_id != member_record.id:
+                raise ForbiddenException(
+                    "Members are not permitted to place orders under another member's account.",
+                    code="MEMBER_MISMATCH",
+                )
+            target_member_id = member_record.id
+        elif not target_member_id and requesting_user:
             # Look up member from user account
             member_record = Member.query.filter_by(user_id=requesting_user.id).first()
             if member_record:
