@@ -74,11 +74,16 @@ def create_app(config_name: str = None) -> Flask:
     # Configure database engine options based on SQLite vs PostgreSQL
     db_uri = app.config.get("SQLALCHEMY_DATABASE_URI", "")
     if db_uri.startswith("sqlite"):
-        from sqlalchemy.pool import StaticPool
-        app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
-            "connect_args": {"check_same_thread": False},
-            "poolclass": StaticPool,
-        }
+        if ":memory:" in db_uri:
+            from sqlalchemy.pool import StaticPool
+            app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
+                "connect_args": {"check_same_thread": False},
+                "poolclass": StaticPool,
+            }
+        else:
+            app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
+                "connect_args": {"check_same_thread": False, "timeout": 30},
+            }
     else:
         app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
             "pool_pre_ping": True,

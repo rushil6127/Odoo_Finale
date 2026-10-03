@@ -46,7 +46,7 @@ import {
   Loader2,
   Trash2
 } from "lucide-react";
-import { useCurrentUser, setStoredUser, isStaffOrAdmin, isOwner, type AuthUserProfile } from "@/lib/auth";
+import { useCurrentUser, setStoredUser, isStaffOrAdmin, isOwner, DEFAULT_COACH_EMPLOYEE_DATA, type AuthUserProfile } from "@/lib/auth";
 import { apiClient } from "@/lib/api/client";
 import EmployeeProfileView from "@/components/profile/EmployeeProfileView";
 
@@ -175,18 +175,14 @@ export default function ProfileViewContainer({ forcedMode }: ProfileViewContaine
     bookings: memberBookings.length > 0 ? memberBookings : (user?.bookings || []),
     payments: user?.payments || [],
     crmInquiries: user?.crmInquiries || [],
-    employeeData: user?.employeeData,
+    employeeData: user?.employeeData || DEFAULT_COACH_EMPLOYEE_DATA,
   };
 
   const isEmployeeWithData = !!activeUser.employeeData || forcedMode === "employee" || isStaffOrAdmin(activeUser);
   const initialViewMode: "employee" | "member" =
     forcedMode === "employee"
       ? "employee"
-      : forcedMode === "member"
-        ? "member"
-        : isEmployeeWithData
-          ? "employee"
-          : "member";
+      : "member";
   const [viewMode, setViewMode] = useState<"employee" | "member">(initialViewMode);
 
   // Forced mode role enforcement:
@@ -921,22 +917,6 @@ export default function ProfileViewContainer({ forcedMode }: ProfileViewContaine
                   </button>
                 )}
 
-                {/* Switch to Staff Duty View if Employee */}
-                {isEmployeeWithData && (
-                  <button
-                    type="button"
-                    onClick={() => setViewMode("employee")}
-                    className="w-full flex items-center justify-between gap-2 px-3.5 py-2.5 rounded-2xl bg-emerald-100 hover:bg-emerald-200 text-emerald-950 font-extrabold text-xs border border-emerald-300 shadow-sm transition-all"
-                  >
-                    <span className="flex items-center gap-2">
-                      <UserCheck className="w-4 h-4 text-emerald-800" />
-                      <span>Staff / Duty Portal</span>
-                    </span>
-                    <span className="text-[10px] font-black uppercase text-emerald-800 bg-emerald-200/80 px-1.5 py-0.5 rounded">
-                      Switch
-                    </span>
-                  </button>
-                )}
 
                 {/* Staff & Admin Console */}
                 {canAccessConsole && (

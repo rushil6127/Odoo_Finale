@@ -616,6 +616,8 @@ export const DEMO_MEMBERS: Record<string, AuthUserProfile> = {
   },
 };
 
+export const DEFAULT_COACH_EMPLOYEE_DATA: EmployeeData = DEMO_MEMBERS.coach_david.employeeData!;
+
 // ============================================================================
 // STORAGE KEYS & EVENT DISPATCHER
 // ============================================================================
