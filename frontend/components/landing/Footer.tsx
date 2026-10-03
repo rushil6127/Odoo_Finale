@@ -145,7 +145,7 @@ export default function Footer() {
             </h4>
             <div className="space-y-3">
               <Link
-                href="/login"
+                href="/profile"
                 className="block p-3 rounded-xl bg-slate-900 hover:bg-slate-850 border border-slate-800 text-xs text-slate-200 group transition-all"
               >
                 <div className="font-bold text-white group-hover:text-sky-400 flex items-center justify-between">
@@ -158,7 +158,7 @@ export default function Footer() {
               </Link>
 
               <Link
-                href="/login"
+                href="/dashboard"
                 className="block p-3 rounded-xl bg-slate-900 hover:bg-slate-850 border border-slate-800 text-xs text-slate-200 group transition-all"
               >
                 <div className="font-bold text-white group-hover:text-lime-400 flex items-center justify-between">
