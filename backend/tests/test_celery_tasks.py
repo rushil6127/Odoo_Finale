@@ -78,7 +78,7 @@ def base_setup(app):
 
         court = Court(
             name="Task Court 1",
-            sport_type=SportType.TENNIS,
+            sport_type=SportType.LAWN_TENNIS,
             surface_type="Clay",
             is_indoor=False,
         )
