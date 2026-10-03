@@ -27,6 +27,12 @@ class BaseConfig:
     )
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
+    # Court Operating Hours & Slot Settings
+    COURT_OPEN_TIME = os.getenv("COURT_OPEN_TIME", "06:00")
+    COURT_CLOSE_TIME = os.getenv("COURT_CLOSE_TIME", "22:00")
+    COURT_SLOT_DURATION_MINUTES = int(os.getenv("COURT_SLOT_DURATION_MINUTES", 60))
+    COURT_SLOT_INTERVAL_MINUTES = int(os.getenv("COURT_SLOT_INTERVAL_MINUTES", 30))
+
     # Redis and Celery configuration
     REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379/0")
     CELERY_BROKER_URL = os.getenv("CELERY_BROKER_URL", REDIS_URL)
