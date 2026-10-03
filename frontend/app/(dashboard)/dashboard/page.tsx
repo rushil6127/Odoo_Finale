@@ -64,7 +64,7 @@ export default function DashboardPage() {
     // Fetch live counts from backend if available
     const fetchCounts = async () => {
       try {
-        const res = await apiClient.get<any>("/api/users");
+        const res = await apiClient.get<any>("/auth/users");
         if (res.data && Array.isArray(res.data)) {
           setUserCount(res.data.length);
           const staff = res.data.filter((u: any) => u.role !== "MEMBER");
