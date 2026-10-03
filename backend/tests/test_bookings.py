@@ -28,17 +28,17 @@ def seed_data(app, db_session):
     seed_membership_plans()
     tennis_court = create_court(
         name="Centre Court (Grass)",
-        sport_type="TENNIS",
+        sport_type="LAWN_TENNIS",
         surface_type="Grass",
         is_indoor=False,
     )
-    padel_court = create_court(
-        name="Padel Court 1",
-        sport_type="PADEL",
+    cricket_court = create_court(
+        name="Box Cricket Pitch 1",
+        sport_type="BOX_CRICKET",
         surface_type="Synthetic Turf",
         is_indoor=False,
     )
-    return {"tennis": tennis_court, "padel": padel_court}
+    return {"tennis": tennis_court, "cricket": cricket_court, "padel": cricket_court}
 
 
 @pytest.fixture
@@ -295,11 +295,11 @@ def test_cancellation_frees_occupancy_and_allows_rebooking(app, db_session, seed
 def test_walk_in_booking_pricing(app, db_session, seed_data, front_desk_user):
     """Walk-in bookings charge full sport base price without member discount."""
     desk = front_desk_user
-    padel = seed_data["padel"]
+    cricket = seed_data["cricket"]
     start_dt = datetime(2026, 10, 10, 14, 0, 0)
 
     booking = create_booking(
-        court_id=padel.id,
+        court_id=cricket.id,
         start_time=start_dt,
         user_id=desk.id,
         is_walk_in=True,
@@ -309,27 +309,27 @@ def test_walk_in_booking_pricing(app, db_session, seed_data, front_desk_user):
 
     assert booking.is_walk_in is True
     assert booking.guest_name == "Roger Federer"
-    assert booking.base_price == 1200.0  # Padel rate
+    assert booking.base_price == 1500.0  # Box Cricket rate
     assert booking.discount_amount == 0.0
-    assert booking.final_price == 1200.0
+    assert booking.final_price == 1500.0
 
 
 def test_silver_member_pricing_discount(app, db_session, seed_data, silver_member_user):
     """Silver tier member gets 50% discount snapshot."""
     user, member = silver_member_user
-    padel = seed_data["padel"]
+    cricket = seed_data["cricket"]
     start_dt = datetime(2026, 10, 10, 16, 0, 0)
 
     booking = create_booking(
-        court_id=padel.id,
+        court_id=cricket.id,
         start_time=start_dt,
         user_id=user.id,
         member_id=member.id,
     )
 
-    assert booking.base_price == 1200.0
-    assert booking.discount_amount == 600.0  # 50% off
-    assert booking.final_price == 600.0
+    assert booking.base_price == 1500.0
+    assert booking.discount_amount == 750.0  # 50% off
+    assert booking.final_price == 750.0
 
 
 def test_expired_member_pricing(app, db_session, seed_data, expired_member_user):
@@ -581,8 +581,9 @@ def test_availability_endpoint_reflects_occupancies(client, seed_data, gold_memb
     assert s_1000_after["is_available"] is True
 
 
-def test_simultaneous_concurrent_bookings_race_condition(app, seed_data, gold_member_user, silver_member_user):
+def test_simultaneous_concurrent_bookings_race_condition(app, db_session, seed_data, gold_member_user, silver_member_user):
     """Two concurrent threads attempt to book the exact same slot simultaneously: exactly 1 succeeds, 1 gets conflict."""
+    db.session.commit()
     gold_user, gold_member = gold_member_user
     silver_user, silver_member = silver_member_user
     court_id = seed_data["tennis"].id
@@ -615,8 +616,8 @@ def test_simultaneous_concurrent_bookings_race_condition(app, seed_data, gold_me
         concurrent.futures.wait([f1, f2])
 
     statuses = [r[0] for r in results]
-    assert statuses.count("SUCCESS") == 1
-    assert statuses.count("CONFLICT") == 1
+    assert statuses.count("SUCCESS") == 1, f"Results: {results}"
+    assert statuses.count("CONFLICT") == 1, f"Results: {results}"
 
 
 def test_list_bookings_filters_and_roles(client, seed_data, gold_member_user, front_desk_user):
@@ -635,7 +636,7 @@ def test_list_bookings_filters_and_roles(client, seed_data, gold_member_user, fr
     assert len(res.get_json()["data"]) == 2
 
     # Staff filter by sport
-    res_tennis = client.get("/api/v1/bookings?sport_type=TENNIS", headers=auth_header(front_desk_user))
+    res_tennis = client.get("/api/v1/bookings?sport_type=LAWN_TENNIS", headers=auth_header(front_desk_user))
     assert len(res_tennis.get_json()["data"]) == 1
 
     # Staff filter by is_walk_in
@@ -677,12 +678,12 @@ def test_get_booking_detail_route(client, seed_data, gold_member_user, silver_me
 
 def test_staff_create_walk_in_api(client, seed_data, front_desk_user):
     """Front desk staff creates a walk-in booking via API."""
-    padel = seed_data["padel"]
+    cricket = seed_data["cricket"]
     res = client.post(
         "/api/v1/bookings",
         headers=auth_header(front_desk_user),
         json={
-            "court_id": padel.id,
+            "court_id": cricket.id,
             "start_time": "2026-10-10T15:00:00",
             "is_walk_in": True,
             "guest_name": "Novak Djokovic",
@@ -694,8 +695,8 @@ def test_staff_create_walk_in_api(client, seed_data, front_desk_user):
     data = res.get_json()["data"]
     assert data["is_walk_in"] is True
     assert data["guest_name"] == "Novak Djokovic"
-    assert data["base_price"] == 1200.0
-    assert data["final_price"] == 1200.0
+    assert data["base_price"] == 1500.0
+    assert data["final_price"] == 1500.0
 
 
 def test_member_history_for_staff_and_forbidden_for_other_member(client, seed_data, gold_member_user, silver_member_user, front_desk_user):

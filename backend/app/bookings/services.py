@@ -2,7 +2,7 @@ import threading
 from datetime import date, datetime, time, timedelta
 from typing import List, Optional, Dict, Any, Tuple
 from flask import current_app
-from sqlalchemy.exc import IntegrityError
+from sqlalchemy.exc import IntegrityError, OperationalError
 from backend.app.extensions import db
 from backend.app.common.utils import utc_now
 from backend.app.common.errors import (
@@ -123,13 +123,12 @@ def calculate_booking_price(
         rate_source = "FRIDAY_SOCIAL_PLAY_BASE_RATE"
     else:
         sport_rates = config.get("DEFAULT_SPORT_RATES", {
-            "TENNIS": 800.0,
-            "PADEL": 1200.0,
+            "LAWN_TENNIS": 800.0,
             "BADMINTON": 400.0,
             "BOX_CRICKET": 1500.0,
         })
         sport_key = court.sport_type.value if hasattr(court.sport_type, "value") else str(court.sport_type)
-        base_rate = float(sport_rates.get(sport_key, 800.0))
+        base_rate = float(sport_rates.get(sport_key, 0.0))
         rate_source = f"SPORT_BASE_RATE_{sport_key}"
 
     discount_percentage = 0.0
@@ -333,7 +332,7 @@ def create_booking(
 
         try:
             db.session.commit()
-        except IntegrityError:
+        except (IntegrityError, OperationalError):
             db.session.rollback()
             raise ConflictException(
                 f"Court '{court.name}' is no longer available for the requested time due to a scheduling conflict.",
