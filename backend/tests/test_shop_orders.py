@@ -30,6 +30,7 @@ from backend.app.shop.services import (
     cancel_shop_order,
     get_shop_order,
     calculate_item_discount_pct,
+    calculate_shop_quote,
 )
 
 
@@ -653,3 +654,98 @@ def test_api_counter_order_role_restrictions(client, test_catalog, gold_member_u
     # Shop Staff attempts COUNTER order -> 201 Created
     res_staff = client.post("/api/v1/shop/orders", headers=auth_header(shop_staff_user), json=counter_payload)
     assert res_staff.status_code == 201
+
+
+def test_quote_endpoint_and_service_discount_calculation(client, test_catalog, gold_member_user):
+    """POST /api/v1/shop/quote returns accurate live price quote without creating orders or deducting stock."""
+    racket = test_catalog["racket"]  # price: 10000, initial stock: 10
+    polo = test_catalog["polo"]  # price: 2000, initial stock: 20
+    gold_user, _ = gold_member_user
+
+    quote_payload = {
+        "items": [
+            {"product_id": racket.id, "quantity": 2},
+            {"product_id": polo.id, "quantity": 1},
+        ]
+    }
+
+    # As Gold Member: 20% discount on racket (20000 * 0.20 = 4000) and polo (1000 * 0.20 = 200)
+    res_gold = client.post("/api/v1/shop/quote", headers=auth_header(gold_user), json=quote_payload)
+    assert res_gold.status_code == 200
+    data = res_gold.get_json()["data"]["quote"]
+    assert data["subtotal_amount"] == 21000.0
+    assert data["discount_amount"] == 4200.0
+    assert data["total_amount"] == 16800.0
+    assert data["plan_code"] == "GOLD"
+    assert data["member_discount_applied"] is True
+
+    # Confirm stock was untouched
+    assert racket.stock_quantity == 10
+    assert polo.stock_quantity == 20
+
+    # Unauthenticated / guest quote (0% discount)
+    res_guest = client.post("/api/v1/shop/quote", json=quote_payload)
+    assert res_guest.status_code == 200
+    guest_data = res_guest.get_json()["data"]["quote"]
+    assert guest_data["subtotal_amount"] == 21000.0
+    assert guest_data["discount_amount"] == 0.0
+    assert guest_data["total_amount"] == 21000.0
+    assert guest_data["member_discount_applied"] is False
+
+
+def test_online_payment_verification_syncs_order_status(client, test_catalog, gold_member_user, setup_fake_provider):
+    """Verifying online payment transitions ShopOrder to PAID and CONFIRMED."""
+    racket = test_catalog["racket"]
+    gold_user, _ = gold_member_user
+    fake_prov = setup_fake_provider
+
+    # Create online order (10000 - 20% Gold discount = 8000)
+    order_res = client.post(
+        "/api/v1/shop/orders",
+        headers=auth_header(gold_user),
+        json={
+            "order_type": "ONLINE",
+            "fulfillment_type": "PICKUP",
+            "items": [{"product_id": racket.id, "quantity": 1}],
+            "payment_method": "ONLINE",
+        },
+    )
+    assert order_res.status_code == 201
+    order_data = order_res.get_json()["data"]["order"]
+    order_id = order_data["id"]
+    assert order_data["status"] == "PENDING"
+    assert order_data["payment_status"] == "PENDING"
+
+    # Fetch linked payment
+    payment = get_payment_for_item("SHOP_ORDER", order_id)
+    assert payment is not None
+    assert payment.gateway_order_id is not None
+
+    payment_id = "pay_test_shop_999"
+    valid_sig = fake_prov.generate_signature(payment.gateway_order_id, payment_id)
+    fake_prov.payments[payment_id] = {
+        "id": payment_id,
+        "amount": 800000,
+        "currency": "INR",
+        "status": "captured",
+    }
+
+    # Verify payment via centralized verify endpoint
+    verify_res = client.post(
+        "/api/v1/payments/verify",
+        headers=auth_header(gold_user),
+        json={
+            "razorpay_order_id": payment.gateway_order_id,
+            "razorpay_payment_id": payment_id,
+            "razorpay_signature": valid_sig,
+        },
+    )
+    assert verify_res.status_code == 200
+    assert verify_res.get_json()["data"]["status"] == "PAID"
+
+    # Reload order -> payment_status should be PAID and status CONFIRMED
+    reloaded_order = get_shop_order(order_id)
+    assert reloaded_order.payment_status == "PAID"
+    assert reloaded_order.status == ShopOrderStatus.CONFIRMED
+
+
