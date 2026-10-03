@@ -2732,3 +2732,132 @@ The system enforces 7 distinct hierarchical roles:
 ```
 - **Business Rules:** (TODO: Add rules)
 
+
+---
+
+## Auth Endpoints (`/api/v1/auth`)
+
+### Demo Login
+- **Endpoint:** `POST /api/v1/auth/demo-login`
+- **Authentication:** Required
+- **Role Requirement:** (TODO: Fill role)
+- **Request Body:**
+```json
+{
+}
+```
+- **Success Response:**
+```json
+{
+  "success": true,
+  "data": {}
+}
+```
+- **Business Rules:** (TODO: Add rules)
+
+
+---
+
+## Bookings Endpoints (`/api/v1/bookings`)
+
+### Calculate Price Route
+- **Endpoint:** `GET /api/v1/bookings/calculate-price`
+- **Authentication:** Required
+- **Role Requirement:** (TODO: Fill role)
+- **Query Parameters:** (TODO: Fill params)
+- **Success Response:**
+```json
+{
+  "success": true,
+  "data": {}
+}
+```
+- **Business Rules:** (TODO: Add rules)
+
+### Create Guest Booking Route
+- **Endpoint:** `POST /api/v1/bookings/guest`
+- **Authentication:** Required
+- **Role Requirement:** (TODO: Fill role)
+- **Request Body:**
+```json
+{
+}
+```
+- **Success Response:**
+```json
+{
+  "success": true,
+  "data": {}
+}
+```
+- **Business Rules:** (TODO: Add rules)
+
+### Get Pricing Rules Route
+- **Endpoint:** `GET /api/v1/bookings/pricing-rules`
+- **Authentication:** Required
+- **Role Requirement:** (TODO: Fill role)
+- **Query Parameters:** (TODO: Fill params)
+- **Success Response:**
+```json
+{
+  "success": true,
+  "data": {}
+}
+```
+- **Business Rules:** (TODO: Add rules)
+
+
+---
+
+## Membership_Plans Endpoints (`/api/v1/membership_plans`)
+
+### Get My Membership Status
+- **Endpoint:** `GET /api/v1/membership-plans/my-status`
+- **Authentication:** Required
+- **Role Requirement:** (TODO: Fill role)
+- **Query Parameters:** (TODO: Fill params)
+- **Success Response:**
+```json
+{
+  "success": true,
+  "data": {}
+}
+```
+- **Business Rules:** (TODO: Add rules)
+
+### Create Subscription Order
+- **Endpoint:** `POST /api/v1/membership-plans/subscribe/order`
+- **Authentication:** Required
+- **Role Requirement:** (TODO: Fill role)
+- **Request Body:**
+```json
+{
+}
+```
+- **Success Response:**
+```json
+{
+  "success": true,
+  "data": {}
+}
+```
+- **Business Rules:** (TODO: Add rules)
+
+### Verify Subscription Payment
+- **Endpoint:** `POST /api/v1/membership-plans/subscribe/verify`
+- **Authentication:** Required
+- **Role Requirement:** (TODO: Fill role)
+- **Request Body:**
+```json
+{
+}
+```
+- **Success Response:**
+```json
+{
+  "success": true,
+  "data": {}
+}
+```
+- **Business Rules:** (TODO: Add rules)
+
