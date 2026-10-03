@@ -387,8 +387,8 @@ export default function ProfileViewContainer({ forcedMode }: ProfileViewContaine
       <EmployeeProfileView
         user={activeUser}
         onLogout={() => {
-          logout();
-          router.push("/");
+          logout("/login");
+          router.push("/login");
         }}
         onSwitchToMemberView={() => setViewMode("member")}
       />
@@ -433,8 +433,8 @@ export default function ProfileViewContainer({ forcedMode }: ProfileViewContaine
               <button
                 type="button"
                 onClick={() => {
-                  logout();
-                  router.push("/");
+                  logout("/login");
+                  router.push("/login");
                 }}
                 className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-extrabold text-red-600 hover:bg-red-50 border border-red-200 transition-all shadow-sm"
                 title="Sign Out"
@@ -499,8 +499,8 @@ export default function ProfileViewContainer({ forcedMode }: ProfileViewContaine
                   type="button"
                   onClick={() => {
                     setMobileMenuOpen(false);
-                    logout();
-                    router.push("/");
+                    logout("/login");
+                    router.push("/login");
                   }}
                   className="flex items-center justify-center gap-2 py-2.5 rounded-xl text-xs font-bold text-red-600 bg-red-50 border border-red-200"
                 >
@@ -1533,8 +1533,8 @@ export default function ProfileViewContainer({ forcedMode }: ProfileViewContaine
 
               <button
                 onClick={() => {
-                  logout();
-                  router.push("/");
+                  logout("/login");
+                  router.push("/login");
                 }}
                 className="px-4 py-2 rounded-xl text-xs font-extrabold text-red-600 hover:bg-red-50 hover:text-red-700 border border-red-200 transition-all flex items-center gap-2"
               >

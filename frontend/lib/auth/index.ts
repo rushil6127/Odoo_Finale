@@ -787,7 +787,13 @@ export function useCurrentUser() {
     isAuthenticated: user !== null,
     isLoading: false,
     login: (profile: AuthUserProfile) => setStoredUser(profile),
-    logout: () => clearStoredUser(),
+    logout: (redirectPath: string = "/login") => {
+      clearStoredUser();
+      clearAuthSession();
+      if (typeof window !== "undefined") {
+        window.location.href = redirectPath;
+      }
+    },
   };
 }
 

@@ -244,7 +244,10 @@ export default function EmployeeProfileView({
 
               <button
                 type="button"
-                onClick={onLogout}
+                onClick={() => {
+                  onLogout();
+                  window.location.href = "/login";
+                }}
                 className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-extrabold text-red-600 hover:bg-red-50 border border-red-200 transition-all shadow-sm"
                 title="Sign Out"
               >
@@ -297,6 +300,7 @@ export default function EmployeeProfileView({
                   onClick={() => {
                     setMobileMenuOpen(false);
                     onLogout();
+                    window.location.href = "/login";
                   }}
                   className="flex items-center justify-center gap-2 py-2.5 rounded-xl text-xs font-bold text-red-600 bg-red-50 border border-red-200"
                 >
@@ -1342,7 +1346,10 @@ export default function EmployeeProfileView({
             </Link>
 
             <button
-              onClick={onLogout}
+              onClick={() => {
+                onLogout();
+                window.location.href = "/login";
+              }}
               className="px-4 py-2 rounded-xl text-xs font-extrabold text-red-600 hover:bg-red-50 hover:text-red-700 border border-red-200 transition-all flex items-center gap-2"
             >
               <LogOut className="w-3.5 h-3.5" />
