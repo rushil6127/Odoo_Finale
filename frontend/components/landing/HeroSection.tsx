@@ -15,7 +15,8 @@ import {
   ChevronDown,
   Activity,
   Award,
-  Users
+  Users,
+  Star
 } from "lucide-react";
 
 export default function HeroSection() {
@@ -43,25 +44,25 @@ export default function HeroSection() {
   ];
 
   return (
-    <section id="hero" className="relative pt-28 sm:pt-36 pb-16 sm:pb-24 overflow-hidden hero-gradient-bg">
-      {/* Decorative Floating Blobs with Scroll Responsive Parallax */}
+    <section id="hero" className="relative pt-28 sm:pt-36 lg:pt-40 pb-16 sm:pb-24 overflow-hidden hero-gradient-bg">
+      {/* Decorative Monumental Background Glows */}
       <div 
-        className="absolute top-10 left-1/2 -translate-x-1/2 w-[800px] h-[450px] bg-gradient-to-tr from-sky-200/50 via-lime-200/40 to-transparent rounded-full blur-3xl pointer-events-none -z-10 transition-transform duration-300"
+        className="absolute top-12 left-1/2 -translate-x-1/2 w-[900px] h-[550px] bg-gradient-to-b from-sky-300/40 via-lime-200/30 to-transparent rounded-full blur-3xl pointer-events-none -z-10 transition-transform duration-300"
         style={{ transform: `translate(-50%, ${scrollProgress * 40}px) scale(${1 - scrollProgress * 0.1})` }}
       />
       <div 
-        className="absolute -top-20 -right-20 w-96 h-96 bg-sky-300/30 rounded-full blur-3xl pointer-events-none -z-10" 
+        className="absolute -top-24 -right-24 w-[420px] h-[420px] bg-sky-400/25 rounded-full blur-3xl pointer-events-none -z-10" 
         style={{ transform: `translateY(${scrollProgress * 60}px)` }}
       />
       <div 
-        className="absolute top-1/3 -left-20 w-80 h-80 bg-lime-300/30 rounded-full blur-3xl pointer-events-none -z-10" 
+        className="absolute top-1/4 -left-24 w-[380px] h-[380px] bg-lime-400/20 rounded-full blur-3xl pointer-events-none -z-10" 
         style={{ transform: `translateY(${scrollProgress * 80}px)` }}
       />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Top Live Availability Badge */}
+        {/* Top Status & Live Availability Capsule */}
         <div className="flex justify-center mb-6">
-          <div className="inline-flex items-center gap-2.5 px-4 py-1.5 rounded-full bg-white/90 border border-sky-200 shadow-sm backdrop-blur-md">
+          <div className="inline-flex items-center gap-2.5 px-4 py-1.5 rounded-full bg-white/95 border border-sky-200/90 shadow-sm backdrop-blur-md">
             <span className="relative flex h-2.5 w-2.5">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
               <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-green-500"></span>
@@ -69,40 +70,52 @@ export default function HeroSection() {
             <span className="text-xs font-semibold text-slate-800">
               Live Club Status: <span className="text-green-600 font-bold">8 Courts Available</span> for Booking Today
             </span>
-            <span className="hidden sm:inline-block text-[11px] text-slate-400">|</span>
-            <span className="hidden sm:inline-flex items-center text-[11px] font-medium text-sky-700">
+            <span className="hidden sm:inline-block text-[11px] text-slate-300">|</span>
+            <span className="hidden sm:inline-flex items-center text-[11px] font-semibold text-sky-700">
               <Clock className="w-3 h-3 mr-1" /> 6:00 AM – 11:00 PM
             </span>
           </div>
         </div>
 
-        {/* Main Hero Header Content */}
-        <div className="text-center max-w-4xl mx-auto">
-          {/* Subtitle tag */}
-          <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-sky-50 text-sky-700 text-xs font-bold uppercase tracking-wider mb-4 border border-sky-200/80">
-            <Trophy className="w-3.5 h-3.5 text-sky-600" />
-            <span>State of the Art Sports Sanctuary</span>
+        {/* Central Attraction Hero Content */}
+        <div className="text-center max-w-5xl mx-auto">
+          {/* Elite Sports Resort Crest Badge */}
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-gradient-to-r from-sky-50 via-lime-50 to-sky-50 text-sky-800 text-xs font-extrabold uppercase tracking-widest mb-6 border border-sky-200 shadow-sm">
+            <Trophy className="w-4 h-4 text-sky-600" />
+            <span>Gujarat&apos;s Premier Multi-Sport Sanctuary</span>
+            <Star className="w-3.5 h-3.5 fill-[#CCFF00] text-sky-700" />
           </div>
 
-          {/* Primary Name of the Club */}
-          <h1 className="text-4xl sm:text-6xl lg:text-7xl font-extrabold tracking-tight text-slate-900 leading-[1.1] mb-6">
-            The{" "}
-            <span className="bg-gradient-to-r from-sky-600 via-blue-600 to-sky-700 bg-clip-text text-transparent">
-              Champions
-            </span>{" "}
-            Club
-          </h1>
+          {/* MONUMENTAL CENTRAL ATTRACTION TITLE */}
+          <div className="relative mb-6">
+            {/* Soft Ambient Text Glow */}
+            <div className="absolute inset-0 blur-2xl bg-gradient-to-r from-sky-400/20 via-blue-500/20 to-lime-300/20 -z-10" />
 
-          {/* Value proposition text */}
-          <p className="text-lg sm:text-xl text-slate-600 font-normal max-w-2xl mx-auto mb-8 leading-relaxed">
-            Elevate your game across <span className="font-semibold text-slate-900">Grand Slam grass lawns</span>, Roland-Garros clay, Olympic aquatic arenas, and modern digital booking operations.
+            <h1 className="text-5xl sm:text-7xl md:text-8xl lg:text-9xl font-black tracking-tighter text-slate-900 leading-[0.95] drop-shadow-sm select-none">
+              <span className="block text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold tracking-tight text-slate-500 uppercase mb-1">
+                The
+              </span>
+              <span className="bg-gradient-to-r from-sky-600 via-blue-600 to-sky-800 bg-clip-text text-transparent">
+                Champions
+              </span>{" "}
+              <span className="text-slate-900 relative inline-block">
+                Club
+                {/* Vibrant Tennis Ball Lime Accent Dot */}
+                <span className="absolute -top-1 sm:-top-2 -right-3 sm:-right-5 w-3 sm:w-5 h-3 sm:h-5 rounded-full bg-[#CCFF00] border-2 border-slate-900 shadow-sm inline-block" />
+              </span>
+            </h1>
+          </div>
+
+          {/* Value proposition tagline */}
+          <p className="text-base sm:text-xl md:text-2xl text-slate-600 font-medium max-w-3xl mx-auto mb-10 leading-relaxed">
+            Where world-class tennis on <span className="font-bold text-slate-900 underline decoration-sky-400 decoration-2 underline-offset-4">Wimbledon grass</span>, Roland-Garros clay, and Olympic aquatic arenas meet seamless digital club operations.
           </p>
 
-          {/* CTA Buttons */}
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-3.5 sm:gap-4 mb-12">
+          {/* Primary Action Buttons */}
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-14">
             <Link
               href="#courts"
-              className="w-full sm:w-auto inline-flex items-center justify-center gap-2.5 px-7 py-3.5 rounded-full text-sm font-bold text-white bg-gradient-to-r from-sky-500 to-sky-600 hover:from-sky-600 hover:to-blue-700 shadow-lg shadow-sky-500/25 hover:shadow-sky-500/40 hover:-translate-y-0.5 transition-all duration-200"
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-2.5 px-8 py-4 rounded-full text-sm font-extrabold text-white bg-gradient-to-r from-sky-500 via-sky-600 to-blue-700 hover:from-sky-600 hover:to-blue-800 shadow-xl shadow-sky-500/30 hover:shadow-sky-500/50 hover:scale-105 active:scale-95 transition-all duration-200 border border-sky-300/40"
             >
               <Calendar className="w-4 h-4 text-[#CCFF00]" />
               <span>Reserve a Court Slot</span>
@@ -111,10 +124,10 @@ export default function HeroSection() {
 
             <Link
               href="#memberships"
-              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-7 py-3.5 rounded-full text-sm font-bold text-slate-800 bg-white hover:bg-slate-50 border border-slate-300/80 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200"
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-2.5 px-8 py-4 rounded-full text-sm font-extrabold text-slate-800 bg-white hover:bg-slate-50 border border-slate-300 shadow-md hover:shadow-lg hover:scale-105 active:scale-95 transition-all duration-200"
             >
               <span>Explore Memberships</span>
-              <span className="text-xs bg-lime-100 text-lime-800 px-2 py-0.5 rounded-full font-extrabold border border-lime-300">
+              <span className="text-xs bg-lime-100 text-lime-900 px-2.5 py-0.5 rounded-full font-extrabold border border-lime-300">
                 Gold &bull; Silver
               </span>
             </Link>
