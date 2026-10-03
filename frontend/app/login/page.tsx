@@ -7,9 +7,11 @@ import { ArrowLeft, Loader2, AlertCircle, Crown, ShieldAlert } from "lucide-reac
 import {
   DEMO_MEMBERS,
   setStoredUser,
+  getStoredUser,
   loginUser,
   registerUser,
   loginWithGoogle,
+  getRoleProfilePath,
   type AuthUserProfile,
 } from "@/lib/auth";
 import "./Login.css";
@@ -80,7 +82,8 @@ export default function LoginPage() {
 
     try {
       await loginWithGoogle(response.credential);
-      router.push("/profile");
+      const currentUser = getStoredUser();
+      router.push(getRoleProfilePath(currentUser));
     } catch (err: any) {
       const msg = err?.message || "Google authentication failed. Please try again.";
       setLoginError(msg);
@@ -157,7 +160,8 @@ export default function LoginPage() {
 
     try {
       await loginUser(loginEmail, loginPassword);
-      router.push("/profile");
+      const currentUser = getStoredUser();
+      router.push(getRoleProfilePath(currentUser));
     } catch (err: any) {
       // Fallback: If backend is unreachable or demo testing, allow quick demo login
       if (loginEmail.toLowerCase().includes("alex") || loginEmail === "") {
@@ -187,7 +191,8 @@ export default function LoginPage() {
         last_name: lastName,
       });
 
-      router.push("/profile");
+      const currentUser = getStoredUser();
+      router.push(getRoleProfilePath(currentUser));
     } catch (err: any) {
       setRegError(err?.message || "Registration failed. Please check your details.");
     } finally {
@@ -197,8 +202,9 @@ export default function LoginPage() {
 
   const handleDemoLogin = (user: AuthUserProfile) => {
     setStoredUser(user);
-    router.push("/profile");
+    router.push(getRoleProfilePath(user));
   };
+
 
   return (
     <div className="auth-page-container">

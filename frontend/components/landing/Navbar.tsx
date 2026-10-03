@@ -10,7 +10,7 @@ import {
   Crown,
   ChevronDown
 } from "lucide-react";
-import { useCurrentUser } from "@/lib/auth";
+import { useCurrentUser, getRoleProfilePath } from "@/lib/auth";
 
 interface NavLink {
   name: string;
@@ -35,6 +35,8 @@ export default function Navbar() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   const { user, isAuthenticated } = useCurrentUser();
+  const profileHref = getRoleProfilePath(user);
+
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -115,7 +117,7 @@ export default function Navbar() {
             <div className="hidden md:flex items-center gap-2.5 shrink-0">
               {isAuthenticated && user ? (
                 <Link
-                  href="/profile"
+                  href={profileHref}
                   className="inline-flex items-center gap-2 p-1.5 pr-3.5 rounded-full bg-slate-100/90 hover:bg-sky-50 border border-slate-200 hover:border-sky-300 shadow-sm transition-all group"
                   title="Open Member Profile & Digital Portal"
                 >
@@ -191,7 +193,7 @@ export default function Navbar() {
               <div className="flex flex-col gap-2 pt-2">
                 {isAuthenticated && user ? (
                   <Link
-                    href="/profile"
+                    href={profileHref}
                     onClick={() => setMobileMenuOpen(false)}
                     className="flex items-center justify-between p-3 rounded-2xl bg-sky-50 border border-sky-200 text-slate-900"
                   >
@@ -206,6 +208,7 @@ export default function Navbar() {
                     </div>
                     <span className="text-xs font-bold text-sky-600">Open &rarr;</span>
                   </Link>
+
                 ) : (
                   <Link
                     href="/login"
