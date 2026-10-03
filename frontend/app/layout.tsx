@@ -9,8 +9,8 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Champions Club — Sports Club Management",
-  description: "Next-generation sports club management platform for courts, members, events, and operations.",
+  title: "The Champions Club — Elite Sports & Country Resort",
+  description: "Gujarat's premier multi-sport country club featuring Wimbledon grass courts, Roland-Garros clay, Olympic aquatic center, pro shop, and modern digital booking operations.",
 };
 
 export default function RootLayout({
@@ -19,8 +19,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${inter.variable} h-full`}>
-      <body className="min-h-full flex flex-col antialiased">
+    <html lang="en" className={`${inter.variable} h-full scroll-smooth`}>
+      <body className="min-h-full flex flex-col antialiased bg-white text-slate-900">
         {children}
       </body>
     </html>

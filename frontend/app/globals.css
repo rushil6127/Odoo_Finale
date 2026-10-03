@@ -1,131 +1,174 @@
 @import "tailwindcss";
 
 /* ============================================================
-   Champions Club — Design Tokens
-   Source of truth: docs/design.md
+   The Champions Club — Elite Sports & Country Club
+   Theme Design Tokens & Utilities
    ============================================================ */
 
 :root {
-  /* ---- Green: Ground Sports ---- */
-  --cc-green-bright: #CEF852;       /* Bright Sport Green */
-  --cc-green-deep: #1E4B33;         /* Deep Club Green */
-  --cc-green-olive: #6F7A4B;        /* Olive Sport Green */
+  /* ---- Sky Blue / Electric Sports Blue ---- */
+  --cc-sky-50: #F0F9FF;
+  --cc-sky-100: #E0F2FE;
+  --cc-sky-200: #BAE6FD;
+  --cc-sky-400: #38BDF8;
+  --cc-sky-500: #0EA5E9;
+  --cc-sky-600: #0284C7;
+  --cc-sky-700: #0369A1;
+  --cc-blue-deep: #0F2D59;
+  --cc-blue-navy: #0A192F;
 
-  /* ---- Blue: Water / Cool Sports ---- */
-  --cc-blue-deep: #133C73;          /* Deep Sports Blue */
-  --cc-blue-medium: #1A5276;        /* Medium blue — UI depth */
-  --cc-blue-light: #2E86C1;         /* Light blue — accents */
+  /* ---- Lawn Green & Tennis Ball Vibrant Green ---- */
+  --cc-grass-light: #ECFDF5;
+  --cc-tennis-lime: #CCFF00;
+  --cc-tennis-lime-dark: #A3E635;
+  --cc-grass-lime: #84CC16;
+  --cc-grass-green: #22C55E;
+  --cc-grass-deep: #15803D;
+  --cc-green-emerald: #059669;
 
-  /* ---- Neutral ---- */
-  --cc-white-warm: #F3EEE0;         /* Warm White */
-  --cc-white-soft: #FFFBF8;         /* Soft White */
+  /* ---- Pure White & Clean Neutrals ---- */
   --cc-white: #FFFFFF;
-
-  /* ---- Accent ---- */
-  --cc-lime: #F6ED5B;               /* Sport Lime */
+  --cc-white-soft: #F8FAFC;
+  --cc-white-warm: #FBFDFB;
+  --cc-slate-50: #F8FAFC;
+  --cc-slate-100: #F1F5F9;
+  --cc-slate-200: #E2E8F0;
+  --cc-slate-300: #CBD5E1;
+  --cc-slate-400: #94A3B8;
+  --cc-slate-500: #64748B;
+  --cc-slate-700: #334155;
+  --cc-slate-900: #0F172A;
 
   /* ---- Semantic ---- */
-  --cc-success: #2ECC71;
-  --cc-warning: #F39C12;
-  --cc-error: #E74C3C;
-  --cc-info: #3498DB;
-
-  /* ---- Text ---- */
-  --cc-text-primary: #1A1A1A;
-  --cc-text-secondary: #5A5A5A;
-  --cc-text-muted: #9A9A9A;
-  --cc-text-inverse: #FFFFFF;
-
-  /* ---- Surfaces ---- */
-  --cc-surface-primary: var(--cc-white-soft);
-  --cc-surface-card: var(--cc-white);
-  --cc-surface-elevated: var(--cc-white);
-  --cc-surface-warm: var(--cc-white-warm);
-
-  /* ---- Borders ---- */
-  --cc-border: #E5E5E5;
-  --cc-border-focus: var(--cc-green-deep);
-
-  /* ---- Shadows ---- */
-  --cc-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
-  --cc-shadow-md: 0 4px 6px rgba(0, 0, 0, 0.07);
-  --cc-shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
-
-  /* ---- Radii ---- */
-  --cc-radius-sm: 6px;
-  --cc-radius-md: 10px;
-  --cc-radius-lg: 16px;
-  --cc-radius-full: 9999px;
-
-  /* ---- Spacing scale (rem) ---- */
-  --cc-space-1: 0.25rem;
-  --cc-space-2: 0.5rem;
-  --cc-space-3: 0.75rem;
-  --cc-space-4: 1rem;
-  --cc-space-5: 1.25rem;
-  --cc-space-6: 1.5rem;
-  --cc-space-8: 2rem;
-  --cc-space-10: 2.5rem;
-  --cc-space-12: 3rem;
-  --cc-space-16: 4rem;
+  --cc-success: #10B981;
+  --cc-warning: #F59E0B;
+  --cc-error: #EF4444;
+  --cc-info: #0EA5E9;
 
   /* ---- Typography ---- */
-  --cc-font-sans: "Inter", system-ui, -apple-system, sans-serif;
-  --cc-font-display: "Inter", system-ui, -apple-system, sans-serif;
-
-  /* ---- Transitions ---- */
-  --cc-transition-fast: 150ms ease;
-  --cc-transition-normal: 250ms ease;
-  --cc-transition-slow: 400ms ease;
+  --cc-font-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --cc-font-display: "Outfit", "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
 }
 
-/* ---- Tailwind theme integration ---- */
 @theme inline {
-  --color-cc-green-bright: var(--cc-green-bright);
-  --color-cc-green-deep: var(--cc-green-deep);
-  --color-cc-green-olive: var(--cc-green-olive);
+  --color-sky-50: var(--cc-sky-50);
+  --color-sky-100: var(--cc-sky-100);
+  --color-sky-200: var(--cc-sky-200);
+  --color-sky-400: var(--cc-sky-400);
+  --color-sky-500: var(--cc-sky-500);
+  --color-sky-600: var(--cc-sky-600);
+  --color-sky-700: var(--cc-sky-700);
+  --color-blue-deep: var(--cc-blue-deep);
+  --color-blue-navy: var(--cc-blue-navy);
 
-  --color-cc-blue-deep: var(--cc-blue-deep);
-  --color-cc-blue-medium: var(--cc-blue-medium);
-  --color-cc-blue-light: var(--cc-blue-light);
+  --color-tennis-lime: var(--cc-tennis-lime);
+  --color-tennis-lime-dark: var(--cc-tennis-lime-dark);
+  --color-grass-lime: var(--cc-grass-lime);
+  --color-grass-green: var(--cc-grass-green);
+  --color-grass-deep: var(--cc-grass-deep);
 
-  --color-cc-white-warm: var(--cc-white-warm);
-  --color-cc-white-soft: var(--cc-white-soft);
-
-  --color-cc-lime: var(--cc-lime);
-
-  --color-cc-success: var(--cc-success);
-  --color-cc-warning: var(--cc-warning);
-  --color-cc-error: var(--cc-error);
-  --color-cc-info: var(--cc-info);
-
-  --color-cc-text-primary: var(--cc-text-primary);
-  --color-cc-text-secondary: var(--cc-text-secondary);
-  --color-cc-text-muted: var(--cc-text-muted);
-
-  --color-cc-border: var(--cc-border);
+  --color-club-white: var(--cc-white);
+  --color-club-slate-50: var(--cc-slate-50);
+  --color-club-slate-100: var(--cc-slate-100);
+  --color-club-slate-200: var(--cc-slate-200);
+  --color-club-slate-300: var(--cc-slate-300);
+  --color-club-slate-500: var(--cc-slate-500);
+  --color-club-slate-700: var(--cc-slate-700);
+  --color-club-slate-900: var(--cc-slate-900);
 
   --font-sans: var(--cc-font-sans);
   --font-display: var(--cc-font-display);
 }
 
-/* ---- Global base styles ---- */
+/* ---- Base Styles ---- */
+html {
+  scroll-behavior: smooth;
+}
+
 body {
-  background: var(--cc-surface-primary);
-  color: var(--cc-text-primary);
+  background-color: #FFFFFF;
+  color: #0F172A;
   font-family: var(--cc-font-sans);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
 }
 
-/* ---- Focus ring utility ---- */
-*:focus-visible {
-  outline: 2px solid var(--cc-border-focus);
-  outline-offset: 2px;
+/* ---- Custom Pill Navbar Floating Shadow ---- */
+.pill-navbar-shadow {
+  box-shadow: 0 10px 30px -5px rgba(2, 132, 199, 0.08), 0 4px 12px -2px rgba(15, 23, 42, 0.05);
 }
 
-/* ---- Selection ---- */
+.pill-navbar-glass {
+  background: rgba(255, 255, 255, 0.88);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(226, 232, 240, 0.85);
+}
+
+/* ---- Gradient Glows & Subtle Glass Cards ---- */
+.glass-card {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(226, 232, 240, 0.9);
+  box-shadow: 0 10px 25px -5px rgba(2, 132, 199, 0.06), 0 4px 10px -2px rgba(0, 0, 0, 0.03);
+}
+
+.glass-card-hover {
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.glass-card-hover:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 20px 35px -8px rgba(2, 132, 199, 0.12), 0 8px 16px -4px rgba(0, 0, 0, 0.04);
+  border-color: rgba(56, 189, 248, 0.5);
+}
+
+/* ---- Subtle Animated Background Gradient ---- */
+.hero-gradient-bg {
+  background: radial-gradient(circle at 15% 20%, rgba(224, 242, 254, 0.8) 0%, transparent 45%),
+              radial-gradient(circle at 85% 30%, rgba(217, 249, 157, 0.5) 0%, transparent 40%),
+              radial-gradient(circle at 50% 80%, rgba(240, 249, 255, 0.9) 0%, transparent 60%),
+              #FFFFFF;
+}
+
+/* ---- Infinite Marquee / Gallery Scroll ---- */
+@keyframes marquee-scroll {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.animate-marquee {
+  display: flex;
+  width: max-content;
+  animation: marquee-scroll 45s linear infinite;
+}
+
+.animate-marquee:hover {
+  animation-play-state: paused;
+}
+
+/* ---- Custom Selection ---- */
 ::selection {
-  background: var(--cc-green-bright);
-  color: var(--cc-green-deep);
+  background: #BAE6FD;
+  color: #0369A1;
+}
+
+/* ---- Scrollbar Styling ---- */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #F8FAFC;
+}
+::-webkit-scrollbar-thumb {
+  background: #CBD5E1;
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #94A3B8;
 }
