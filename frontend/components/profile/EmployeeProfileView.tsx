@@ -270,14 +270,6 @@ export default function EmployeeProfileView({
           <div className="md:hidden mt-2 mx-auto max-w-7xl px-2">
             <div className="glass-card rounded-3xl p-4 shadow-xl border border-sky-100 flex flex-col gap-2 animate-in fade-in slide-in-from-top-4 duration-200">
               <div className="flex flex-col gap-2 pt-1">
-                <Link
-                  href="/dashboard"
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="flex items-center justify-center gap-2 py-2.5 rounded-xl text-xs font-bold bg-lime-100 text-lime-900 border border-lime-300"
-                >
-                  <TrendingUp className="w-4 h-4 text-lime-800" />
-                  <span>Open Staff & Admin Console</span>
-                </Link>
 
                 <button
                   type="button"
@@ -540,17 +532,6 @@ export default function EmployeeProfileView({
                   <span>⚠️</span>
                 </button>
 
-                {/* Lime Button: Staff & Admin Console */}
-                <Link
-                  href="/dashboard"
-                  className="w-full flex items-center justify-between px-4 py-3 rounded-2xl text-xs font-black bg-lime-200 hover:bg-lime-300 text-lime-950 border border-lime-300 shadow-sm transition-all"
-                >
-                  <span className="flex items-center gap-2">
-                    <TrendingUp className="w-4 h-4 text-lime-900" />
-                    <span>Staff & Admin Console</span>
-                  </span>
-                  <ExternalLink className="w-3.5 h-3.5 text-lime-900" />
-                </Link>
 
                 {/* Blue Button: Switch to Member Pass */}
                 <button
