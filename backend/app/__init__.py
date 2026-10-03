@@ -45,6 +45,19 @@ from backend.app.crm import (  # noqa: F401
 )
 from backend.app.notifications import Notification  # noqa: F401
 from backend.app.reports import reports_bp
+from backend.app.invoices import (  # noqa: F401
+    invoices_bp,
+    Invoice,
+    InvoiceItem,
+    BusinessClient,
+    TaxRate,
+)
+from backend.app.employees import (  # noqa: F401
+    employees_bp,
+    Employee,
+    LeaveRequest,
+    PayrollRecord,
+)
 import backend.app.tasks.dispatcher  # noqa: F401 Ensure event listeners registered
 
 
@@ -99,6 +112,8 @@ def create_app(config_name: str = None) -> Flask:
     app.register_blueprint(pos_bp)
     app.register_blueprint(crm_bp)
     app.register_blueprint(reports_bp)
+    app.register_blueprint(invoices_bp)
+    app.register_blueprint(employees_bp)
 
     # Register CLI commands
     app.cli.add_command(create_owner_command)

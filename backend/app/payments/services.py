@@ -139,6 +139,18 @@ def validate_item_amount(item_type: PaymentItemType, item_id: int, amount: Decim
                 f"Payment amount ({amount}) does not match POS tab balance ({remaining}).",
                 code="AMOUNT_MISMATCH",
             )
+    elif item_type == PaymentItemType.INVOICE:
+        from backend.app.invoices.models import Invoice
+        invoice = db.session.get(Invoice, item_id)
+        if not invoice:
+            raise NotFoundException(f"Invoice with ID {item_id} not found.")
+        remaining = Decimal(str(invoice.total_amount)) - Decimal(str(invoice.paid_amount))
+        expected_total = Decimal(str(invoice.total_amount))
+        if amount != expected_total and amount != remaining:
+            raise ValidationException(
+                f"Payment amount ({amount}) does not match invoice balance ({remaining}).",
+                code="AMOUNT_MISMATCH",
+            )
 
 
 def create_or_initiate_payment(
