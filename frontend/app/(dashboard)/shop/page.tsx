@@ -18,7 +18,12 @@ import {
   ArrowRight,
   Package,
   Wrench,
-  Percent
+  Percent,
+  Activity,
+  CircleDot,
+  Shirt,
+  Glasses,
+  Layers
 } from "lucide-react";
 
 interface Product {
@@ -29,19 +34,36 @@ interface Product {
   price: number;
   stock: number;
   rating: number;
-  image: string;
+  image?: string;
   inStock: boolean;
 }
 
+const getProductCategoryIcon = (category: string) => {
+  switch (category) {
+    case "RACKETS":
+      return <Activity className="w-6 h-6 text-sky-600" />;
+    case "BALLS_SHUTTLES":
+      return <CircleDot className="w-6 h-6 text-emerald-600" />;
+    case "APPAREL":
+      return <Shirt className="w-6 h-6 text-indigo-600" />;
+    case "ACCESSORIES":
+      return <Glasses className="w-6 h-6 text-cyan-600" />;
+    case "SERVICES":
+      return <Wrench className="w-6 h-6 text-rose-600" />;
+    default:
+      return <ShoppingBag className="w-6 h-6 text-slate-700" />;
+  }
+};
+
 const PRODUCTS: Product[] = [
-  { id: 1, name: "Yonex Astrox 99 Pro Badminton Racket", category: "RACKETS", brand: "Yonex", price: 18500, stock: 12, rating: 4.9, image: "🏸", inStock: true },
-  { id: 2, name: "Wilson Pro Staff 97 v14 Tennis Racket", category: "RACKETS", brand: "Wilson", price: 24000, stock: 8, rating: 5.0, image: "🎾", inStock: true },
-  { id: 3, name: "Yonex Aerosensa 50 Feather Shuttlecocks (Tube of 12)", category: "BALLS_SHUTTLES", brand: "Yonex", price: 2600, stock: 48, rating: 4.8, image: "🪶", inStock: true },
-  { id: 4, name: "Slazenger Wimbledon Championship Tennis Balls (Can of 4)", category: "BALLS_SHUTTLES", brand: "Slazenger", price: 850, stock: 34, rating: 4.9, image: "🎾", inStock: true },
-  { id: 5, name: "Champions Club Signature Tech Dri-FIT Polo", category: "APPAREL", brand: "Champions Club", price: 3200, stock: 25, rating: 4.7, image: "👕", inStock: true },
-  { id: 6, name: "Speedo Vanquisher 2.0 Mirrored Swimming Goggles", category: "ACCESSORIES", brand: "Speedo", price: 2900, stock: 15, rating: 4.8, image: "🥽", inStock: true },
-  { id: 7, name: "Precision Racket Restringing (Yonex BG65 Ti)", category: "SERVICES", brand: "Club Pro Stringer", price: 850, stock: 99, rating: 5.0, image: "🧵", inStock: true },
-  { id: 8, name: "SS Ton Master English Willow Cricket Bat", category: "RACKETS", brand: "SS Sunridges", price: 16500, stock: 4, rating: 4.9, image: "🏏", inStock: true },
+  { id: 1, name: "Yonex Astrox 99 Pro Badminton Racket", category: "RACKETS", brand: "Yonex", price: 18500, stock: 12, rating: 4.9, inStock: true },
+  { id: 2, name: "Wilson Pro Staff 97 v14 Tennis Racket", category: "RACKETS", brand: "Wilson", price: 24000, stock: 8, rating: 5.0, inStock: true },
+  { id: 3, name: "Yonex Aerosensa 50 Feather Shuttlecocks (Tube of 12)", category: "BALLS_SHUTTLES", brand: "Yonex", price: 2600, stock: 48, rating: 4.8, inStock: true },
+  { id: 4, name: "Slazenger Wimbledon Championship Tennis Balls (Can of 4)", category: "BALLS_SHUTTLES", brand: "Slazenger", price: 850, stock: 34, rating: 4.9, inStock: true },
+  { id: 5, name: "Champions Club Signature Tech Dri-FIT Polo", category: "APPAREL", brand: "Champions Club", price: 3200, stock: 25, rating: 4.7, inStock: true },
+  { id: 6, name: "Speedo Vanquisher 2.0 Mirrored Swimming Goggles", category: "ACCESSORIES", brand: "Speedo", price: 2900, stock: 15, rating: 4.8, inStock: true },
+  { id: 7, name: "Precision Racket Restringing (Yonex BG65 Ti)", category: "SERVICES", brand: "Club Pro Stringer", price: 850, stock: 99, rating: 5.0, inStock: true },
+  { id: 8, name: "SS Ton Master English Willow Cricket Bat", category: "RACKETS", brand: "SS Sunridges", price: 16500, stock: 4, rating: 4.9, inStock: true },
 ];
 
 export default function ShopPage() {
@@ -79,7 +101,6 @@ export default function ShopPage() {
           price: Number(p.price) || 1200,
           stock: p.stock_quantity ?? p.stock ?? 10,
           rating: 4.9,
-          image: p.name?.toLowerCase().includes("badminton") ? "🏸" : p.name?.toLowerCase().includes("tennis") ? "🎾" : "🛍️",
           inStock: (p.stock_quantity ?? p.stock ?? 1) > 0,
         }));
         setProducts(mapped);
@@ -121,7 +142,6 @@ export default function ShopPage() {
         price: Number(newPrice),
         stock: Number(newStock),
         rating: 5.0,
-        image: "🛍️",
         inStock: Number(newStock) > 0,
       };
       setProducts([newP, ...products]);
@@ -211,11 +231,11 @@ export default function ShopPage() {
         <div className="flex flex-wrap gap-1.5 w-full md:w-auto">
           {[
             { id: "ALL", label: "All Gear" },
-            { id: "RACKETS", label: "🏸 Rackets & Bats" },
-            { id: "BALLS_SHUTTLES", label: "🎾 Shuttles & Balls" },
-            { id: "APPAREL", label: "👕 Apparel" },
-            { id: "ACCESSORIES", label: "🥽 Accessories" },
-            { id: "SERVICES", label: "🧵 Stringing & Care" },
+            { id: "RACKETS", label: "Rackets & Bats" },
+            { id: "BALLS_SHUTTLES", label: "Shuttles & Balls" },
+            { id: "APPAREL", label: "Apparel" },
+            { id: "ACCESSORIES", label: "Accessories" },
+            { id: "SERVICES", label: "Stringing & Care" },
           ].map((cat) => (
             <button
               key={cat.id}
@@ -242,9 +262,9 @@ export default function ShopPage() {
           >
             <div>
               <div className="flex justify-between items-start">
-                <span className="text-4xl p-3 rounded-2xl bg-slate-50 border border-slate-100 group-hover:scale-105 transition-transform">
-                  {product.image}
-                </span>
+                <div className="w-12 h-12 rounded-2xl bg-slate-50 border border-slate-100 flex items-center justify-center group-hover:scale-105 transition-transform shrink-0 shadow-2xs">
+                  {getProductCategoryIcon(product.category)}
+                </div>
                 <span className="px-2 py-0.5 rounded-full text-[10px] font-black uppercase bg-slate-100 text-slate-700">
                   {product.brand}
                 </span>

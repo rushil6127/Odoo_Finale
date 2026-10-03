@@ -20,7 +20,15 @@ import {
   ChefHat,
   Clock,
   ArrowRight,
-  DollarSign
+  DollarSign,
+  Coffee,
+  Wine,
+  CupSoda,
+  Salad,
+  Sandwich,
+  Check,
+  X,
+  Utensils
 } from "lucide-react";
 
 interface MenuItem {
@@ -28,22 +36,39 @@ interface MenuItem {
   name: string;
   category: "SMOOTHIES" | "BOWLS" | "MAINS" | "COFFEE" | "DRINKS";
   price: number;
-  image: string;
+  image?: string;
   isPopular?: boolean;
   calories?: string;
 }
 
+const getMenuItemIcon = (category: string) => {
+  switch (category) {
+    case "COFFEE":
+      return <Coffee className="w-5 h-5 text-amber-700" />;
+    case "SMOOTHIES":
+      return <CupSoda className="w-5 h-5 text-emerald-600" />;
+    case "BOWLS":
+      return <Salad className="w-5 h-5 text-teal-600" />;
+    case "MAINS":
+      return <Sandwich className="w-5 h-5 text-orange-600" />;
+    case "DRINKS":
+      return <Wine className="w-5 h-5 text-indigo-600" />;
+    default:
+      return <Utensils className="w-5 h-5 text-slate-700" />;
+  }
+};
+
 const MENU_ITEMS: MenuItem[] = [
-  { id: 1, name: "Berry Whey Protein Shake", category: "SMOOTHIES", price: 340, image: "🍓", isPopular: true, calories: "320 kcal" },
-  { id: 2, name: "Avocado & Grilled Chicken Bowl", category: "BOWLS", price: 480, image: "🥗", isPopular: true, calories: "450 kcal" },
-  { id: 3, name: "Double Shot Cortado & Almond Milk", category: "COFFEE", price: 260, image: "☕", calories: "90 kcal" },
-  { id: 4, name: "Coconut Electrolyte Hydration Pitcher", category: "DRINKS", price: 220, image: "🥥", isPopular: true, calories: "80 kcal" },
-  { id: 5, name: "Artisanal Club Sandwich & Sweet Potato Fries", category: "MAINS", price: 420, image: "🥪", calories: "520 kcal" },
-  { id: 6, name: "Matcha Recovery Smoothie", category: "SMOOTHIES", price: 360, image: "🍵", calories: "290 kcal" },
-  { id: 7, name: "Mediterranean Hummus & Falafel Wrap", category: "MAINS", price: 390, image: "🌯", calories: "410 kcal" },
-  { id: 8, name: "Acai Superfood Bowl with Chia", category: "BOWLS", price: 450, image: "🥣", isPopular: true, calories: "380 kcal" },
-  { id: 9, name: "Iced Cold Brew Tonic", category: "COFFEE", price: 280, image: "🥤", calories: "40 kcal" },
-  { id: 10, name: "Craft Wheat Beer Pint", category: "DRINKS", price: 490, image: "🍺", calories: "210 kcal" },
+  { id: 1, name: "Berry Whey Protein Shake", category: "SMOOTHIES", price: 340, isPopular: true, calories: "320 kcal" },
+  { id: 2, name: "Avocado & Grilled Chicken Bowl", category: "BOWLS", price: 480, isPopular: true, calories: "450 kcal" },
+  { id: 3, name: "Double Shot Cortado & Almond Milk", category: "COFFEE", price: 260, calories: "90 kcal" },
+  { id: 4, name: "Coconut Electrolyte Hydration Pitcher", category: "DRINKS", price: 220, isPopular: true, calories: "80 kcal" },
+  { id: 5, name: "Artisanal Club Sandwich & Sweet Potato Fries", category: "MAINS", price: 420, calories: "520 kcal" },
+  { id: 6, name: "Matcha Recovery Smoothie", category: "SMOOTHIES", price: 360, calories: "290 kcal" },
+  { id: 7, name: "Mediterranean Hummus & Falafel Wrap", category: "MAINS", price: 390, calories: "410 kcal" },
+  { id: 8, name: "Acai Superfood Bowl with Chia", category: "BOWLS", price: 450, isPopular: true, calories: "380 kcal" },
+  { id: 9, name: "Iced Cold Brew Tonic", category: "COFFEE", price: 280, calories: "40 kcal" },
+  { id: 10, name: "Craft Wheat Beer Pint", category: "DRINKS", price: 490, calories: "210 kcal" },
 ];
 
 interface CartItem extends MenuItem {
@@ -111,7 +136,6 @@ export default function POSPage() {
               ? "DRINKS"
               : "MAINS",
             price: Number(m.price) || 350,
-            image: m.name?.toLowerCase().includes("coffee") ? "☕" : m.name?.toLowerCase().includes("smoothie") ? "🥤" : "🥗",
             isPopular: m.is_popular || false,
             calories: `${m.calories || 300} kcal`,
           }));
@@ -242,12 +266,12 @@ export default function POSPage() {
           {/* Category Filter Pills */}
           <div className="flex flex-wrap gap-2">
             {[
-              { id: "ALL", label: "🌟 All Items" },
-              { id: "SMOOTHIES", label: "🥤 Protein Shakes" },
-              { id: "BOWLS", label: "🥗 Nutrition Bowls" },
-              { id: "MAINS", label: "🥪 Mains & Wraps" },
-              { id: "COFFEE", label: "☕ Artisanal Coffee" },
-              { id: "DRINKS", label: "🍺 Craft & Hydration" },
+              { id: "ALL", label: "All Items" },
+              { id: "SMOOTHIES", label: "Protein Shakes" },
+              { id: "BOWLS", label: "Nutrition Bowls" },
+              { id: "MAINS", label: "Mains & Wraps" },
+              { id: "COFFEE", label: "Artisanal Coffee" },
+              { id: "DRINKS", label: "Craft & Hydration" },
             ].map((cat) => (
               <button
                 key={cat.id}
@@ -273,8 +297,8 @@ export default function POSPage() {
                 className="group bg-white p-4 rounded-2xl border border-slate-200 hover:border-sky-400 shadow-sm hover:shadow-md transition-all cursor-pointer flex items-center justify-between"
               >
                 <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 rounded-2xl bg-slate-50 text-2xl flex items-center justify-center border border-slate-100 group-hover:scale-105 transition-transform shrink-0">
-                    {item.image}
+                  <div className="w-12 h-12 rounded-2xl bg-slate-50 flex items-center justify-center border border-slate-100 group-hover:scale-105 transition-transform shrink-0 shadow-2xs">
+                    {getMenuItemIcon(item.category)}
                   </div>
                   <div>
                     <div className="flex items-center gap-1.5">
@@ -339,7 +363,9 @@ export default function POSPage() {
                   className="flex items-center justify-between p-2.5 rounded-2xl bg-slate-50 border border-slate-100"
                 >
                   <div className="flex items-center gap-2.5">
-                    <span className="text-lg">{item.image}</span>
+                    <div className="w-8 h-8 rounded-xl bg-white border border-slate-200 flex items-center justify-center text-slate-700 shadow-sm shrink-0">
+                      {getMenuItemIcon(item.category)}
+                    </div>
                     <div>
                       <p className="text-xs font-black text-slate-900 leading-tight">{item.name}</p>
                       <p className="text-[11px] text-slate-500 font-bold">₹{item.price} each</p>
@@ -448,16 +474,16 @@ export default function POSPage() {
                   setShowPayModal(false);
                   setPaymentSuccess(false);
                 }}
-                className="w-7 h-7 rounded-full bg-slate-100 text-slate-600 hover:bg-slate-200 flex items-center justify-center text-xs font-bold"
+                className="w-7 h-7 rounded-full bg-slate-100 text-slate-600 hover:bg-slate-200 flex items-center justify-center"
               >
-                ✕
+                <X className="w-4 h-4" />
               </button>
             </div>
 
             {paymentSuccess ? (
               <div className="py-8 text-center space-y-3">
-                <div className="w-14 h-14 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center mx-auto text-2xl animate-in zoom-in">
-                  ✓
+                <div className="w-14 h-14 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center mx-auto animate-in zoom-in">
+                  <Check className="w-7 h-7 stroke-[3]" />
                 </div>
                 <h4 className="font-black text-lg text-slate-900">Payment Settled Successfully!</h4>
                 <p className="text-xs text-slate-500">

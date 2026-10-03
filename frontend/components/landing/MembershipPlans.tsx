@@ -202,8 +202,9 @@ export default function MembershipPlans() {
                       </span>
                     </div>
                     {isAnnual && (
-                      <p className="text-[11px] text-green-600 font-bold mt-1">
-                        ✓ Includes 2 months complimentary
+                      <p className="flex items-center gap-1.5 text-[11px] text-emerald-600 font-bold mt-1">
+                        <Check className="w-3.5 h-3.5 stroke-[2.5]" />
+                        <span>Includes 2 months complimentary</span>
                       </p>
                     )}
                   </div>

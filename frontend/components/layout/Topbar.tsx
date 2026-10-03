@@ -96,8 +96,15 @@ export default function Topbar() {
                 <p className="text-xs font-black text-slate-900 leading-tight truncate max-w-[120px]">
                   {currentUser.first_name || currentUser.email.split("@")[0]}
                 </p>
-                <p className="text-[10px] font-bold text-slate-500 uppercase">
-                  {isOwner ? "👑 Owner" : currentUser.role}
+                <p className="text-[10px] font-bold text-slate-500 uppercase flex items-center gap-1">
+                  {isOwner ? (
+                    <>
+                      <Crown className="w-2.5 h-2.5 text-amber-600 inline shrink-0" />
+                      <span>Owner</span>
+                    </>
+                  ) : (
+                    currentUser.role
+                  )}
                 </p>
               </div>
             )}

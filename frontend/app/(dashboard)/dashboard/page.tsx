@@ -27,7 +27,12 @@ import {
   DollarSign,
   UserCheck,
   ChevronRight,
-  Flame
+  Flame,
+  Layers,
+  Waves,
+  Target,
+  CircleDot,
+  Trophy
 } from "lucide-react";
 import { getStoredUser, AuthUser } from "@/lib/auth";
 import { apiClient } from "@/lib/api/client";
@@ -35,19 +40,37 @@ import { apiClient } from "@/lib/api/client";
 interface CourtStat {
   sport: string;
   name: string;
-  icon: string;
   totalCourts: number;
   activeBookings: number;
   status: "OPTIMAL" | "PEAK" | "MAINTENANCE";
 }
 
+const getSportIcon = (sport: string) => {
+  switch (sport) {
+    case "BADMINTON":
+      return <Activity className="w-4 h-4 text-emerald-600" />;
+    case "LAWN_TENNIS":
+      return <CircleDot className="w-4 h-4 text-sky-600" />;
+    case "SWIMMING":
+      return <Waves className="w-4 h-4 text-cyan-600" />;
+    case "BOX_CRICKET":
+      return <Target className="w-4 h-4 text-amber-600" />;
+    case "TABLE_TENNIS":
+      return <Layers className="w-4 h-4 text-indigo-600" />;
+    case "VOLLEYBALL":
+      return <Trophy className="w-4 h-4 text-rose-600" />;
+    default:
+      return <Activity className="w-4 h-4 text-slate-600" />;
+  }
+};
+
 const LIVE_COURTS: CourtStat[] = [
-  { sport: "BADMINTON", name: "Badminton Hall (6 Synthetic & Wood)", icon: "🏸", totalCourts: 6, activeBookings: 5, status: "PEAK" },
-  { sport: "LAWN_TENNIS", name: "Lawn Tennis Arenas (Grass & Clay)", icon: "🎾", totalCourts: 4, activeBookings: 3, status: "OPTIMAL" },
-  { sport: "SWIMMING", name: "Aquatic Pavilion (50M Olympic)", icon: "🏊‍♂️", totalCourts: 8, activeBookings: 6, status: "OPTIMAL" },
-  { sport: "BOX_CRICKET", name: "Box Cricket Astroturf Pitches", icon: "🏏", totalCourts: 2, activeBookings: 2, status: "PEAK" },
-  { sport: "TABLE_TENNIS", name: "Table Tennis Pro Arena", icon: "🏓", totalCourts: 4, activeBookings: 2, status: "OPTIMAL" },
-  { sport: "VOLLEYBALL", name: "Silica Sand Beach Volleyball", icon: "🏐", totalCourts: 2, activeBookings: 1, status: "OPTIMAL" },
+  { sport: "BADMINTON", name: "Badminton Hall (6 Synthetic & Wood)", totalCourts: 6, activeBookings: 5, status: "PEAK" },
+  { sport: "LAWN_TENNIS", name: "Lawn Tennis Arenas (Grass & Clay)", totalCourts: 4, activeBookings: 3, status: "OPTIMAL" },
+  { sport: "SWIMMING", name: "Aquatic Pavilion (50M Olympic)", totalCourts: 8, activeBookings: 6, status: "OPTIMAL" },
+  { sport: "BOX_CRICKET", name: "Box Cricket Astroturf Pitches", totalCourts: 2, activeBookings: 2, status: "PEAK" },
+  { sport: "TABLE_TENNIS", name: "Table Tennis Pro Arena", totalCourts: 4, activeBookings: 2, status: "OPTIMAL" },
+  { sport: "VOLLEYBALL", name: "Silica Sand Beach Volleyball", totalCourts: 2, activeBookings: 1, status: "OPTIMAL" },
 ];
 
 export default function DashboardPage() {
@@ -286,8 +309,8 @@ export default function DashboardPage() {
           >
             <div>
               <div className="flex items-center justify-between">
-                <div className="w-10 h-10 rounded-xl bg-amber-500/10 text-amber-600 border border-amber-500/20 flex items-center justify-center text-lg">
-                  👑
+                <div className="w-10 h-10 rounded-xl bg-amber-500/10 text-amber-600 border border-amber-500/20 flex items-center justify-center">
+                  <Crown className="w-5 h-5 text-amber-600" />
                 </div>
                 <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded-full bg-amber-100 text-amber-900 border border-amber-200">
                   Core Sovereign Tool
@@ -313,8 +336,8 @@ export default function DashboardPage() {
           >
             <div>
               <div className="flex items-center justify-between">
-                <div className="w-10 h-10 rounded-xl bg-sky-50 text-sky-600 border border-sky-100 flex items-center justify-center text-lg">
-                  🎾
+                <div className="w-10 h-10 rounded-xl bg-sky-50 text-sky-600 border border-sky-100 flex items-center justify-center">
+                  <CalendarDays className="w-5 h-5 text-sky-600" />
                 </div>
                 <span className="text-[10px] font-bold uppercase px-2 py-0.5 rounded-full bg-sky-50 text-sky-700">
                   Live Court Grid
@@ -340,8 +363,8 @@ export default function DashboardPage() {
           >
             <div>
               <div className="flex items-center justify-between">
-                <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 border border-emerald-100 flex items-center justify-center text-lg">
-                  🏅
+                <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 border border-emerald-100 flex items-center justify-center">
+                  <Award className="w-5 h-5 text-emerald-600" />
                 </div>
                 <span className="text-[10px] font-bold uppercase px-2 py-0.5 rounded-full bg-amber-50 text-amber-700">
                   {pendingApprovals} Pending
@@ -367,8 +390,8 @@ export default function DashboardPage() {
           >
             <div>
               <div className="flex items-center justify-between">
-                <div className="w-10 h-10 rounded-xl bg-teal-50 text-teal-600 border border-teal-100 flex items-center justify-center text-lg">
-                  🍽️
+                <div className="w-10 h-10 rounded-xl bg-teal-50 text-teal-600 border border-teal-100 flex items-center justify-center">
+                  <UtensilsCrossed className="w-5 h-5 text-teal-600" />
                 </div>
                 <span className="text-[10px] font-bold uppercase px-2 py-0.5 rounded-full bg-teal-50 text-teal-700">
                   Touch POS
@@ -394,8 +417,8 @@ export default function DashboardPage() {
           >
             <div>
               <div className="flex items-center justify-between">
-                <div className="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-600 border border-indigo-100 flex items-center justify-center text-lg">
-                  📦
+                <div className="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-600 border border-indigo-100 flex items-center justify-center">
+                  <Boxes className="w-5 h-5 text-indigo-600" />
                 </div>
                 <span className="text-[10px] font-bold uppercase px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-700">
                   Stock Control
@@ -421,8 +444,8 @@ export default function DashboardPage() {
           >
             <div>
               <div className="flex items-center justify-between">
-                <div className="w-10 h-10 rounded-xl bg-purple-50 text-purple-600 border border-purple-100 flex items-center justify-center text-lg">
-                  📋
+                <div className="w-10 h-10 rounded-xl bg-purple-50 text-purple-600 border border-purple-100 flex items-center justify-center">
+                  <FileSpreadsheet className="w-5 h-5 text-purple-600" />
                 </div>
                 <span className="text-[10px] font-bold uppercase px-2 py-0.5 rounded-full bg-purple-50 text-purple-700">
                   Analytics & Audit
@@ -469,7 +492,9 @@ export default function DashboardPage() {
               className="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 hover:bg-slate-100/80 transition-colors flex items-center justify-between"
             >
               <div className="flex items-center gap-3">
-                <span className="text-2xl">{court.icon}</span>
+                <div className="w-9 h-9 rounded-xl bg-white border border-slate-200/90 flex items-center justify-center shrink-0 shadow-2xs">
+                  {getSportIcon(court.sport)}
+                </div>
                 <div>
                   <h4 className="text-xs font-black text-slate-900">{court.name}</h4>
                   <p className="text-[11px] text-slate-500">
@@ -480,12 +505,14 @@ export default function DashboardPage() {
 
               <div>
                 {court.status === "PEAK" ? (
-                  <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-black bg-amber-100 text-amber-800 border border-amber-300">
-                    🔥 PEAK
+                  <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-800 border border-amber-200">
+                    <Flame className="w-3 h-3 text-amber-600 shrink-0" />
+                    <span>Peak</span>
                   </span>
                 ) : (
-                  <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-black bg-emerald-100 text-emerald-800 border border-emerald-300">
-                    🟢 ACTIVE
+                  <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-200">
+                    <CheckCircle2 className="w-3 h-3 text-emerald-600 shrink-0" />
+                    <span>Active</span>
                   </span>
                 )}
               </div>

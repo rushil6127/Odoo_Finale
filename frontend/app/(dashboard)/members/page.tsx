@@ -27,7 +27,8 @@ import {
   Award,
   DollarSign,
   Download,
-  FileSpreadsheet
+  FileSpreadsheet,
+  X
 } from "lucide-react";
 import { apiClient } from "@/lib/api/client";
 import { getStoredUser, AuthUser } from "@/lib/auth";
@@ -468,7 +469,7 @@ export default function MembersPage() {
                 onClick={() => setShowPassModal(false)}
                 className="text-slate-400 hover:text-slate-700 p-1.5 rounded-lg hover:bg-slate-100 transition-colors"
               >
-                ✕
+                <X className="w-4 h-4" />
               </button>
             </div>
 
@@ -522,7 +523,7 @@ export default function MembersPage() {
                 onClick={() => setShowAddModal(false)}
                 className="text-slate-400 hover:text-slate-700 p-1.5 rounded-lg hover:bg-slate-100 transition-colors"
               >
-                ✕
+                <X className="w-4 h-4" />
               </button>
             </div>
 

@@ -41,12 +41,12 @@ interface ReportSummary {
 }
 
 const REVENUE_BY_DEPT: ReportSummary[] = [
-  { department: "🏸 Badminton Pavilion (6 Courts)", revenue: 384000, bookings: 420, sharePct: 32, trend: "+18%" },
-  { department: "🎾 Lawn Tennis Arenas (Grass & Clay)", revenue: 295000, bookings: 195, sharePct: 24, trend: "+12%" },
-  { department: "🍽️ Sports Bar & Café POS", revenue: 210000, bookings: 540, sharePct: 18, trend: "+25%" },
-  { department: "🏊‍♂️ Olympic Aquatic Pavilion", revenue: 145000, bookings: 280, sharePct: 12, trend: "+8%" },
-  { department: "🛍️ Pro Shop & Restringing Services", revenue: 98000, bookings: 85, sharePct: 8, trend: "+15%" },
-  { department: "🏏 Box Cricket Astroturf", revenue: 72000, bookings: 64, sharePct: 6, trend: "+30%" },
+  { department: "Badminton Pavilion (6 Courts)", revenue: 384000, bookings: 420, sharePct: 32, trend: "+18%" },
+  { department: "Lawn Tennis Arenas (Grass & Clay)", revenue: 295000, bookings: 195, sharePct: 24, trend: "+12%" },
+  { department: "Sports Bar & Café POS", revenue: 210000, bookings: 540, sharePct: 18, trend: "+25%" },
+  { department: "Olympic Aquatic Pavilion", revenue: 145000, bookings: 280, sharePct: 12, trend: "+8%" },
+  { department: "Pro Shop & Restringing Services", revenue: 98000, bookings: 85, sharePct: 8, trend: "+15%" },
+  { department: "Box Cricket Astroturf", revenue: 72000, bookings: 64, sharePct: 6, trend: "+30%" },
 ];
 
 const AUDIT_LOGS = [
@@ -72,10 +72,10 @@ export default function ReportsPage() {
       if (overview?.stream_breakdown) {
         const streams = overview.stream_breakdown;
         const mapped: ReportSummary[] = [
-          { department: "👑 Membership Subscriptions", revenue: streams.MEMBERSHIP?.total_amount || 485000, bookings: streams.MEMBERSHIP?.transaction_count || 32, sharePct: 40, trend: "+22%" },
-          { department: "🎾 Court Booking Reservations", revenue: streams.COURT_BOOKING?.total_amount || 320000, bookings: streams.COURT_BOOKING?.transaction_count || 180, sharePct: 28, trend: "+15%" },
-          { department: "🍽️ Sports Bar & Café POS", revenue: streams.POS_BAR_CAFE?.total_amount || 210000, bookings: streams.POS_BAR_CAFE?.transaction_count || 420, sharePct: 18, trend: "+25%" },
-          { department: "🛍️ Pro Shop & Restringing", revenue: streams.SHOP?.total_amount || 98000, bookings: streams.SHOP?.transaction_count || 75, sharePct: 14, trend: "+10%" },
+          { department: "Membership Subscriptions", revenue: streams.MEMBERSHIP?.total_amount || 485000, bookings: streams.MEMBERSHIP?.transaction_count || 32, sharePct: 40, trend: "+22%" },
+          { department: "Court Booking Reservations", revenue: streams.COURT_BOOKING?.total_amount || 320000, bookings: streams.COURT_BOOKING?.transaction_count || 180, sharePct: 28, trend: "+15%" },
+          { department: "Sports Bar & Café POS", revenue: streams.POS_BAR_CAFE?.total_amount || 210000, bookings: streams.POS_BAR_CAFE?.transaction_count || 420, sharePct: 18, trend: "+25%" },
+          { department: "Pro Shop & Restringing", revenue: streams.SHOP?.total_amount || 98000, bookings: streams.SHOP?.transaction_count || 75, sharePct: 14, trend: "+10%" },
         ];
         setDeptRevenue(mapped);
       }
@@ -130,14 +130,14 @@ export default function ReportsPage() {
             className="px-3 py-2.5 rounded-xl text-xs bg-slate-50 border border-slate-200 font-bold text-slate-700 hover:bg-slate-100 transition-colors"
             title="Select section to export"
           >
-            <option value="all">📁 All Sections (Master .xlsx)</option>
-            <option value="revenue">💰 Reconciled All Revenue (.xlsx)</option>
-            <option value="courts">🎾 Court Bookings Revenue (.xlsx)</option>
-            <option value="shop">🛍️ Pro Shop Merchandise (.xlsx)</option>
-            <option value="bar">🍽️ Sports Bar &amp; Café POS (.xlsx)</option>
-            <option value="memberships">👑 Membership Subscriptions (.xlsx)</option>
-            <option value="members">👥 Member Directory (.xlsx)</option>
-            <option value="employees">🛡️ Staff &amp; Employee Roster (.xlsx)</option>
+            <option value="all">All Sections (Master .xlsx)</option>
+            <option value="revenue">Reconciled All Revenue (.xlsx)</option>
+            <option value="courts">Court Bookings Revenue (.xlsx)</option>
+            <option value="shop">Pro Shop Merchandise (.xlsx)</option>
+            <option value="bar">Sports Bar &amp; Café POS (.xlsx)</option>
+            <option value="memberships">Membership Subscriptions (.xlsx)</option>
+            <option value="members">Member Directory (.xlsx)</option>
+            <option value="employees">Staff &amp; Employee Roster (.xlsx)</option>
           </select>
 
           <select
@@ -347,12 +347,12 @@ export default function ReportsPage() {
           {/* Right: Department Performance List (7 cols) */}
           <div className="lg:col-span-7 space-y-3.5">
             {[
-              { department: "🏸 Badminton Pavilion (6 Courts)", revenue: 384000, bookings: 420, sharePct: 32, trend: "+18%", color: "bg-emerald-500" },
-              { department: "🎾 Lawn Tennis Arenas (Grass & Clay)", revenue: 295000, bookings: 195, sharePct: 24, trend: "+12%", color: "bg-sky-500" },
-              { department: "🍽️ Sports Bar & Café POS", revenue: 210000, bookings: 540, sharePct: 18, trend: "+25%", color: "bg-amber-500" },
-              { department: "🏊‍♂️ Olympic Aquatic Pavilion", revenue: 145000, bookings: 280, sharePct: 12, trend: "+8%", color: "bg-cyan-500" },
-              { department: "🛍️ Pro Shop & Restringing Services", revenue: 98000, bookings: 85, sharePct: 8, trend: "+15%", color: "bg-purple-500" },
-              { department: "🏏 Box Cricket Astroturf", revenue: 72000, bookings: 64, sharePct: 6, trend: "+30%", color: "bg-pink-500" },
+              { department: "Badminton Pavilion (6 Courts)", revenue: 384000, bookings: 420, sharePct: 32, trend: "+18%", color: "bg-emerald-500" },
+              { department: "Lawn Tennis Arenas (Grass & Clay)", revenue: 295000, bookings: 195, sharePct: 24, trend: "+12%", color: "bg-sky-500" },
+              { department: "Sports Bar & Café POS", revenue: 210000, bookings: 540, sharePct: 18, trend: "+25%", color: "bg-amber-500" },
+              { department: "Olympic Aquatic Pavilion", revenue: 145000, bookings: 280, sharePct: 12, trend: "+8%", color: "bg-cyan-500" },
+              { department: "Pro Shop & Restringing Services", revenue: 98000, bookings: 85, sharePct: 8, trend: "+15%", color: "bg-purple-500" },
+              { department: "Box Cricket Astroturf", revenue: 72000, bookings: 64, sharePct: 6, trend: "+30%", color: "bg-pink-500" },
             ].map((dept) => (
               <div key={dept.department} className="p-3 rounded-xl bg-slate-50/70 border border-slate-200/80 space-y-2 hover:bg-slate-50 transition-colors">
                 <div className="flex items-center justify-between text-xs">

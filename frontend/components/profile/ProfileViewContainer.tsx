@@ -473,7 +473,7 @@ export default function ProfileViewContainer({ forcedMode }: ProfileViewContaine
                     className="flex items-center justify-center gap-2 py-2.5 rounded-xl text-xs font-black bg-amber-400 text-amber-950 border border-amber-300 shadow-sm"
                   >
                     <Crown className="w-4 h-4 text-amber-900" />
-                    <span>👑 Owner Access Delegator</span>
+                    <span>Owner Access Delegator</span>
                   </button>
                 )}
 
@@ -736,7 +736,7 @@ export default function ProfileViewContainer({ forcedMode }: ProfileViewContaine
                     className="w-full flex items-center justify-between gap-2 px-3.5 py-2.5 rounded-2xl bg-emerald-100 hover:bg-emerald-200 text-emerald-950 font-extrabold text-xs border border-emerald-300 shadow-sm transition-all"
                   >
                     <span className="flex items-center gap-2">
-                      <span className="text-sm">🧑‍💼</span>
+                      <UserCheck className="w-4 h-4 text-emerald-800" />
                       <span>Staff / Duty Portal</span>
                     </span>
                     <span className="text-[10px] font-black uppercase text-emerald-800 bg-emerald-200/80 px-1.5 py-0.5 rounded">
@@ -1331,10 +1331,10 @@ export default function ProfileViewContainer({ forcedMode }: ProfileViewContaine
                         onChange={(e) => setNewInquiryCat(e.target.value)}
                         className="w-full px-4 py-2.5 rounded-xl bg-white border border-slate-300 text-xs font-medium text-slate-800 focus:outline-none focus:border-sky-500 shadow-sm"
                       >
-                        <option value="COACHING">🎾 Private Coaching</option>
-                        <option value="MEMBERSHIP">👑 Membership Upgrade</option>
-                        <option value="TRIAL_PASS">🎟️ Guest Day Pass</option>
-                        <option value="EVENT">🏆 Tournament Entry</option>
+                        <option value="COACHING">Private Coaching</option>
+                        <option value="MEMBERSHIP">Membership Upgrade</option>
+                        <option value="TRIAL_PASS">Guest Day Pass</option>
+                        <option value="EVENT">Tournament Entry</option>
                       </select>
                     </div>
 
@@ -1716,10 +1716,10 @@ export default function ProfileViewContainer({ forcedMode }: ProfileViewContaine
                         onChange={(e) => setPreferredSport(e.target.value)}
                         className="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-xs font-bold text-slate-900 focus:outline-none focus:border-sky-500"
                       >
-                        <option value="Tennis">🎾 Tennis (Natural Grass & Clay)</option>
-                        <option value="Padel">🏸 Panoramic Glass Padel</option>
-                        <option value="Pickleball">🏓 Pro Pickleball</option>
-                        <option value="Aquatics">🏊 Heated Olympic Pool</option>
+                        <option value="Tennis">Tennis (Natural Grass & Clay)</option>
+                        <option value="Padel">Panoramic Glass Padel</option>
+                        <option value="Pickleball">Pro Pickleball</option>
+                        <option value="Aquatics">Heated Olympic Pool</option>
                       </select>
                     </div>
                   </div>
@@ -1789,9 +1789,9 @@ export default function ProfileViewContainer({ forcedMode }: ProfileViewContaine
               </div>
               <button
                 onClick={() => setShowTopupModal(false)}
-                className="text-slate-400 hover:text-slate-600 text-sm font-bold"
+                className="text-slate-400 hover:text-slate-600"
               >
-                ✕
+                <X className="w-4 h-4" />
               </button>
             </div>
 
@@ -1861,9 +1861,9 @@ export default function ProfileViewContainer({ forcedMode }: ProfileViewContaine
               </div>
               <button
                 onClick={() => setShowPayTabModal(false)}
-                className="text-slate-400 hover:text-slate-600 text-sm font-bold"
+                className="text-slate-400 hover:text-slate-600"
               >
-                ✕
+                <X className="w-4 h-4" />
               </button>
             </div>
 
@@ -1927,9 +1927,9 @@ export default function ProfileViewContainer({ forcedMode }: ProfileViewContaine
                   setGrantSuccessMsg("");
                   setGrantErrorMsg("");
                 }}
-                className="text-slate-400 hover:text-slate-600 text-sm font-bold p-1 rounded-lg hover:bg-slate-100"
+                className="text-slate-400 hover:text-slate-600 p-1 rounded-lg hover:bg-slate-100"
               >
-                ✕
+                <X className="w-4 h-4" />
               </button>
             </div>
 
@@ -1995,14 +1995,14 @@ export default function ProfileViewContainer({ forcedMode }: ProfileViewContaine
                     onChange={(e) => setGrantRole(e.target.value)}
                     className="w-full px-3 py-2.5 rounded-xl border border-slate-300 text-xs font-bold text-slate-800 focus:outline-none focus:border-amber-500 bg-white shadow-sm"
                   >
-                    <option value="ADMIN">🛡️ Admin (Full Control)</option>
-                    <option value="STAFF">🧑‍💼 Department Staff</option>
-                    <option value="FRONT_DESK">🛎️ Front Desk Reception</option>
-                    <option value="COACH">🎾 Head Coach / Trainer</option>
-                    <option value="SHOP_STAFF">🛍️ Pro Shop Manager</option>
-                    <option value="BAR_STAFF">☕ Café & Lounge Lead</option>
-                    <option value="MAINTENANCE">🔧 Facility & Maintenance</option>
-                    <option value="MEMBER">👤 Club Member (Standard)</option>
+                    <option value="ADMIN">Admin (Full Control)</option>
+                    <option value="STAFF">Department Staff</option>
+                    <option value="FRONT_DESK">Front Desk Reception</option>
+                    <option value="COACH">Head Coach / Trainer</option>
+                    <option value="SHOP_STAFF">Pro Shop Manager</option>
+                    <option value="BAR_STAFF">Café & Lounge Lead</option>
+                    <option value="MAINTENANCE">Facility & Maintenance</option>
+                    <option value="MEMBER">Club Member (Standard)</option>
                   </select>
                 </div>
 
@@ -2015,15 +2015,15 @@ export default function ProfileViewContainer({ forcedMode }: ProfileViewContaine
                     onChange={(e) => setGrantDepartment(e.target.value)}
                     className="w-full px-3 py-2.5 rounded-xl border border-slate-300 text-xs font-bold text-slate-800 focus:outline-none focus:border-amber-500 bg-white shadow-sm"
                   >
-                    <option value="Badminton">🏸 Badminton Department</option>
-                    <option value="Tennis">🎾 Tennis & Lawn Courts</option>
-                    <option value="Cricket">🏏 Box Cricket Arena</option>
-                    <option value="Swimming">🏊 Olympic Aquatics</option>
-                    <option value="Table Tennis">🏓 Table Tennis Wing</option>
-                    <option value="Gym">💪 Health Club & Fitness</option>
-                    <option value="Dining">🍽️ Dining & Café Lounge</option>
-                    <option value="Accounts">💰 Accounts & Billing</option>
-                    <option value="Operations">⚙️ Operations General</option>
+                    <option value="Badminton">Badminton Department</option>
+                    <option value="Tennis">Tennis & Lawn Courts</option>
+                    <option value="Cricket">Box Cricket Arena</option>
+                    <option value="Swimming">Olympic Aquatics</option>
+                    <option value="Table Tennis">Table Tennis Wing</option>
+                    <option value="Gym">Health Club & Fitness</option>
+                    <option value="Dining">Dining & Café Lounge</option>
+                    <option value="Accounts">Accounts & Billing</option>
+                    <option value="Operations">Operations General</option>
                   </select>
                 </div>
               </div>

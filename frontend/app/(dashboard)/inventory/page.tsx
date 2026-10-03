@@ -194,10 +194,10 @@ export default function InventoryPage() {
         <div className="flex flex-wrap gap-1.5 w-full md:w-auto">
           {[
             { id: "ALL", label: "All Supplies" },
-            { id: "SHUTTLES_BALLS", label: "🏸 Shuttles & Balls" },
-            { id: "EQUIPMENT", label: "🧵 Pro Strings & Gear" },
-            { id: "COURT_MAINTENANCE", label: "🧹 Court Care & Pool" },
-            { id: "FB_SUPPLIES", label: "🥤 Café Nutrition" },
+            { id: "SHUTTLES_BALLS", label: "Shuttles & Balls" },
+            { id: "EQUIPMENT", label: "Pro Strings & Gear" },
+            { id: "COURT_MAINTENANCE", label: "Court Care & Pool" },
+            { id: "FB_SUPPLIES", label: "Café Nutrition" },
           ].map((cat) => (
             <button
               key={cat.id}

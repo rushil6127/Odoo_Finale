@@ -41,11 +41,11 @@ interface Lead {
 }
 
 const INITIAL_LEADS: Lead[] = [
-  { id: 1, name: "Rajesh Singhania", email: "rajesh.s@singhania-group.com", phone: "+91 99000 11223", interestedPlan: "👑 Black Card VIP", source: "Executive Referral", stage: "PROPOSAL_SENT", notes: "Interested in corporate court package & cabana access." },
-  { id: 2, name: "Dr. Sunita Deshmukh", email: "sunita.ortho@med.org", phone: "+91 99111 22334", interestedPlan: "💎 Platinum Elite", source: "Instagram Ad", stage: "TRIAL_SCHEDULED", notes: "Lawn tennis trial session booked for Sunday 9 AM." },
-  { id: 3, name: "Karan Johar", email: "karan.j@productions.in", phone: "+91 99222 33445", interestedPlan: "🥇 Gold Club", source: "Website Lead Form", stage: "NEW_INQUIRY", notes: "Inquired about badminton coaching for family." },
-  { id: 4, name: "Meera Kapoor", email: "meera.kapoor@art.com", phone: "+91 99333 44556", interestedPlan: "💎 Platinum Elite", source: "Club Walk-in", stage: "TOUR_COMPLETED", notes: "Toured pool and Olympic fitness center. Loved facilities." },
-  { id: 5, name: "Sameer Nambiar", email: "sameer.n@tech.io", phone: "+91 99444 55667", interestedPlan: "👑 Black Card VIP", source: "Owner Direct Invite", stage: "CONVERTED", notes: "Membership payment verified. Activated." },
+  { id: 1, name: "Rajesh Singhania", email: "rajesh.s@singhania-group.com", phone: "+91 99000 11223", interestedPlan: "Black Card VIP", source: "Executive Referral", stage: "PROPOSAL_SENT", notes: "Interested in corporate court package & cabana access." },
+  { id: 2, name: "Dr. Sunita Deshmukh", email: "sunita.ortho@med.org", phone: "+91 99111 22334", interestedPlan: "Platinum Elite", source: "Instagram Ad", stage: "TRIAL_SCHEDULED", notes: "Lawn tennis trial session booked for Sunday 9 AM." },
+  { id: 3, name: "Karan Johar", email: "karan.j@productions.in", phone: "+91 99222 33445", interestedPlan: "Gold Club", source: "Website Lead Form", stage: "NEW_INQUIRY", notes: "Inquired about badminton coaching for family." },
+  { id: 4, name: "Meera Kapoor", email: "meera.kapoor@art.com", phone: "+91 99333 44556", interestedPlan: "Platinum Elite", source: "Club Walk-in", stage: "TOUR_COMPLETED", notes: "Toured pool and Olympic fitness center. Loved facilities." },
+  { id: 5, name: "Sameer Nambiar", email: "sameer.n@tech.io", phone: "+91 99444 55667", interestedPlan: "Black Card VIP", source: "Owner Direct Invite", stage: "CONVERTED", notes: "Membership payment verified. Activated." },
 ];
 
 const STAGES = [
@@ -350,9 +350,9 @@ export default function CRMPage() {
               <button
                 type="button"
                 onClick={() => setSelectedLead(null)}
-                className="w-7 h-7 rounded-full bg-slate-100 text-slate-600 hover:bg-slate-200 flex items-center justify-center text-xs font-bold"
+                className="w-7 h-7 rounded-full bg-slate-100 text-slate-600 hover:bg-slate-200 flex items-center justify-center text-xs font-bold transition-colors"
               >
-                ✕
+                <X className="w-3.5 h-3.5" />
               </button>
             </div>
 
@@ -416,9 +416,9 @@ export default function CRMPage() {
               <button
                 type="button"
                 onClick={() => setShowAddModal(false)}
-                className="w-7 h-7 rounded-full bg-slate-100 text-slate-600 hover:bg-slate-200 flex items-center justify-center text-xs font-bold"
+                className="w-7 h-7 rounded-full bg-slate-100 text-slate-600 hover:bg-slate-200 flex items-center justify-center text-xs font-bold transition-colors"
               >
-                ✕
+                <X className="w-3.5 h-3.5" />
               </button>
             </div>
 
@@ -478,10 +478,10 @@ export default function CRMPage() {
                     onChange={(e) => setInterestedPlan(e.target.value)}
                     className="w-full px-3 py-2 rounded-xl border border-slate-200 bg-slate-50 font-bold"
                   >
-                    <option value="GOLD">🥇 Gold Champion</option>
-                    <option value="SILVER">🥈 Silver Essential</option>
-                    <option value="JUNIOR">🎾 Junior Academy</option>
-                    <option value="CORPORATE">🏢 Corporate Package</option>
+                    <option value="GOLD">Gold Champion</option>
+                    <option value="SILVER">Silver Essential</option>
+                    <option value="JUNIOR">Junior Academy</option>
+                    <option value="CORPORATE">Corporate Package</option>
                   </select>
                 </div>
                 <div>

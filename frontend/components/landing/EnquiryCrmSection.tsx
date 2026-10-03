@@ -12,7 +12,8 @@ import {
   ShieldCheck, 
   Trophy,
   Loader2,
-  AlertCircle
+  AlertCircle,
+  Lock
 } from "lucide-react";
 import { apiClient } from "@/lib/api/client";
 
@@ -275,8 +276,9 @@ export default function EnquiryCrmSection() {
                     )}
                   </button>
 
-                  <p className="text-center text-[10px] text-slate-400">
-                    🔒 We respect your privacy. No spam. Instant CRM confirmation email dispatched.
+                  <p className="flex items-center justify-center gap-1.5 text-center text-[10px] text-slate-400">
+                    <Lock className="w-3 h-3 text-slate-400 shrink-0" />
+                    <span>We respect your privacy. No spam. Instant CRM confirmation email dispatched.</span>
                   </p>
                 </form>
               )}

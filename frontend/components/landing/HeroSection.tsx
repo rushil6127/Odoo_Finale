@@ -15,7 +15,11 @@ import {
   ChevronDown,
   Activity,
   Award,
-  Users
+  Users,
+  Waves,
+  CircleDot,
+  Target,
+  Layers
 } from "lucide-react";
 
 export default function HeroSection() {
@@ -35,12 +39,12 @@ export default function HeroSection() {
   }, []);
 
   const sports = [
-    { id: "tennis", name: "Lawn Tennis", count: "4 Courts", icon: "🎾" },
-    { id: "cricket", name: "Box Cricket", count: "2 Arenas", icon: "🏏" },
-    { id: "table-tennis", name: "Table Tennis", count: "6 Tables", icon: "🏓" },
-    { id: "badminton", name: "Badminton", count: "6 Arenas", icon: "🏸" },
-    { id: "padel", name: "Padel", count: "4 Courts", icon: "🎾" },
-    { id: "swimming", name: "Olympic Pool", count: "Heated 50m", icon: "🏊‍♂️" },
+    { id: "tennis", name: "Lawn Tennis", count: "4 Courts", icon: CircleDot },
+    { id: "cricket", name: "Box Cricket", count: "2 Arenas", icon: Target },
+    { id: "table-tennis", name: "Table Tennis", count: "6 Tables", icon: Layers },
+    { id: "badminton", name: "Badminton", count: "6 Arenas", icon: Activity },
+    { id: "padel", name: "Padel", count: "4 Courts", icon: Trophy },
+    { id: "swimming", name: "Olympic Pool", count: "Heated 50m", icon: Waves },
   ];
 
   return (
@@ -152,7 +156,7 @@ export default function HeroSection() {
                     : "bg-slate-100 hover:bg-slate-200 text-slate-700"
                 }`}
               >
-                <span>{sport.icon}</span>
+                <sport.icon className="w-3.5 h-3.5 shrink-0" />
                 <span>{sport.name}</span>
                 <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-semibold ${
                   selectedSport === sport.id ? "bg-white/20 text-white" : "bg-slate-200 text-slate-600"
