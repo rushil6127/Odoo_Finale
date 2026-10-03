@@ -5,12 +5,14 @@ from backend.app.common.utils import utc_now
 
 
 class SportType(str, enum.Enum):
-    """Exactly the four supported club sports."""
+    """Supported club sports and facilities."""
 
-    TENNIS = "TENNIS"
-    PADEL = "PADEL"
+    LAWN_TENNIS = "LAWN_TENNIS"
+    SWIMMING_POOL = "SWIMMING_POOL"
     BADMINTON = "BADMINTON"
     BOX_CRICKET = "BOX_CRICKET"
+    TABLE_TENNIS = "TABLE_TENNIS"
+    VOLLEYBALL = "VOLLEYBALL"
 
     @classmethod
     def has_value(cls, value: str) -> bool:

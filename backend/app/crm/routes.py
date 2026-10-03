@@ -265,7 +265,7 @@ def api_request_trial(lead_id: int):
         lead_id=lead_id,
         preferred_date=data["preferred_date"],
         preferred_time_slot=data["preferred_time_slot"],
-        sport=data.get("sport", "TENNIS"),
+        sport=data.get("sport", "LAWN_TENNIS"),
     )
     return success_response(
         data=trial.to_dict(),

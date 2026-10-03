@@ -132,33 +132,52 @@ def test_custom_operating_hours_slot_generation(app):
 
 
 # ---------------------------------------------------------
-# 2. Four Supported Sports Tests
+# ---------------------------------------------------------
+# 2. Six Supported Sports & Facilities Tests
 # ---------------------------------------------------------
 
-def test_all_four_sports_supported(app, db_session):
-    """Test that Tennis, Padel, Badminton, and Box Cricket courts can be created."""
-    tennis = create_court(name="Tennis Court Test", sport_type="TENNIS", surface_type="Grass")
-    padel = create_court(name="Padel Court Test", sport_type="PADEL", surface_type="Turf")
+def test_all_six_finalized_sports_and_facilities_supported(app, db_session):
+    """Test that Lawn Tennis, Swimming Pool, Badminton, Box Cricket, Table Tennis, and Volleyball can be created."""
+    lawn_tennis = create_court(name="Lawn Tennis Court Test", sport_type="LAWN_TENNIS", surface_type="Grass")
+    swimming = create_court(name="Swimming Pool Test", sport_type="SWIMMING_POOL", surface_type="Tile")
     badminton = create_court(name="Badminton Court Test", sport_type="BADMINTON", is_indoor=True)
     box_cricket = create_court(name="Box Cricket Pitch Test", sport_type="BOX_CRICKET")
+    table_tennis = create_court(name="Table Tennis Table Test", sport_type="TABLE_TENNIS", is_indoor=True)
+    volleyball = create_court(name="Volleyball Court Test", sport_type="VOLLEYBALL", surface_type="Sand")
 
-    assert tennis.sport_type == SportType.TENNIS
-    assert padel.sport_type == SportType.PADEL
+    assert lawn_tennis.sport_type == SportType.LAWN_TENNIS
+    assert swimming.sport_type == SportType.SWIMMING_POOL
     assert badminton.sport_type == SportType.BADMINTON
     assert box_cricket.sport_type == SportType.BOX_CRICKET
+    assert table_tennis.sport_type == SportType.TABLE_TENNIS
+    assert volleyball.sport_type == SportType.VOLLEYBALL
 
 
-def test_unsupported_sport_rejected(app, db_session, client, admin_token):
-    """Test attempting to create a court with an unsupported sport fails with 422."""
-    payload = {
-        "name": "Olympic Swimming Pool",
-        "sport_type": "SWIMMING",
-    }
-    response = client.post("/api/v1/courts", json=payload, headers=admin_token)
-    assert response.status_code == 422
-    data = response.get_json()
-    assert data["success"] is False
-    assert data["error"]["code"] == "VALIDATION_ERROR"
+def test_human_readable_sport_names_accepted(app, db_session):
+    """Test that human-friendly spaced strings (e.g. 'Lawn Tennis', 'Swimming Pool') are normalized and accepted."""
+    lt = create_court(name="Spaced Lawn Tennis", sport_type="Lawn Tennis")
+    sp = create_court(name="Spaced Pool", sport_type="Swimming Pool")
+    tt = create_court(name="Spaced TT", sport_type="Table Tennis")
+    vb = create_court(name="Spaced VB", sport_type="Volleyball")
+
+    assert lt.sport_type == SportType.LAWN_TENNIS
+    assert sp.sport_type == SportType.SWIMMING_POOL
+    assert tt.sport_type == SportType.TABLE_TENNIS
+    assert vb.sport_type == SportType.VOLLEYBALL
+
+
+def test_unsupported_and_obsolete_sports_rejected(app, db_session, client, admin_token):
+    """Test attempting to create a court with an unsupported or obsolete sport fails with 422."""
+    for obsolete_or_invalid in ["PADEL", "TENNIS", "SWIMMING", "SQUASH", "BASKETBALL", "FOOTBALL"]:
+        payload = {
+            "name": f"Invalid Facility {obsolete_or_invalid}",
+            "sport_type": obsolete_or_invalid,
+        }
+        response = client.post("/api/v1/courts", json=payload, headers=admin_token)
+        assert response.status_code == 422
+        data = response.get_json()
+        assert data["success"] is False
+        assert data["error"]["code"] == "VALIDATION_ERROR"
 
 
 # ---------------------------------------------------------
@@ -169,15 +188,14 @@ def test_maintenance_and_inactive_courts_excluded_from_availability(
     app, db_session, seeded_courts
 ):
     """Test that only ACTIVE courts appear in candidate availability slots."""
-    # Create an inactive and a maintenance court
     create_court(
         name="Under Maintenance Arena",
-        sport_type="TENNIS",
+        sport_type="LAWN_TENNIS",
         status=CourtStatus.MAINTENANCE,
     )
     create_court(
         name="Decommissioned Court",
-        sport_type="PADEL",
+        sport_type="VOLLEYBALL",
         status=CourtStatus.INACTIVE,
     )
 
@@ -210,7 +228,7 @@ def test_availability_endpoint_valid_date(client, seeded_courts):
     assert data["data"]["operating_hours"]["close_time"] == "22:00"
     assert data["data"]["operating_hours"]["slot_duration_minutes"] == 60
     assert data["data"]["operating_hours"]["slot_interval_minutes"] == 30
-    assert len(data["data"]["courts"]) == 8  # 8 seeded active courts
+    assert len(data["data"]["courts"]) == 9  # 9 seeded active courts/facilities
 
 
 def test_availability_endpoint_filter_by_sport(client, seeded_courts):
@@ -259,7 +277,7 @@ def test_admin_create_court_success(client, admin_token):
     """Test ADMIN role can create a new court."""
     payload = {
         "name": "Championship Court 1",
-        "sport_type": "TENNIS",
+        "sport_type": "LAWN_TENNIS",
         "surface_type": "Hard",
         "is_indoor": False,
         "features": {"floodlights": True},
@@ -270,12 +288,12 @@ def test_admin_create_court_success(client, admin_token):
     data = response.get_json()
     assert data["success"] is True
     assert data["data"]["court"]["name"] == "Championship Court 1"
-    assert data["data"]["court"]["sport_type"] == "TENNIS"
+    assert data["data"]["court"]["sport_type"] == "LAWN_TENNIS"
 
 
 def test_member_cannot_create_court(client, member_token):
     """Test MEMBER role cannot create a court (403 Forbidden)."""
-    payload = {"name": "Member Court", "sport_type": "TENNIS"}
+    payload = {"name": "Member Court", "sport_type": "LAWN_TENNIS"}
     response = client.post("/api/v1/courts", json=payload, headers=member_token)
     assert response.status_code == 403
     data = response.get_json()
@@ -285,7 +303,7 @@ def test_member_cannot_create_court(client, member_token):
 
 def test_front_desk_cannot_create_court(client, front_desk_token):
     """Test FRONT_DESK role cannot create a court (403 Forbidden)."""
-    payload = {"name": "Front Desk Court", "sport_type": "TENNIS"}
+    payload = {"name": "Front Desk Court", "sport_type": "LAWN_TENNIS"}
     response = client.post("/api/v1/courts", json=payload, headers=front_desk_token)
     assert response.status_code == 403
     data = response.get_json()
@@ -331,7 +349,7 @@ def test_duplicate_court_name_conflict(client, admin_token, seeded_courts):
     """Test creating a court with duplicate name returns 409 Conflict."""
     payload = {
         "name": seeded_courts[0].name,
-        "sport_type": "TENNIS",
+        "sport_type": "LAWN_TENNIS",
     }
     response = client.post("/api/v1/courts", json=payload, headers=admin_token)
     assert response.status_code == 409

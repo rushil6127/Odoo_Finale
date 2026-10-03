@@ -66,7 +66,7 @@ def seed_test_env(app, db_session):
     seed_membership_plans()
     court = create_court(
         name="Centre Court (Grass)",
-        sport_type="TENNIS",
+        sport_type="LAWN_TENNIS",
         surface_type="Grass",
         is_indoor=False,
     )

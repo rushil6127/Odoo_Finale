@@ -58,8 +58,8 @@ class BookingFilterSchema(Schema):
     sport_type = fields.String(
         allow_none=True,
         validate=validate.OneOf(
-            ["TENNIS", "PADEL", "BADMINTON", "BOX_CRICKET"],
-            error="sport_type must be TENNIS, PADEL, BADMINTON, or BOX_CRICKET.",
+            ["LAWN_TENNIS", "SWIMMING_POOL", "BADMINTON", "BOX_CRICKET", "TABLE_TENNIS", "VOLLEYBALL"],
+            error="sport_type must be LAWN_TENNIS, SWIMMING_POOL, BADMINTON, BOX_CRICKET, TABLE_TENNIS, or VOLLEYBALL.",
         ),
     )
     date = fields.Date(allow_none=True)

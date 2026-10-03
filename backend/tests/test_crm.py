@@ -92,7 +92,7 @@ def test_public_enquiry_creates_lead_and_immediate_follow_up(client, db_session)
         "email": "novak@djokovic.rs",
         "phone": "+919876543210",
         "message": "Interested in Gold membership and grass court coaching.",
-        "preferred_sport": "TENNIS",
+        "preferred_sport": "LAWN_TENNIS",
         "interested_plan": "GOLD",
         "trial_requested": True,
         "preferred_trial_date": (date.today() + timedelta(days=2)).isoformat(),
@@ -232,14 +232,14 @@ def test_trial_session_request_and_staff_confirmation(app, db_session, front_des
         "name": "Aryna Sabalenka",
         "email": "aryna@example.com",
     })
-    court = create_court(name="Centre Court 1", sport_type="TENNIS")
+    court = create_court(name="Centre Court 1", sport_type="LAWN_TENNIS")
 
     # Request trial
     trial = request_trial_session(
         lead_id=lead.id,
         preferred_date=date.today() + timedelta(days=3),
         preferred_time_slot="10:00 - 11:00",
-        sport="TENNIS",
+        sport="LAWN_TENNIS",
     )
     assert trial.status == TrialStatus.REQUESTED
 
@@ -279,7 +279,7 @@ def test_public_endpoints_leak_no_private_fields(client, db_session, seeded_plan
         assert "user_id" not in str(p)
 
     # 3. Availability
-    court = create_court(name="Court A1", sport_type="TENNIS")
+    court = create_court(name="Court A1", sport_type="LAWN_TENNIS")
     resp_avail = client.get(f"/api/v1/crm/public/availability?start_date={date.today().isoformat()}&end_date={date.today().isoformat()}")
     assert resp_avail.status_code == 200
     avail_data = resp_avail.json["data"]

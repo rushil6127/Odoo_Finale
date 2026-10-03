@@ -86,8 +86,8 @@ def get_court_availability(
     if sport_type:
         if not SportType.has_value(sport_type):
             raise ValidationException(
-                message=f"Unsupported sport type '{sport_type}'. Supported sports are TENNIS, PADEL, BADMINTON, BOX_CRICKET.",
-                details={"sport_type": ["Must be one of: TENNIS, PADEL, BADMINTON, BOX_CRICKET."]},
+                message=f"Unsupported sport type '{sport_type}'. Supported sports are LAWN_TENNIS, SWIMMING_POOL, BADMINTON, BOX_CRICKET, TABLE_TENNIS, VOLLEYBALL.",
+                details={"sport_type": ["Must be one of: LAWN_TENNIS, SWIMMING_POOL, BADMINTON, BOX_CRICKET, TABLE_TENNIS, VOLLEYBALL."]},
             )
         enum_sport = SportType.from_string(sport_type)
         query = query.filter(Court.sport_type == enum_sport)
@@ -181,8 +181,8 @@ def create_court(
     normalized_name = name.strip()
     if not SportType.has_value(sport_type):
         raise ValidationException(
-            message=f"Unsupported sport type '{sport_type}'. Supported sports are TENNIS, PADEL, BADMINTON, BOX_CRICKET.",
-            details={"sport_type": ["Must be one of: TENNIS, PADEL, BADMINTON, BOX_CRICKET."]},
+            message=f"Unsupported sport type '{sport_type}'. Supported sports are LAWN_TENNIS, SWIMMING_POOL, BADMINTON, BOX_CRICKET, TABLE_TENNIS, VOLLEYBALL.",
+            details={"sport_type": ["Must be one of: LAWN_TENNIS, SWIMMING_POOL, BADMINTON, BOX_CRICKET, TABLE_TENNIS, VOLLEYBALL."]},
         )
 
     enum_sport = SportType.from_string(sport_type)
@@ -225,7 +225,7 @@ def get_all_courts(
     if sport_type:
         if not SportType.has_value(sport_type):
             raise ValidationException(
-                message=f"Unsupported sport type '{sport_type}'. Supported sports are TENNIS, PADEL, BADMINTON, BOX_CRICKET.",
+                message=f"Unsupported sport type '{sport_type}'. Supported sports are LAWN_TENNIS, SWIMMING_POOL, BADMINTON, BOX_CRICKET, TABLE_TENNIS, VOLLEYBALL.",
             )
         query = query.filter(Court.sport_type == SportType.from_string(sport_type))
 
@@ -288,10 +288,10 @@ def update_court(court_id: int, **kwargs) -> Court:
 # ---------------------------------------------------------
 
 SEED_COURTS_DATA = [
-    # Tennis Courts
+    # Lawn Tennis Courts
     {
         "name": "Centre Court (Grass)",
-        "sport_type": "TENNIS",
+        "sport_type": "LAWN_TENNIS",
         "surface_type": "Grass",
         "is_indoor": False,
         "status": CourtStatus.ACTIVE,
@@ -300,7 +300,7 @@ SEED_COURTS_DATA = [
     },
     {
         "name": "Tennis Court 1 (Clay)",
-        "sport_type": "TENNIS",
+        "sport_type": "LAWN_TENNIS",
         "surface_type": "Clay",
         "is_indoor": False,
         "status": CourtStatus.ACTIVE,
@@ -309,31 +309,22 @@ SEED_COURTS_DATA = [
     },
     {
         "name": "Tennis Court 2 (Hard)",
-        "sport_type": "TENNIS",
+        "sport_type": "LAWN_TENNIS",
         "surface_type": "Hard",
         "is_indoor": False,
         "status": CourtStatus.ACTIVE,
         "features": {"floodlights": True, "acrylic_hard": True},
         "description": "All-weather acrylic hard court.",
     },
-    # Padel Courts
+    # Swimming Pool
     {
-        "name": "Padel Court 1 (Panoramic Glass)",
-        "sport_type": "PADEL",
-        "surface_type": "Synthetic Turf",
+        "name": "Olympic Swimming Pool",
+        "sport_type": "SWIMMING_POOL",
+        "surface_type": "Tile",
         "is_indoor": False,
         "status": CourtStatus.ACTIVE,
-        "features": {"panoramic_glass": True, "led_floodlights": True},
-        "description": "World-class panoramic glass padel arena.",
-    },
-    {
-        "name": "Padel Court 2",
-        "sport_type": "PADEL",
-        "surface_type": "Synthetic Turf",
-        "is_indoor": False,
-        "status": CourtStatus.ACTIVE,
-        "features": {"led_floodlights": True},
-        "description": "Standard padel court with synthetic grass.",
+        "features": {"temperature_controlled": True, "lanes": 8, "olympic_size": True},
+        "description": "Olympic-size 50m temperature-controlled 8-lane swimming pool.",
     },
     # Badminton Courts
     {
@@ -363,6 +354,26 @@ SEED_COURTS_DATA = [
         "status": CourtStatus.ACTIVE,
         "features": {"enclosed_netting": True, "high_power_floodlights": True, "astroturf": True},
         "description": "Fully enclosed floodlit box cricket arena with high-density astroturf.",
+    },
+    # Table Tennis
+    {
+        "name": "Table Tennis Arena - Table 1",
+        "sport_type": "TABLE_TENNIS",
+        "surface_type": "Wooden",
+        "is_indoor": True,
+        "status": CourtStatus.ACTIVE,
+        "features": {"ittf_approved_table": True, "air_conditioned": True},
+        "description": "ITTF-standard professional indoor table tennis facility.",
+    },
+    # Volleyball
+    {
+        "name": "Beach Volleyball Court",
+        "sport_type": "VOLLEYBALL",
+        "surface_type": "Sand",
+        "is_indoor": False,
+        "status": CourtStatus.ACTIVE,
+        "features": {"competition_sand": True, "floodlights": True},
+        "description": "Outdoor competition sand beach volleyball court.",
     },
 ]
 

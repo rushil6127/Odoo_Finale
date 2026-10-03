@@ -36,8 +36,7 @@ class BaseConfig:
 
     # Court Base Hourly Rates by Sport (INR)
     DEFAULT_SPORT_RATES = {
-        "TENNIS": float(os.getenv("RATE_TENNIS", 800.0)),
-        "PADEL": float(os.getenv("RATE_PADEL", 1200.0)),
+        "LAWN_TENNIS": float(os.getenv("RATE_LAWN_TENNIS", 800.0)),
         "BADMINTON": float(os.getenv("RATE_BADMINTON", 400.0)),
         "BOX_CRICKET": float(os.getenv("RATE_BOX_CRICKET", 1500.0)),
     }
