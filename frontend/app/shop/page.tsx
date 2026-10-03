@@ -16,6 +16,8 @@ import {
   RotateCcw,
   Loader2,
   ChevronLeft,
+  Package,
+  Crown,
 } from "lucide-react";
 import { apiClient } from "@/lib/api/client";
 import { useCurrentUser } from "@/lib/auth";
@@ -23,7 +25,6 @@ import { useCart } from "@/lib/cart/useCart";
 
 import Navbar from "@/components/landing/Navbar";
 import Footer from "@/components/landing/Footer";
-import ProShopHeader from "@/components/shop/ProShopHeader";
 import CategoryFilterBar, { CategoryOption } from "@/components/shop/CategoryFilterBar";
 import ProductCard, { BackendProduct } from "@/components/shop/ProductCard";
 import ProductDetailModal from "@/components/shop/ProductDetailModal";
@@ -255,6 +256,8 @@ export default function ProShopPage() {
     setIsOrdersOpen(true);
   };
 
+  const planName = (currentUser as any)?.membershipPlan || null;
+
   return (
     <div className="min-h-screen bg-slate-50/70 text-slate-900 flex flex-col selection:bg-sky-200 selection:text-sky-900 font-sans">
       {/* Ambient background decoration */}
@@ -269,47 +272,86 @@ export default function ProShopPage() {
 
       {/* Main Catalog View Container */}
       <main className="relative z-10 flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 sm:pt-32 pb-16 space-y-6 w-full">
-        {/* Navigation Breadcrumb */}
-        <div className="flex items-center gap-2 text-xs text-slate-500">
-          <Link href="/" className="hover:text-sky-600 transition-colors flex items-center gap-1">
-            <ChevronLeft className="w-3.5 h-3.5" />
-            <span>Home</span>
-          </Link>
-          <span>/</span>
-          <span className="text-slate-800 font-bold">The Pro Shop</span>
+        {/* Navigation Breadcrumb & Quick Actions Row */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="flex items-center gap-2 text-xs text-slate-500">
+            <Link href="/" className="hover:text-sky-600 transition-colors flex items-center gap-1">
+              <ChevronLeft className="w-3.5 h-3.5" />
+              <span>Home</span>
+            </Link>
+            <span>/</span>
+            <span className="text-slate-800 font-bold">The Pro Shop</span>
+          </div>
+
+          {/* Quick Action Buttons */}
+          <div className="flex items-center gap-2.5 self-end sm:self-auto">
+            {/* My Orders button */}
+            <button
+              type="button"
+              onClick={handleOpenMyOrders}
+              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold bg-white hover:bg-slate-50 text-slate-700 border border-slate-200/90 transition-all shadow-2xs active:scale-95"
+              title="View My Pro Shop Order History"
+            >
+              <Package className="w-4 h-4 text-sky-600" />
+              <span>My Orders</span>
+            </button>
+
+            {/* Cart Trigger */}
+            <button
+              type="button"
+              onClick={() => setIsCartOpen(true)}
+              className="relative inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-black bg-slate-900 hover:bg-sky-600 text-white shadow-sm hover:shadow-md transition-all active:scale-95"
+              title="Open Shopping Cart"
+            >
+              <ShoppingBag className="w-4 h-4 text-white" />
+              <span>Cart</span>
+              {totalItemsCount > 0 && (
+                <span className="inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full bg-lime-400 text-slate-950 font-black text-[10px] shadow-sm animate-in zoom-in-50">
+                  {totalItemsCount}
+                </span>
+              )}
+            </button>
+          </div>
         </div>
 
         {/* Hero Banner Showcase — Luxury Light Theme */}
         <div className="relative rounded-3xl overflow-hidden border border-slate-200/90 bg-white p-6 sm:p-10 shadow-sm">
           <div className="absolute top-0 right-0 w-96 h-96 bg-gradient-to-br from-sky-400/10 via-blue-500/5 to-transparent rounded-full blur-3xl pointer-events-none" />
 
-          <div className="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
-            <div className="max-w-2xl space-y-2.5">
-              <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-sky-50 border border-sky-200/80 text-sky-700 text-xs font-bold uppercase tracking-wider">
-                <Sparkles className="w-3.5 h-3.5 text-sky-600" />
-                <span>Authorized Performance Boutique</span>
+          <div className="relative z-10 max-w-3xl space-y-3">
+            <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-sky-50 border border-sky-200/80 text-sky-700 text-xs font-bold uppercase tracking-wider">
+              <Sparkles className="w-3.5 h-3.5 text-sky-600" />
+              <span>Authorized Performance Boutique</span>
+            </div>
+
+            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black text-slate-900 font-[family-name:var(--font-outfit)] tracking-tight leading-tight">
+              Tour Equipment, Rackets &{" "}
+              <span className="bg-gradient-to-r from-sky-600 via-blue-700 to-sky-800 bg-clip-text text-transparent">
+                Club Merchandise
+              </span>
+            </h1>
+
+            <p className="text-xs sm:text-sm text-slate-600 leading-relaxed max-w-xl">
+              Equip yourself with authorized Wilson, Babolat, Head, and Yonex performance gear with real-time stock allocation and digital member tier discounts.
+            </p>
+
+            {/* Member Tier Privilege Callout */}
+            {isAuthenticated && currentUser && (
+              <div className="pt-2">
+                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-2xl bg-amber-50 border border-amber-200/80 text-xs font-bold text-amber-900 shadow-2xs">
+                  <Crown className="w-4 h-4 text-amber-500 shrink-0" />
+                  <span>
+                    {planName?.toUpperCase() === "GOLD"
+                      ? "Gold Tier Member • 20% Equipment & Apparel Discount Active"
+                      : planName?.toUpperCase() === "SILVER"
+                      ? "Silver Tier Member • 10% Pro Shop Equipment Discount Active"
+                      : planName?.toUpperCase() === "JUNIOR"
+                      ? "Junior Pass Member • 15% Balls, Shoes & Strings Discount Active"
+                      : "Club Member • Automatic Tier Savings Calculated at Checkout"}
+                  </span>
+                </div>
               </div>
-
-              <h1 className="text-2xl sm:text-4xl lg:text-5xl font-black text-slate-900 font-[family-name:var(--font-outfit)] tracking-tight leading-tight">
-                Tour Equipment, Rackets &{" "}
-                <span className="bg-gradient-to-r from-sky-600 via-blue-700 to-sky-800 bg-clip-text text-transparent">
-                  Club Merchandise
-                </span>
-              </h1>
-
-              <p className="text-xs sm:text-sm text-slate-600 leading-relaxed max-w-xl">
-                Equip yourself with authorized Wilson, Babolat, Head, and Yonex performance gear with real-time stock allocation and digital member tier discounts.
-              </p>
-            </div>
-
-            {/* Quick Action Strip embedded inside Hero */}
-            <div className="shrink-0 w-full lg:w-auto">
-              <ProShopHeader
-                cartCount={totalItemsCount}
-                onOpenCart={() => setIsCartOpen(true)}
-                onOpenOrders={handleOpenMyOrders}
-              />
-            </div>
+            )}
           </div>
         </div>
 
