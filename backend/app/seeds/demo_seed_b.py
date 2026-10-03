@@ -92,8 +92,10 @@ def seed_commerce_and_crm_demo():
         payment_method="ONLINE",
         requesting_user=silver_user
     )
+    update_order_status(order_2.id, "CONFIRMED", "Confirmed order", shop_user)
+    update_order_status(order_2.id, "PROCESSING", "Packing", shop_user)
+    update_order_status(order_2.id, "SHIPPED", "Dispatched", shop_user)
     update_order_status(order_2.id, "COMPLETED", "Delivered", shop_user)
-
     # ==========================
     # 3. POS System
     # ==========================
@@ -128,8 +130,7 @@ def seed_commerce_and_crm_demo():
     # ==========================
     # Lead 1: New / Assigned
     lead_1, fw_1 = process_public_enquiry({
-        "first_name": "John",
-        "last_name": "Doe",
+        "name": "John Doe",
         "email": "john.doe@example.com",
         "phone": "+91 99999 11111",
         "source": "WEBSITE",
@@ -139,8 +140,7 @@ def seed_commerce_and_crm_demo():
     
     # Lead 2: Lost
     lead_2, fw_2 = process_public_enquiry({
-        "first_name": "Jane",
-        "last_name": "Smith",
+        "name": "Jane Smith",
         "email": "jane.smith@example.com",
         "phone": "+91 99999 22222",
         "source": "WALK_IN"
@@ -149,8 +149,7 @@ def seed_commerce_and_crm_demo():
     
     # Lead 3: Converted
     lead_3, fw_3 = process_public_enquiry({
-        "first_name": "New",
-        "last_name": "Member",
+        "name": "New Member",
         "email": "new.member.convert@example.com",
         "phone": "+91 99999 33333",
         "source": "WALK_IN"

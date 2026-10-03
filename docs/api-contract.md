@@ -905,7 +905,7 @@ The system enforces 7 distinct hierarchical roles:
 ### Api Update Follow Up
 - **Endpoint:** `PATCH /api/v1/crm/follow-ups/<int:follow_up_id>`
 - **Authentication:** Required
-- **Role Requirement:** (TODO: Fill role)
+- **Role Requirement:** N/A
 - **Request Body:**
 ```json
 {
@@ -918,13 +918,13 @@ The system enforces 7 distinct hierarchical roles:
   "data": {}
 }
 ```
-- **Business Rules:** (TODO: Add rules)
+- **Business Rules:** N/A
 
 ### Api Follow Ups Due Today
 - **Endpoint:** `GET /api/v1/crm/follow-ups/due-today`
 - **Authentication:** Required
-- **Role Requirement:** (TODO: Fill role)
-- **Query Parameters:** (TODO: Fill params)
+- **Role Requirement:** N/A
+- **Query Parameters:** N/A
 - **Success Response:**
 ```json
 {
@@ -932,13 +932,13 @@ The system enforces 7 distinct hierarchical roles:
   "data": {}
 }
 ```
-- **Business Rules:** (TODO: Add rules)
+- **Business Rules:** N/A
 
 ### Api List Leads
 - **Endpoint:** `GET /api/v1/crm/leads`
 - **Authentication:** Required
-- **Role Requirement:** (TODO: Fill role)
-- **Query Parameters:** (TODO: Fill params)
+- **Role Requirement:** N/A
+- **Query Parameters:** N/A
 - **Success Response:**
 ```json
 {
@@ -946,13 +946,13 @@ The system enforces 7 distinct hierarchical roles:
   "data": {}
 }
 ```
-- **Business Rules:** (TODO: Add rules)
+- **Business Rules:** N/A
 
 ### Api Get Lead
 - **Endpoint:** `GET /api/v1/crm/leads/<int:lead_id>`
 - **Authentication:** Required
-- **Role Requirement:** (TODO: Fill role)
-- **Query Parameters:** (TODO: Fill params)
+- **Role Requirement:** N/A
+- **Query Parameters:** N/A
 - **Success Response:**
 ```json
 {
@@ -960,12 +960,12 @@ The system enforces 7 distinct hierarchical roles:
   "data": {}
 }
 ```
-- **Business Rules:** (TODO: Add rules)
+- **Business Rules:** N/A
 
 ### Api Update Lead
 - **Endpoint:** `PATCH /api/v1/crm/leads/<int:lead_id>`
 - **Authentication:** Required
-- **Role Requirement:** (TODO: Fill role)
+- **Role Requirement:** N/A
 - **Request Body:**
 ```json
 {
@@ -978,12 +978,12 @@ The system enforces 7 distinct hierarchical roles:
   "data": {}
 }
 ```
-- **Business Rules:** (TODO: Add rules)
+- **Business Rules:** N/A
 
 ### Api Convert Lead
 - **Endpoint:** `POST /api/v1/crm/leads/<int:lead_id>/convert`
 - **Authentication:** Required
-- **Role Requirement:** (TODO: Fill role)
+- **Role Requirement:** N/A
 - **Request Body:**
 ```json
 {
@@ -996,12 +996,12 @@ The system enforces 7 distinct hierarchical roles:
   "data": {}
 }
 ```
-- **Business Rules:** (TODO: Add rules)
+- **Business Rules:** N/A
 
 ### Api Create Follow Up
 - **Endpoint:** `POST /api/v1/crm/leads/<int:lead_id>/follow-ups`
 - **Authentication:** Required
-- **Role Requirement:** (TODO: Fill role)
+- **Role Requirement:** N/A
 - **Request Body:**
 ```json
 {
@@ -1014,12 +1014,12 @@ The system enforces 7 distinct hierarchical roles:
   "data": {}
 }
 ```
-- **Business Rules:** (TODO: Add rules)
+- **Business Rules:** N/A
 
 ### Api Mark Lost
 - **Endpoint:** `POST /api/v1/crm/leads/<int:lead_id>/lost`
 - **Authentication:** Required
-- **Role Requirement:** (TODO: Fill role)
+- **Role Requirement:** N/A
 - **Request Body:**
 ```json
 {
@@ -1032,12 +1032,12 @@ The system enforces 7 distinct hierarchical roles:
   "data": {}
 }
 ```
-- **Business Rules:** (TODO: Add rules)
+- **Business Rules:** N/A
 
 ### Api Add Note
 - **Endpoint:** `POST /api/v1/crm/leads/<int:lead_id>/notes`
 - **Authentication:** Required
-- **Role Requirement:** (TODO: Fill role)
+- **Role Requirement:** N/A
 - **Request Body:**
 ```json
 {
@@ -1050,12 +1050,12 @@ The system enforces 7 distinct hierarchical roles:
   "data": {}
 }
 ```
-- **Business Rules:** (TODO: Add rules)
+- **Business Rules:** N/A
 
 ### Api Create Quote
 - **Endpoint:** `POST /api/v1/crm/leads/<int:lead_id>/quotes`
 - **Authentication:** Required
-- **Role Requirement:** (TODO: Fill role)
+- **Role Requirement:** N/A
 - **Request Body:**
 ```json
 {
@@ -1068,12 +1068,12 @@ The system enforces 7 distinct hierarchical roles:
   "data": {}
 }
 ```
-- **Business Rules:** (TODO: Add rules)
+- **Business Rules:** N/A
 
 ### Api Request Trial
 - **Endpoint:** `POST /api/v1/crm/leads/<int:lead_id>/trial`
 - **Authentication:** Required
-- **Role Requirement:** (TODO: Fill role)
+- **Role Requirement:** N/A
 - **Request Body:**
 ```json
 {
@@ -1086,13 +1086,13 @@ The system enforces 7 distinct hierarchical roles:
   "data": {}
 }
 ```
-- **Business Rules:** (TODO: Add rules)
+- **Business Rules:** N/A
 
 ### Api Public Availability
 - **Endpoint:** `GET /api/v1/crm/public/availability`
 - **Authentication:** Required
-- **Role Requirement:** (TODO: Fill role)
-- **Query Parameters:** (TODO: Fill params)
+- **Role Requirement:** N/A
+- **Query Parameters:** N/A
 - **Success Response:**
 ```json
 {
@@ -1100,13 +1100,13 @@ The system enforces 7 distinct hierarchical roles:
   "data": {}
 }
 ```
-- **Business Rules:** (TODO: Add rules)
+- **Business Rules:** N/A
 
 ### Api Public Club Info
 - **Endpoint:** `GET /api/v1/crm/public/club-info`
 - **Authentication:** Required
-- **Role Requirement:** (TODO: Fill role)
-- **Query Parameters:** (TODO: Fill params)
+- **Role Requirement:** N/A
+- **Query Parameters:** N/A
 - **Success Response:**
 ```json
 {
@@ -1114,12 +1114,12 @@ The system enforces 7 distinct hierarchical roles:
   "data": {}
 }
 ```
-- **Business Rules:** (TODO: Add rules)
+- **Business Rules:** N/A
 
 ### Api Public Enquiry
 - **Endpoint:** `POST /api/v1/crm/public/enquiries`
 - **Authentication:** Required
-- **Role Requirement:** (TODO: Fill role)
+- **Role Requirement:** N/A
 - **Request Body:**
 ```json
 {
@@ -1132,13 +1132,13 @@ The system enforces 7 distinct hierarchical roles:
   "data": {}
 }
 ```
-- **Business Rules:** (TODO: Add rules)
+- **Business Rules:** N/A
 
 ### Api Public Plans
 - **Endpoint:** `GET /api/v1/crm/public/plans`
 - **Authentication:** Required
-- **Role Requirement:** (TODO: Fill role)
-- **Query Parameters:** (TODO: Fill params)
+- **Role Requirement:** N/A
+- **Query Parameters:** N/A
 - **Success Response:**
 ```json
 {
@@ -1146,13 +1146,13 @@ The system enforces 7 distinct hierarchical roles:
   "data": {}
 }
 ```
-- **Business Rules:** (TODO: Add rules)
+- **Business Rules:** N/A
 
 ### Api Public Products
 - **Endpoint:** `GET /api/v1/crm/public/products`
 - **Authentication:** Required
-- **Role Requirement:** (TODO: Fill role)
-- **Query Parameters:** (TODO: Fill params)
+- **Role Requirement:** N/A
+- **Query Parameters:** N/A
 - **Success Response:**
 ```json
 {
@@ -1160,12 +1160,12 @@ The system enforces 7 distinct hierarchical roles:
   "data": {}
 }
 ```
-- **Business Rules:** (TODO: Add rules)
+- **Business Rules:** N/A
 
 ### Api Confirm Trial
 - **Endpoint:** `POST /api/v1/crm/trial-sessions/<int:trial_id>/confirm`
 - **Authentication:** Required
-- **Role Requirement:** (TODO: Fill role)
+- **Role Requirement:** N/A
 - **Request Body:**
 ```json
 {
@@ -1178,7 +1178,7 @@ The system enforces 7 distinct hierarchical roles:
   "data": {}
 }
 ```
-- **Business Rules:** (TODO: Add rules)
+- **Business Rules:** N/A
 
 
 ---
@@ -1188,8 +1188,8 @@ The system enforces 7 distinct hierarchical roles:
 ### Get Employees
 - **Endpoint:** `GET /api/v1/employees`
 - **Authentication:** Required
-- **Role Requirement:** (TODO: Fill role)
-- **Query Parameters:** (TODO: Fill params)
+- **Role Requirement:** N/A
+- **Query Parameters:** N/A
 - **Success Response:**
 ```json
 {
@@ -1197,12 +1197,12 @@ The system enforces 7 distinct hierarchical roles:
   "data": {}
 }
 ```
-- **Business Rules:** (TODO: Add rules)
+- **Business Rules:** N/A
 
 ### Post Employee
 - **Endpoint:** `POST /api/v1/employees`
 - **Authentication:** Required
-- **Role Requirement:** (TODO: Fill role)
+- **Role Requirement:** N/A
 - **Request Body:**
 ```json
 {
@@ -1215,13 +1215,13 @@ The system enforces 7 distinct hierarchical roles:
   "data": {}
 }
 ```
-- **Business Rules:** (TODO: Add rules)
+- **Business Rules:** N/A
 
 ### Get Single Employee
 - **Endpoint:** `GET /api/v1/employees/<int:employee_id>`
 - **Authentication:** Required
-- **Role Requirement:** (TODO: Fill role)
-- **Query Parameters:** (TODO: Fill params)
+- **Role Requirement:** N/A
+- **Query Parameters:** N/A
 - **Success Response:**
 ```json
 {
@@ -1229,12 +1229,12 @@ The system enforces 7 distinct hierarchical roles:
   "data": {}
 }
 ```
-- **Business Rules:** (TODO: Add rules)
+- **Business Rules:** N/A
 
 ### Put Employee
 - **Endpoint:** `PUT /api/v1/employees/<int:employee_id>`
 - **Authentication:** Required
-- **Role Requirement:** (TODO: Fill role)
+- **Role Requirement:** N/A
 - **Request Body:**
 ```json
 {
@@ -1247,13 +1247,13 @@ The system enforces 7 distinct hierarchical roles:
   "data": {}
 }
 ```
-- **Business Rules:** (TODO: Add rules)
+- **Business Rules:** N/A
 
 ### Get Employee Linked Shifts
 - **Endpoint:** `GET /api/v1/employees/<int:employee_id>/shifts`
 - **Authentication:** Required
-- **Role Requirement:** (TODO: Fill role)
-- **Query Parameters:** (TODO: Fill params)
+- **Role Requirement:** N/A
+- **Query Parameters:** N/A
 - **Success Response:**
 ```json
 {
@@ -1261,13 +1261,13 @@ The system enforces 7 distinct hierarchical roles:
   "data": {}
 }
 ```
-- **Business Rules:** (TODO: Add rules)
+- **Business Rules:** N/A
 
 ### Get Leave Requests
 - **Endpoint:** `GET /api/v1/employees/leave`
 - **Authentication:** Required
-- **Role Requirement:** (TODO: Fill role)
-- **Query Parameters:** (TODO: Fill params)
+- **Role Requirement:** N/A
+- **Query Parameters:** N/A
 - **Success Response:**
 ```json
 {
@@ -1275,12 +1275,12 @@ The system enforces 7 distinct hierarchical roles:
   "data": {}
 }
 ```
-- **Business Rules:** (TODO: Add rules)
+- **Business Rules:** N/A
 
 ### Post Leave Request
 - **Endpoint:** `POST /api/v1/employees/leave`
 - **Authentication:** Required
-- **Role Requirement:** (TODO: Fill role)
+- **Role Requirement:** N/A
 - **Request Body:**
 ```json
 {
@@ -1293,12 +1293,12 @@ The system enforces 7 distinct hierarchical roles:
   "data": {}
 }
 ```
-- **Business Rules:** (TODO: Add rules)
+- **Business Rules:** N/A
 
 ### Put Approve Leave
 - **Endpoint:** `POST /api/v1/employees/leave/<int:leave_id>/approve`
 - **Authentication:** Required
-- **Role Requirement:** (TODO: Fill role)
+- **Role Requirement:** N/A
 - **Request Body:**
 ```json
 {
@@ -1311,12 +1311,12 @@ The system enforces 7 distinct hierarchical roles:
   "data": {}
 }
 ```
-- **Business Rules:** (TODO: Add rules)
+- **Business Rules:** N/A
 
 ### Put Approve Leave
 - **Endpoint:** `PUT /api/v1/employees/leave/<int:leave_id>/approve`
 - **Authentication:** Required
-- **Role Requirement:** (TODO: Fill role)
+- **Role Requirement:** N/A
 - **Request Body:**
 ```json
 {
@@ -1329,12 +1329,12 @@ The system enforces 7 distinct hierarchical roles:
   "data": {}
 }
 ```
-- **Business Rules:** (TODO: Add rules)
+- **Business Rules:** N/A
 
 ### Put Reject Leave
 - **Endpoint:** `POST /api/v1/employees/leave/<int:leave_id>/reject`
 - **Authentication:** Required
-- **Role Requirement:** (TODO: Fill role)
+- **Role Requirement:** N/A
 - **Request Body:**
 ```json
 {
@@ -1347,12 +1347,12 @@ The system enforces 7 distinct hierarchical roles:
   "data": {}
 }
 ```
-- **Business Rules:** (TODO: Add rules)
+- **Business Rules:** N/A
 
 ### Put Reject Leave
 - **Endpoint:** `PUT /api/v1/employees/leave/<int:leave_id>/reject`
 - **Authentication:** Required
-- **Role Requirement:** (TODO: Fill role)
+- **Role Requirement:** N/A
 - **Request Body:**
 ```json
 {
@@ -1365,13 +1365,13 @@ The system enforces 7 distinct hierarchical roles:
   "data": {}
 }
 ```
-- **Business Rules:** (TODO: Add rules)
+- **Business Rules:** N/A
 
 ### Get Payroll
 - **Endpoint:** `GET /api/v1/employees/payroll`
 - **Authentication:** Required
-- **Role Requirement:** (TODO: Fill role)
-- **Query Parameters:** (TODO: Fill params)
+- **Role Requirement:** N/A
+- **Query Parameters:** N/A
 - **Success Response:**
 ```json
 {
@@ -1379,12 +1379,12 @@ The system enforces 7 distinct hierarchical roles:
   "data": {}
 }
 ```
-- **Business Rules:** (TODO: Add rules)
+- **Business Rules:** N/A
 
 ### Post Payroll
 - **Endpoint:** `POST /api/v1/employees/payroll`
 - **Authentication:** Required
-- **Role Requirement:** (TODO: Fill role)
+- **Role Requirement:** N/A
 - **Request Body:**
 ```json
 {
@@ -1397,12 +1397,12 @@ The system enforces 7 distinct hierarchical roles:
   "data": {}
 }
 ```
-- **Business Rules:** (TODO: Add rules)
+- **Business Rules:** N/A
 
 ### Put Pay Payroll
 - **Endpoint:** `POST /api/v1/employees/payroll/<int:payroll_id>/pay`
 - **Authentication:** Required
-- **Role Requirement:** (TODO: Fill role)
+- **Role Requirement:** N/A
 - **Request Body:**
 ```json
 {
@@ -1415,12 +1415,12 @@ The system enforces 7 distinct hierarchical roles:
   "data": {}
 }
 ```
-- **Business Rules:** (TODO: Add rules)
+- **Business Rules:** N/A
 
 ### Put Pay Payroll
 - **Endpoint:** `PUT /api/v1/employees/payroll/<int:payroll_id>/pay`
 - **Authentication:** Required
-- **Role Requirement:** (TODO: Fill role)
+- **Role Requirement:** N/A
 - **Request Body:**
 ```json
 {
@@ -1433,7 +1433,7 @@ The system enforces 7 distinct hierarchical roles:
   "data": {}
 }
 ```
-- **Business Rules:** (TODO: Add rules)
+- **Business Rules:** N/A
 
 
 ---
@@ -1443,7 +1443,7 @@ The system enforces 7 distinct hierarchical roles:
 ### Create New Category
 - **Endpoint:** `POST /api/v1/inventory/categories`
 - **Authentication:** Required
-- **Role Requirement:** (TODO: Fill role)
+- **Role Requirement:** N/A
 - **Request Body:**
 ```json
 {
@@ -1456,13 +1456,13 @@ The system enforces 7 distinct hierarchical roles:
   "data": {}
 }
 ```
-- **Business Rules:** (TODO: Add rules)
+- **Business Rules:** N/A
 
 ### Get Categories
 - **Endpoint:** `GET /api/v1/inventory/categories`
 - **Authentication:** Required
-- **Role Requirement:** (TODO: Fill role)
-- **Query Parameters:** (TODO: Fill params)
+- **Role Requirement:** N/A
+- **Query Parameters:** N/A
 - **Success Response:**
 ```json
 {
@@ -1470,13 +1470,13 @@ The system enforces 7 distinct hierarchical roles:
   "data": {}
 }
 ```
-- **Business Rules:** (TODO: Add rules)
+- **Business Rules:** N/A
 
 ### Get Category Detail
 - **Endpoint:** `GET /api/v1/inventory/categories/<int:category_id>`
 - **Authentication:** Required
-- **Role Requirement:** (TODO: Fill role)
-- **Query Parameters:** (TODO: Fill params)
+- **Role Requirement:** N/A
+- **Query Parameters:** N/A
 - **Success Response:**
 ```json
 {
@@ -1484,12 +1484,12 @@ The system enforces 7 distinct hierarchical roles:
   "data": {}
 }
 ```
-- **Business Rules:** (TODO: Add rules)
+- **Business Rules:** N/A
 
 ### Update Category Endpoint
 - **Endpoint:** `PATCH /api/v1/inventory/categories/<int:category_id>`
 - **Authentication:** Required
-- **Role Requirement:** (TODO: Fill role)
+- **Role Requirement:** N/A
 - **Request Body:**
 ```json
 {
@@ -1502,12 +1502,12 @@ The system enforces 7 distinct hierarchical roles:
   "data": {}
 }
 ```
-- **Business Rules:** (TODO: Add rules)
+- **Business Rules:** N/A
 
 ### Update Category Endpoint
 - **Endpoint:** `PUT /api/v1/inventory/categories/<int:category_id>`
 - **Authentication:** Required
-- **Role Requirement:** (TODO: Fill role)
+- **Role Requirement:** N/A
 - **Request Body:**
 ```json
 {
@@ -1520,13 +1520,13 @@ The system enforces 7 distinct hierarchical roles:
   "data": {}
 }
 ```
-- **Business Rules:** (TODO: Add rules)
+- **Business Rules:** N/A
 
 ### Low Stock List Endpoint
 - **Endpoint:** `GET /api/v1/inventory/low-stock`
 - **Authentication:** Required
-- **Role Requirement:** (TODO: Fill role)
-- **Query Parameters:** (TODO: Fill params)
+- **Role Requirement:** N/A
+- **Query Parameters:** N/A
 - **Success Response:**
 ```json
 {
@@ -1534,13 +1534,13 @@ The system enforces 7 distinct hierarchical roles:
   "data": {}
 }
 ```
-- **Business Rules:** (TODO: Add rules)
+- **Business Rules:** N/A
 
 ### All Movements Endpoint
 - **Endpoint:** `GET /api/v1/inventory/movements`
 - **Authentication:** Required
-- **Role Requirement:** (TODO: Fill role)
-- **Query Parameters:** (TODO: Fill params)
+- **Role Requirement:** N/A
+- **Query Parameters:** N/A
 - **Success Response:**
 ```json
 {
@@ -1548,12 +1548,12 @@ The system enforces 7 distinct hierarchical roles:
   "data": {}
 }
 ```
-- **Business Rules:** (TODO: Add rules)
+- **Business Rules:** N/A
 
 ### Create New Product
 - **Endpoint:** `POST /api/v1/inventory/products`
 - **Authentication:** Required
-- **Role Requirement:** (TODO: Fill role)
+- **Role Requirement:** N/A
 - **Request Body:**
 ```json
 {
@@ -1566,13 +1566,13 @@ The system enforces 7 distinct hierarchical roles:
   "data": {}
 }
 ```
-- **Business Rules:** (TODO: Add rules)
+- **Business Rules:** N/A
 
 ### Get Products
 - **Endpoint:** `GET /api/v1/inventory/products`
 - **Authentication:** Required
-- **Role Requirement:** (TODO: Fill role)
-- **Query Parameters:** (TODO: Fill params)
+- **Role Requirement:** N/A
+- **Query Parameters:** N/A
 - **Success Response:**
 ```json
 {
@@ -1580,12 +1580,12 @@ The system enforces 7 distinct hierarchical roles:
   "data": {}
 }
 ```
-- **Business Rules:** (TODO: Add rules)
+- **Business Rules:** N/A
 
 ### Delete Product Endpoint
 - **Endpoint:** `DELETE /api/v1/inventory/products/<int:product_id>`
 - **Authentication:** Required
-- **Role Requirement:** (TODO: Fill role)
+- **Role Requirement:** N/A
 - **Success Response:**
 ```json
 {
@@ -1593,13 +1593,13 @@ The system enforces 7 distinct hierarchical roles:
   "data": {}
 }
 ```
-- **Business Rules:** (TODO: Add rules)
+- **Business Rules:** N/A
 
 ### Get Product Detail
 - **Endpoint:** `GET /api/v1/inventory/products/<int:product_id>`
 - **Authentication:** Required
-- **Role Requirement:** (TODO: Fill role)
-- **Query Parameters:** (TODO: Fill params)
+- **Role Requirement:** N/A
+- **Query Parameters:** N/A
 - **Success Response:**
 ```json
 {
@@ -1607,12 +1607,12 @@ The system enforces 7 distinct hierarchical roles:
   "data": {}
 }
 ```
-- **Business Rules:** (TODO: Add rules)
+- **Business Rules:** N/A
 
 ### Update Product Endpoint
 - **Endpoint:** `PATCH /api/v1/inventory/products/<int:product_id>`
 - **Authentication:** Required
-- **Role Requirement:** (TODO: Fill role)
+- **Role Requirement:** N/A
 - **Request Body:**
 ```json
 {
@@ -1625,12 +1625,12 @@ The system enforces 7 distinct hierarchical roles:
   "data": {}
 }
 ```
-- **Business Rules:** (TODO: Add rules)
+- **Business Rules:** N/A
 
 ### Update Product Endpoint
 - **Endpoint:** `PUT /api/v1/inventory/products/<int:product_id>`
 - **Authentication:** Required
-- **Role Requirement:** (TODO: Fill role)
+- **Role Requirement:** N/A
 - **Request Body:**
 ```json
 {
@@ -1643,12 +1643,12 @@ The system enforces 7 distinct hierarchical roles:
   "data": {}
 }
 ```
-- **Business Rules:** (TODO: Add rules)
+- **Business Rules:** N/A
 
 ### Stock Adjust Endpoint
 - **Endpoint:** `POST /api/v1/inventory/products/<int:product_id>/adjust`
 - **Authentication:** Required
-- **Role Requirement:** (TODO: Fill role)
+- **Role Requirement:** N/A
 - **Request Body:**
 ```json
 {
@@ -1661,13 +1661,13 @@ The system enforces 7 distinct hierarchical roles:
   "data": {}
 }
 ```
-- **Business Rules:** (TODO: Add rules)
+- **Business Rules:** N/A
 
 ### Product Movements Endpoint
 - **Endpoint:** `GET /api/v1/inventory/products/<int:product_id>/movements`
 - **Authentication:** Required
-- **Role Requirement:** (TODO: Fill role)
-- **Query Parameters:** (TODO: Fill params)
+- **Role Requirement:** N/A
+- **Query Parameters:** N/A
 - **Success Response:**
 ```json
 {
@@ -1675,12 +1675,12 @@ The system enforces 7 distinct hierarchical roles:
   "data": {}
 }
 ```
-- **Business Rules:** (TODO: Add rules)
+- **Business Rules:** N/A
 
 ### Restock Product Endpoint
 - **Endpoint:** `POST /api/v1/inventory/products/<int:product_id>/stock-in`
 - **Authentication:** Required
-- **Role Requirement:** (TODO: Fill role)
+- **Role Requirement:** N/A
 - **Request Body:**
 ```json
 {
@@ -1693,12 +1693,12 @@ The system enforces 7 distinct hierarchical roles:
   "data": {}
 }
 ```
-- **Business Rules:** (TODO: Add rules)
+- **Business Rules:** N/A
 
 ### Stock Out Endpoint
 - **Endpoint:** `POST /api/v1/inventory/products/<int:product_id>/stock-out`
 - **Authentication:** Required
-- **Role Requirement:** (TODO: Fill role)
+- **Role Requirement:** N/A
 - **Request Body:**
 ```json
 {
@@ -1711,12 +1711,12 @@ The system enforces 7 distinct hierarchical roles:
   "data": {}
 }
 ```
-- **Business Rules:** (TODO: Add rules)
+- **Business Rules:** N/A
 
 ### Validate Cart Endpoint
 - **Endpoint:** `POST /api/v1/inventory/validate`
 - **Authentication:** Required
-- **Role Requirement:** (TODO: Fill role)
+- **Role Requirement:** N/A
 - **Request Body:**
 ```json
 {
@@ -1729,7 +1729,7 @@ The system enforces 7 distinct hierarchical roles:
   "data": {}
 }
 ```
-- **Business Rules:** (TODO: Add rules)
+- **Business Rules:** N/A
 
 
 ---
@@ -1739,8 +1739,8 @@ The system enforces 7 distinct hierarchical roles:
 ### Get Invoices
 - **Endpoint:** `GET /api/v1/invoices`
 - **Authentication:** Required
-- **Role Requirement:** (TODO: Fill role)
-- **Query Parameters:** (TODO: Fill params)
+- **Role Requirement:** N/A
+- **Query Parameters:** N/A
 - **Success Response:**
 ```json
 {
@@ -1748,12 +1748,12 @@ The system enforces 7 distinct hierarchical roles:
   "data": {}
 }
 ```
-- **Business Rules:** (TODO: Add rules)
+- **Business Rules:** N/A
 
 ### Post Invoice
 - **Endpoint:** `POST /api/v1/invoices`
 - **Authentication:** Required
-- **Role Requirement:** (TODO: Fill role)
+- **Role Requirement:** N/A
 - **Request Body:**
 ```json
 {
@@ -1766,13 +1766,13 @@ The system enforces 7 distinct hierarchical roles:
   "data": {}
 }
 ```
-- **Business Rules:** (TODO: Add rules)
+- **Business Rules:** N/A
 
 ### Get Single Invoice
 - **Endpoint:** `GET /api/v1/invoices/<int:invoice_id>`
 - **Authentication:** Required
-- **Role Requirement:** (TODO: Fill role)
-- **Query Parameters:** (TODO: Fill params)
+- **Role Requirement:** N/A
+- **Query Parameters:** N/A
 - **Success Response:**
 ```json
 {
@@ -1780,12 +1780,12 @@ The system enforces 7 distinct hierarchical roles:
   "data": {}
 }
 ```
-- **Business Rules:** (TODO: Add rules)
+- **Business Rules:** N/A
 
 ### Put Invoice
 - **Endpoint:** `PUT /api/v1/invoices/<int:invoice_id>`
 - **Authentication:** Required
-- **Role Requirement:** (TODO: Fill role)
+- **Role Requirement:** N/A
 - **Request Body:**
 ```json
 {
@@ -1798,12 +1798,12 @@ The system enforces 7 distinct hierarchical roles:
   "data": {}
 }
 ```
-- **Business Rules:** (TODO: Add rules)
+- **Business Rules:** N/A
 
 ### Post Issue Invoice
 - **Endpoint:** `POST /api/v1/invoices/<int:invoice_id>/issue`
 - **Authentication:** Required
-- **Role Requirement:** (TODO: Fill role)
+- **Role Requirement:** N/A
 - **Request Body:**
 ```json
 {
@@ -1816,12 +1816,12 @@ The system enforces 7 distinct hierarchical roles:
   "data": {}
 }
 ```
-- **Business Rules:** (TODO: Add rules)
+- **Business Rules:** N/A
 
 ### Post Pay Invoice
 - **Endpoint:** `POST /api/v1/invoices/<int:invoice_id>/pay`
 - **Authentication:** Required
-- **Role Requirement:** (TODO: Fill role)
+- **Role Requirement:** N/A
 - **Request Body:**
 ```json
 {
@@ -1834,12 +1834,12 @@ The system enforces 7 distinct hierarchical roles:
   "data": {}
 }
 ```
-- **Business Rules:** (TODO: Add rules)
+- **Business Rules:** N/A
 
 ### Post Void Invoice
 - **Endpoint:** `POST /api/v1/invoices/<int:invoice_id>/void`
 - **Authentication:** Required
-- **Role Requirement:** (TODO: Fill role)
+- **Role Requirement:** N/A
 - **Request Body:**
 ```json
 {
@@ -1852,13 +1852,13 @@ The system enforces 7 distinct hierarchical roles:
   "data": {}
 }
 ```
-- **Business Rules:** (TODO: Add rules)
+- **Business Rules:** N/A
 
 ### Get Clients
 - **Endpoint:** `GET /api/v1/invoices/clients`
 - **Authentication:** Required
-- **Role Requirement:** (TODO: Fill role)
-- **Query Parameters:** (TODO: Fill params)
+- **Role Requirement:** N/A
+- **Query Parameters:** N/A
 - **Success Response:**
 ```json
 {
@@ -1866,12 +1866,12 @@ The system enforces 7 distinct hierarchical roles:
   "data": {}
 }
 ```
-- **Business Rules:** (TODO: Add rules)
+- **Business Rules:** N/A
 
 ### Post Client
 - **Endpoint:** `POST /api/v1/invoices/clients`
 - **Authentication:** Required
-- **Role Requirement:** (TODO: Fill role)
+- **Role Requirement:** N/A
 - **Request Body:**
 ```json
 {
@@ -1884,13 +1884,13 @@ The system enforces 7 distinct hierarchical roles:
   "data": {}
 }
 ```
-- **Business Rules:** (TODO: Add rules)
+- **Business Rules:** N/A
 
 ### Get Single Client
 - **Endpoint:** `GET /api/v1/invoices/clients/<int:client_id>`
 - **Authentication:** Required
-- **Role Requirement:** (TODO: Fill role)
-- **Query Parameters:** (TODO: Fill params)
+- **Role Requirement:** N/A
+- **Query Parameters:** N/A
 - **Success Response:**
 ```json
 {
@@ -1898,12 +1898,12 @@ The system enforces 7 distinct hierarchical roles:
   "data": {}
 }
 ```
-- **Business Rules:** (TODO: Add rules)
+- **Business Rules:** N/A
 
 ### Put Client
 - **Endpoint:** `PUT /api/v1/invoices/clients/<int:client_id>`
 - **Authentication:** Required
-- **Role Requirement:** (TODO: Fill role)
+- **Role Requirement:** N/A
 - **Request Body:**
 ```json
 {
@@ -1916,13 +1916,13 @@ The system enforces 7 distinct hierarchical roles:
   "data": {}
 }
 ```
-- **Business Rules:** (TODO: Add rules)
+- **Business Rules:** N/A
 
 ### Get Tax Rates
 - **Endpoint:** `GET /api/v1/invoices/tax-rates`
 - **Authentication:** Required
-- **Role Requirement:** (TODO: Fill role)
-- **Query Parameters:** (TODO: Fill params)
+- **Role Requirement:** N/A
+- **Query Parameters:** N/A
 - **Success Response:**
 ```json
 {
@@ -1930,12 +1930,12 @@ The system enforces 7 distinct hierarchical roles:
   "data": {}
 }
 ```
-- **Business Rules:** (TODO: Add rules)
+- **Business Rules:** N/A
 
 ### Post Tax Rate
 - **Endpoint:** `POST /api/v1/invoices/tax-rates`
 - **Authentication:** Required
-- **Role Requirement:** (TODO: Fill role)
+- **Role Requirement:** N/A
 - **Request Body:**
 ```json
 {
@@ -1948,13 +1948,13 @@ The system enforces 7 distinct hierarchical roles:
   "data": {}
 }
 ```
-- **Business Rules:** (TODO: Add rules)
+- **Business Rules:** N/A
 
 ### Get Tax Report
 - **Endpoint:** `GET /api/v1/invoices/tax-summary`
 - **Authentication:** Required
-- **Role Requirement:** (TODO: Fill role)
-- **Query Parameters:** (TODO: Fill params)
+- **Role Requirement:** N/A
+- **Query Parameters:** N/A
 - **Success Response:**
 ```json
 {
@@ -1962,7 +1962,7 @@ The system enforces 7 distinct hierarchical roles:
   "data": {}
 }
 ```
-- **Business Rules:** (TODO: Add rules)
+- **Business Rules:** N/A
 
 
 ---
@@ -1972,8 +1972,8 @@ The system enforces 7 distinct hierarchical roles:
 ### Api Daily Sales
 - **Endpoint:** `GET /api/v1/pos/daily-sales`
 - **Authentication:** Required
-- **Role Requirement:** (TODO: Fill role)
-- **Query Parameters:** (TODO: Fill params)
+- **Role Requirement:** N/A
+- **Query Parameters:** N/A
 - **Success Response:**
 ```json
 {
@@ -1981,12 +1981,12 @@ The system enforces 7 distinct hierarchical roles:
   "data": {}
 }
 ```
-- **Business Rules:** (TODO: Add rules)
+- **Business Rules:** N/A
 
 ### Api Update Kitchen Status
 - **Endpoint:** `POST /api/v1/pos/kitchen/items/<int:item_id>/status`
 - **Authentication:** Required
-- **Role Requirement:** (TODO: Fill role)
+- **Role Requirement:** N/A
 - **Request Body:**
 ```json
 {
@@ -1999,13 +1999,13 @@ The system enforces 7 distinct hierarchical roles:
   "data": {}
 }
 ```
-- **Business Rules:** (TODO: Add rules)
+- **Business Rules:** N/A
 
 ### Api Kitchen Queue
 - **Endpoint:** `GET /api/v1/pos/kitchen/queue`
 - **Authentication:** Required
-- **Role Requirement:** (TODO: Fill role)
-- **Query Parameters:** (TODO: Fill params)
+- **Role Requirement:** N/A
+- **Query Parameters:** N/A
 - **Success Response:**
 ```json
 {
@@ -2013,12 +2013,12 @@ The system enforces 7 distinct hierarchical roles:
   "data": {}
 }
 ```
-- **Business Rules:** (TODO: Add rules)
+- **Business Rules:** N/A
 
 ### Api Create Menu Item
 - **Endpoint:** `POST /api/v1/pos/menu`
 - **Authentication:** Required
-- **Role Requirement:** (TODO: Fill role)
+- **Role Requirement:** N/A
 - **Request Body:**
 ```json
 {
@@ -2031,13 +2031,13 @@ The system enforces 7 distinct hierarchical roles:
   "data": {}
 }
 ```
-- **Business Rules:** (TODO: Add rules)
+- **Business Rules:** N/A
 
 ### Api List Menu
 - **Endpoint:** `GET /api/v1/pos/menu`
 - **Authentication:** Required
-- **Role Requirement:** (TODO: Fill role)
-- **Query Parameters:** (TODO: Fill params)
+- **Role Requirement:** N/A
+- **Query Parameters:** N/A
 - **Success Response:**
 ```json
 {
@@ -2045,12 +2045,12 @@ The system enforces 7 distinct hierarchical roles:
   "data": {}
 }
 ```
-- **Business Rules:** (TODO: Add rules)
+- **Business Rules:** N/A
 
 ### Api Update Menu Item
 - **Endpoint:** `PATCH /api/v1/pos/menu/<int:item_id>`
 - **Authentication:** Required
-- **Role Requirement:** (TODO: Fill role)
+- **Role Requirement:** N/A
 - **Request Body:**
 ```json
 {
@@ -2063,12 +2063,12 @@ The system enforces 7 distinct hierarchical roles:
   "data": {}
 }
 ```
-- **Business Rules:** (TODO: Add rules)
+- **Business Rules:** N/A
 
 ### Api Update Menu Item
 - **Endpoint:** `PUT /api/v1/pos/menu/<int:item_id>`
 - **Authentication:** Required
-- **Role Requirement:** (TODO: Fill role)
+- **Role Requirement:** N/A
 - **Request Body:**
 ```json
 {
@@ -2081,12 +2081,12 @@ The system enforces 7 distinct hierarchical roles:
   "data": {}
 }
 ```
-- **Business Rules:** (TODO: Add rules)
+- **Business Rules:** N/A
 
 ### Api Create Category
 - **Endpoint:** `POST /api/v1/pos/menu/categories`
 - **Authentication:** Required
-- **Role Requirement:** (TODO: Fill role)
+- **Role Requirement:** N/A
 - **Request Body:**
 ```json
 {
@@ -2099,13 +2099,13 @@ The system enforces 7 distinct hierarchical roles:
   "data": {}
 }
 ```
-- **Business Rules:** (TODO: Add rules)
+- **Business Rules:** N/A
 
 ### Api List Categories
 - **Endpoint:** `GET /api/v1/pos/menu/categories`
 - **Authentication:** Required
-- **Role Requirement:** (TODO: Fill role)
-- **Query Parameters:** (TODO: Fill params)
+- **Role Requirement:** N/A
+- **Query Parameters:** N/A
 - **Success Response:**
 ```json
 {
@@ -2113,13 +2113,13 @@ The system enforces 7 distinct hierarchical roles:
   "data": {}
 }
 ```
-- **Business Rules:** (TODO: Add rules)
+- **Business Rules:** N/A
 
 ### Api List Shifts
 - **Endpoint:** `GET /api/v1/pos/shifts`
 - **Authentication:** Required
-- **Role Requirement:** (TODO: Fill role)
-- **Query Parameters:** (TODO: Fill params)
+- **Role Requirement:** N/A
+- **Query Parameters:** N/A
 - **Success Response:**
 ```json
 {
@@ -2127,13 +2127,13 @@ The system enforces 7 distinct hierarchical roles:
   "data": {}
 }
 ```
-- **Business Rules:** (TODO: Add rules)
+- **Business Rules:** N/A
 
 ### Api Current Shift
 - **Endpoint:** `GET /api/v1/pos/shifts/current`
 - **Authentication:** Required
-- **Role Requirement:** (TODO: Fill role)
-- **Query Parameters:** (TODO: Fill params)
+- **Role Requirement:** N/A
+- **Query Parameters:** N/A
 - **Success Response:**
 ```json
 {
@@ -2141,12 +2141,12 @@ The system enforces 7 distinct hierarchical roles:
   "data": {}
 }
 ```
-- **Business Rules:** (TODO: Add rules)
+- **Business Rules:** N/A
 
 ### Api End Shift
 - **Endpoint:** `POST /api/v1/pos/shifts/end`
 - **Authentication:** Required
-- **Role Requirement:** (TODO: Fill role)
+- **Role Requirement:** N/A
 - **Request Body:**
 ```json
 {
@@ -2159,12 +2159,12 @@ The system enforces 7 distinct hierarchical roles:
   "data": {}
 }
 ```
-- **Business Rules:** (TODO: Add rules)
+- **Business Rules:** N/A
 
 ### Api Start Shift
 - **Endpoint:** `POST /api/v1/pos/shifts/start`
 - **Authentication:** Required
-- **Role Requirement:** (TODO: Fill role)
+- **Role Requirement:** N/A
 - **Request Body:**
 ```json
 {
@@ -2177,12 +2177,12 @@ The system enforces 7 distinct hierarchical roles:
   "data": {}
 }
 ```
-- **Business Rules:** (TODO: Add rules)
+- **Business Rules:** N/A
 
 ### Api Create Table
 - **Endpoint:** `POST /api/v1/pos/tables`
 - **Authentication:** Required
-- **Role Requirement:** (TODO: Fill role)
+- **Role Requirement:** N/A
 - **Request Body:**
 ```json
 {
@@ -2195,13 +2195,13 @@ The system enforces 7 distinct hierarchical roles:
   "data": {}
 }
 ```
-- **Business Rules:** (TODO: Add rules)
+- **Business Rules:** N/A
 
 ### Api List Tables
 - **Endpoint:** `GET /api/v1/pos/tables`
 - **Authentication:** Required
-- **Role Requirement:** (TODO: Fill role)
-- **Query Parameters:** (TODO: Fill params)
+- **Role Requirement:** N/A
+- **Query Parameters:** N/A
 - **Success Response:**
 ```json
 {
@@ -2209,13 +2209,13 @@ The system enforces 7 distinct hierarchical roles:
   "data": {}
 }
 ```
-- **Business Rules:** (TODO: Add rules)
+- **Business Rules:** N/A
 
 ### Api Get Table
 - **Endpoint:** `GET /api/v1/pos/tables/<int:table_id>`
 - **Authentication:** Required
-- **Role Requirement:** (TODO: Fill role)
-- **Query Parameters:** (TODO: Fill params)
+- **Role Requirement:** N/A
+- **Query Parameters:** N/A
 - **Success Response:**
 ```json
 {
@@ -2223,12 +2223,12 @@ The system enforces 7 distinct hierarchical roles:
   "data": {}
 }
 ```
-- **Business Rules:** (TODO: Add rules)
+- **Business Rules:** N/A
 
 ### Api Update Table
 - **Endpoint:** `PATCH /api/v1/pos/tables/<int:table_id>`
 - **Authentication:** Required
-- **Role Requirement:** (TODO: Fill role)
+- **Role Requirement:** N/A
 - **Request Body:**
 ```json
 {
@@ -2241,12 +2241,12 @@ The system enforces 7 distinct hierarchical roles:
   "data": {}
 }
 ```
-- **Business Rules:** (TODO: Add rules)
+- **Business Rules:** N/A
 
 ### Api Update Table
 - **Endpoint:** `PUT /api/v1/pos/tables/<int:table_id>`
 - **Authentication:** Required
-- **Role Requirement:** (TODO: Fill role)
+- **Role Requirement:** N/A
 - **Request Body:**
 ```json
 {
@@ -2259,13 +2259,13 @@ The system enforces 7 distinct hierarchical roles:
   "data": {}
 }
 ```
-- **Business Rules:** (TODO: Add rules)
+- **Business Rules:** N/A
 
 ### Api List Tabs
 - **Endpoint:** `GET /api/v1/pos/tabs`
 - **Authentication:** Required
-- **Role Requirement:** (TODO: Fill role)
-- **Query Parameters:** (TODO: Fill params)
+- **Role Requirement:** N/A
+- **Query Parameters:** N/A
 - **Success Response:**
 ```json
 {
@@ -2273,12 +2273,12 @@ The system enforces 7 distinct hierarchical roles:
   "data": {}
 }
 ```
-- **Business Rules:** (TODO: Add rules)
+- **Business Rules:** N/A
 
 ### Api Open Tab
 - **Endpoint:** `POST /api/v1/pos/tabs`
 - **Authentication:** Required
-- **Role Requirement:** (TODO: Fill role)
+- **Role Requirement:** N/A
 - **Request Body:**
 ```json
 {
@@ -2291,13 +2291,13 @@ The system enforces 7 distinct hierarchical roles:
   "data": {}
 }
 ```
-- **Business Rules:** (TODO: Add rules)
+- **Business Rules:** N/A
 
 ### Api Get Tab
 - **Endpoint:** `GET /api/v1/pos/tabs/<int:tab_id>`
 - **Authentication:** Required
-- **Role Requirement:** (TODO: Fill role)
-- **Query Parameters:** (TODO: Fill params)
+- **Role Requirement:** N/A
+- **Query Parameters:** N/A
 - **Success Response:**
 ```json
 {
@@ -2305,12 +2305,12 @@ The system enforces 7 distinct hierarchical roles:
   "data": {}
 }
 ```
-- **Business Rules:** (TODO: Add rules)
+- **Business Rules:** N/A
 
 ### Api Close Tab
 - **Endpoint:** `POST /api/v1/pos/tabs/<int:tab_id>/close`
 - **Authentication:** Required
-- **Role Requirement:** (TODO: Fill role)
+- **Role Requirement:** N/A
 - **Request Body:**
 ```json
 {
@@ -2323,12 +2323,12 @@ The system enforces 7 distinct hierarchical roles:
   "data": {}
 }
 ```
-- **Business Rules:** (TODO: Add rules)
+- **Business Rules:** N/A
 
 ### Api Add Items
 - **Endpoint:** `POST /api/v1/pos/tabs/<int:tab_id>/items`
 - **Authentication:** Required
-- **Role Requirement:** (TODO: Fill role)
+- **Role Requirement:** N/A
 - **Request Body:**
 ```json
 {
@@ -2341,12 +2341,12 @@ The system enforces 7 distinct hierarchical roles:
   "data": {}
 }
 ```
-- **Business Rules:** (TODO: Add rules)
+- **Business Rules:** N/A
 
 ### Api Send To Kitchen
 - **Endpoint:** `POST /api/v1/pos/tabs/<int:tab_id>/kitchen/send`
 - **Authentication:** Required
-- **Role Requirement:** (TODO: Fill role)
+- **Role Requirement:** N/A
 - **Request Body:**
 ```json
 {
@@ -2359,12 +2359,12 @@ The system enforces 7 distinct hierarchical roles:
   "data": {}
 }
 ```
-- **Business Rules:** (TODO: Add rules)
+- **Business Rules:** N/A
 
 ### Api Pay Tab
 - **Endpoint:** `POST /api/v1/pos/tabs/<int:tab_id>/pay`
 - **Authentication:** Required
-- **Role Requirement:** (TODO: Fill role)
+- **Role Requirement:** N/A
 - **Request Body:**
 ```json
 {
@@ -2377,12 +2377,12 @@ The system enforces 7 distinct hierarchical roles:
   "data": {}
 }
 ```
-- **Business Rules:** (TODO: Add rules)
+- **Business Rules:** N/A
 
 ### Api Void Tab
 - **Endpoint:** `POST /api/v1/pos/tabs/<int:tab_id>/void`
 - **Authentication:** Required
-- **Role Requirement:** (TODO: Fill role)
+- **Role Requirement:** N/A
 - **Request Body:**
 ```json
 {
@@ -2395,7 +2395,7 @@ The system enforces 7 distinct hierarchical roles:
   "data": {}
 }
 ```
-- **Business Rules:** (TODO: Add rules)
+- **Business Rules:** N/A
 
 
 ---
@@ -2405,8 +2405,8 @@ The system enforces 7 distinct hierarchical roles:
 ### Get Bar Report
 - **Endpoint:** `GET /api/v1/reports/bar`
 - **Authentication:** Required
-- **Role Requirement:** (TODO: Fill role)
-- **Query Parameters:** (TODO: Fill params)
+- **Role Requirement:** N/A
+- **Query Parameters:** N/A
 - **Success Response:**
 ```json
 {
@@ -2414,13 +2414,13 @@ The system enforces 7 distinct hierarchical roles:
   "data": {}
 }
 ```
-- **Business Rules:** (TODO: Add rules)
+- **Business Rules:** N/A
 
 ### Get Courts Report
 - **Endpoint:** `GET /api/v1/reports/courts`
 - **Authentication:** Required
-- **Role Requirement:** (TODO: Fill role)
-- **Query Parameters:** (TODO: Fill params)
+- **Role Requirement:** N/A
+- **Query Parameters:** N/A
 - **Success Response:**
 ```json
 {
@@ -2428,13 +2428,13 @@ The system enforces 7 distinct hierarchical roles:
   "data": {}
 }
 ```
-- **Business Rules:** (TODO: Add rules)
+- **Business Rules:** N/A
 
 ### Get Overview
 - **Endpoint:** `GET /api/v1/reports/dashboard`
 - **Authentication:** Required
-- **Role Requirement:** (TODO: Fill role)
-- **Query Parameters:** (TODO: Fill params)
+- **Role Requirement:** N/A
+- **Query Parameters:** N/A
 - **Success Response:**
 ```json
 {
@@ -2442,12 +2442,12 @@ The system enforces 7 distinct hierarchical roles:
   "data": {}
 }
 ```
-- **Business Rules:** (TODO: Add rules)
+- **Business Rules:** N/A
 
 ### Export Report Excel
 - **Endpoint:** `POST /api/v1/reports/export`
 - **Authentication:** Required
-- **Role Requirement:** (TODO: Fill role)
+- **Role Requirement:** N/A
 - **Request Body:**
 ```json
 {
@@ -2460,13 +2460,13 @@ The system enforces 7 distinct hierarchical roles:
   "data": {}
 }
 ```
-- **Business Rules:** (TODO: Add rules)
+- **Business Rules:** N/A
 
 ### Get Memberships Report
 - **Endpoint:** `GET /api/v1/reports/memberships`
 - **Authentication:** Required
-- **Role Requirement:** (TODO: Fill role)
-- **Query Parameters:** (TODO: Fill params)
+- **Role Requirement:** N/A
+- **Query Parameters:** N/A
 - **Success Response:**
 ```json
 {
@@ -2474,13 +2474,13 @@ The system enforces 7 distinct hierarchical roles:
   "data": {}
 }
 ```
-- **Business Rules:** (TODO: Add rules)
+- **Business Rules:** N/A
 
 ### Get Operations
 - **Endpoint:** `GET /api/v1/reports/operations`
 - **Authentication:** Required
-- **Role Requirement:** (TODO: Fill role)
-- **Query Parameters:** (TODO: Fill params)
+- **Role Requirement:** N/A
+- **Query Parameters:** N/A
 - **Success Response:**
 ```json
 {
@@ -2488,13 +2488,13 @@ The system enforces 7 distinct hierarchical roles:
   "data": {}
 }
 ```
-- **Business Rules:** (TODO: Add rules)
+- **Business Rules:** N/A
 
 ### Get Overview
 - **Endpoint:** `GET /api/v1/reports/overview`
 - **Authentication:** Required
-- **Role Requirement:** (TODO: Fill role)
-- **Query Parameters:** (TODO: Fill params)
+- **Role Requirement:** N/A
+- **Query Parameters:** N/A
 - **Success Response:**
 ```json
 {
@@ -2502,13 +2502,13 @@ The system enforces 7 distinct hierarchical roles:
   "data": {}
 }
 ```
-- **Business Rules:** (TODO: Add rules)
+- **Business Rules:** N/A
 
 ### Get Revenue
 - **Endpoint:** `GET /api/v1/reports/revenue`
 - **Authentication:** Required
-- **Role Requirement:** (TODO: Fill role)
-- **Query Parameters:** (TODO: Fill params)
+- **Role Requirement:** N/A
+- **Query Parameters:** N/A
 - **Success Response:**
 ```json
 {
@@ -2516,13 +2516,13 @@ The system enforces 7 distinct hierarchical roles:
   "data": {}
 }
 ```
-- **Business Rules:** (TODO: Add rules)
+- **Business Rules:** N/A
 
 ### Get Shop Report
 - **Endpoint:** `GET /api/v1/reports/shop`
 - **Authentication:** Required
-- **Role Requirement:** (TODO: Fill role)
-- **Query Parameters:** (TODO: Fill params)
+- **Role Requirement:** N/A
+- **Query Parameters:** N/A
 - **Success Response:**
 ```json
 {
@@ -2530,7 +2530,7 @@ The system enforces 7 distinct hierarchical roles:
   "data": {}
 }
 ```
-- **Business Rules:** (TODO: Add rules)
+- **Business Rules:** N/A
 
 
 ---
@@ -2540,7 +2540,7 @@ The system enforces 7 distinct hierarchical roles:
 ### Create Order Endpoint
 - **Endpoint:** `POST /api/v1/shop/orders`
 - **Authentication:** Required
-- **Role Requirement:** (TODO: Fill role)
+- **Role Requirement:** N/A
 - **Request Body:**
 ```json
 {
@@ -2553,13 +2553,13 @@ The system enforces 7 distinct hierarchical roles:
   "data": {}
 }
 ```
-- **Business Rules:** (TODO: Add rules)
+- **Business Rules:** N/A
 
 ### List Orders Endpoint
 - **Endpoint:** `GET /api/v1/shop/orders`
 - **Authentication:** Required
-- **Role Requirement:** (TODO: Fill role)
-- **Query Parameters:** (TODO: Fill params)
+- **Role Requirement:** N/A
+- **Query Parameters:** N/A
 - **Success Response:**
 ```json
 {
@@ -2567,13 +2567,13 @@ The system enforces 7 distinct hierarchical roles:
   "data": {}
 }
 ```
-- **Business Rules:** (TODO: Add rules)
+- **Business Rules:** N/A
 
 ### Get Order Endpoint
 - **Endpoint:** `GET /api/v1/shop/orders/<int:order_id>`
 - **Authentication:** Required
-- **Role Requirement:** (TODO: Fill role)
-- **Query Parameters:** (TODO: Fill params)
+- **Role Requirement:** N/A
+- **Query Parameters:** N/A
 - **Success Response:**
 ```json
 {
@@ -2581,12 +2581,12 @@ The system enforces 7 distinct hierarchical roles:
   "data": {}
 }
 ```
-- **Business Rules:** (TODO: Add rules)
+- **Business Rules:** N/A
 
 ### Cancel Order Endpoint
 - **Endpoint:** `POST /api/v1/shop/orders/<int:order_id>/cancel`
 - **Authentication:** Required
-- **Role Requirement:** (TODO: Fill role)
+- **Role Requirement:** N/A
 - **Request Body:**
 ```json
 {
@@ -2599,12 +2599,12 @@ The system enforces 7 distinct hierarchical roles:
   "data": {}
 }
 ```
-- **Business Rules:** (TODO: Add rules)
+- **Business Rules:** N/A
 
 ### Update Status Endpoint
 - **Endpoint:** `POST /api/v1/shop/orders/<int:order_id>/status`
 - **Authentication:** Required
-- **Role Requirement:** (TODO: Fill role)
+- **Role Requirement:** N/A
 - **Request Body:**
 ```json
 {
@@ -2617,13 +2617,13 @@ The system enforces 7 distinct hierarchical roles:
   "data": {}
 }
 ```
-- **Business Rules:** (TODO: Add rules)
+- **Business Rules:** N/A
 
 ### My Orders Endpoint
 - **Endpoint:** `GET /api/v1/shop/orders/my-orders`
 - **Authentication:** Required
-- **Role Requirement:** (TODO: Fill role)
-- **Query Parameters:** (TODO: Fill params)
+- **Role Requirement:** N/A
+- **Query Parameters:** N/A
 - **Success Response:**
 ```json
 {
@@ -2631,5 +2631,5 @@ The system enforces 7 distinct hierarchical roles:
   "data": {}
 }
 ```
-- **Business Rules:** (TODO: Add rules)
+- **Business Rules:** N/A
 
