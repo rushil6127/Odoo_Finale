@@ -2,11 +2,14 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { ArrowLeft, Crown, ShieldAlert } from "lucide-react";
+import { DEMO_MEMBERS, setStoredUser, type AuthUserProfile } from "@/lib/auth";
 import "./Login.css";
 
 interface ActiveViewProps {
   activeView: "login" | "register";
+  onLoginSuccess: (user: AuthUserProfile) => void;
 }
 
 interface HeroPanelProps {
@@ -18,25 +21,40 @@ interface HeroPanelProps {
   onToggle: () => void;
 }
 
-const CardBackground = ({ activeView }: ActiveViewProps) => (
+const CardBackground = ({ activeView }: { activeView: "login" | "register" }) => (
   <div
     className={`card-bg ${activeView === "login" ? "login" : ""}`}
   />
 );
 
-const SocialButtons = () => (
+const SocialButtons = ({ onSelectDemo }: { onSelectDemo: () => void }) => (
   <div className="sso">
-    <button type="button" aria-label="Sign in with Facebook" title="Facebook">
+    <button 
+      type="button" 
+      onClick={onSelectDemo} 
+      aria-label="Instant Social Sign In with Facebook" 
+      title="Instant Sign in as Alex Morgan (Gold Member)"
+    >
       <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
         <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
       </svg>
     </button>
-    <button type="button" aria-label="Sign in with Twitter" title="Twitter">
+    <button 
+      type="button" 
+      onClick={onSelectDemo} 
+      aria-label="Instant Social Sign In with Twitter" 
+      title="Instant Sign in with Twitter"
+    >
       <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
         <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
       </svg>
     </button>
-    <button type="button" aria-label="Sign in with LinkedIn" title="LinkedIn">
+    <button 
+      type="button" 
+      onClick={onSelectDemo} 
+      aria-label="Instant Social Sign In with LinkedIn" 
+      title="Instant Sign in with LinkedIn"
+    >
       <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
         <path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z" />
       </svg>
@@ -61,45 +79,110 @@ const HeroPanel = ({
   </div>
 );
 
-const RegisterForm = ({ activeView }: ActiveViewProps) => (
-  <div
-    className={`form register ${activeView === "register" ? "active" : ""}`}
-  >
-    <h2>Sign Up</h2>
-    <SocialButtons />
-    <p className="subtitle">Or use your email address</p>
-    <form onSubmit={(e) => e.preventDefault()}>
-      <input type="text" placeholder="Full name" required />
-      <input type="email" placeholder="Email address" required />
-      <input type="password" placeholder="Password" required />
-      <button type="submit">SIGN UP</button>
-    </form>
-  </div>
-);
+const RegisterForm = ({ activeView, onLoginSuccess }: ActiveViewProps) => {
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
 
-const LoginForm = ({ activeView }: ActiveViewProps) => (
-  <div
-    className={`form login ${activeView === "login" ? "active" : ""}`}
-  >
-    <h2>Login</h2>
-    <SocialButtons />
-    <p className="subtitle">Or use your email address</p>
-    <form onSubmit={(e) => e.preventDefault()}>
-      <input type="text" placeholder="Email" required />
-      <input type="password" placeholder="Password" required />
-      <a href="#" className="forgot-password">
-        Forgot password?
-      </a>
-      <button type="submit">LOGIN</button>
-    </form>
-  </div>
-);
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const newUser: AuthUserProfile = {
+      ...DEMO_MEMBERS.alex,
+      name: name.trim() || "New Champion",
+      email: email.trim() || "member@championsclub.in",
+      joinDate: "Today",
+      membershipStatus: "ACTIVE",
+    };
+    onLoginSuccess(newUser);
+  };
+
+  return (
+    <div
+      className={`form register ${activeView === "register" ? "active" : ""}`}
+    >
+      <h2>Sign Up</h2>
+      <SocialButtons onSelectDemo={() => onLoginSuccess(DEMO_MEMBERS.alex)} />
+      <p className="subtitle">Or use your email address</p>
+      <form onSubmit={handleSubmit}>
+        <input 
+          type="text" 
+          placeholder="Full name" 
+          value={name} 
+          onChange={(e) => setName(e.target.value)} 
+          required 
+        />
+        <input 
+          type="email" 
+          placeholder="Email address" 
+          value={email} 
+          onChange={(e) => setEmail(e.target.value)} 
+          required 
+        />
+        <input 
+          type="password" 
+          placeholder="Password" 
+          value={password} 
+          onChange={(e) => setPassword(e.target.value)} 
+          required 
+        />
+        <button type="submit">SIGN UP</button>
+      </form>
+    </div>
+  );
+};
+
+const LoginForm = ({ activeView, onLoginSuccess }: ActiveViewProps) => {
+  const [email, setEmail] = useState("alex.morgan@championsclub.in");
+  const [password, setPassword] = useState("••••••••");
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    onLoginSuccess(DEMO_MEMBERS.alex);
+  };
+
+  return (
+    <div
+      className={`form login ${activeView === "login" ? "active" : ""}`}
+    >
+      <h2>Login</h2>
+      <SocialButtons onSelectDemo={() => onLoginSuccess(DEMO_MEMBERS.alex)} />
+      <p className="subtitle">Or use your email address</p>
+      <form onSubmit={handleSubmit}>
+        <input 
+          type="email" 
+          placeholder="Email" 
+          value={email} 
+          onChange={(e) => setEmail(e.target.value)} 
+          required 
+        />
+        <input 
+          type="password" 
+          placeholder="Password" 
+          value={password} 
+          onChange={(e) => setPassword(e.target.value)} 
+          required 
+        />
+        <a href="#" className="forgot-password">
+          Forgot password?
+        </a>
+        <button type="submit">LOGIN</button>
+      </form>
+    </div>
+  );
+};
 
 export default function LoginPage() {
   const [activeView, setActiveView] = useState<"login" | "register">("login");
+  const router = useRouter();
 
   const toggleView = () =>
     setActiveView((prev) => (prev === "login" ? "register" : "login"));
+
+  const handleLoginSuccess = (user: AuthUserProfile) => {
+    setStoredUser(user);
+    // Smooth redirect back to home page where profile logo is shown
+    router.push("/");
+  };
 
   return (
     <div className="auth-page-container">
@@ -122,6 +205,30 @@ export default function LoginPage() {
         </div>
       </div>
 
+      {/* Quick One-Click Demo Logins */}
+      <div className="w-full max-w-[720px] mb-4 p-3 rounded-2xl bg-sky-50/80 border border-sky-200/80 flex items-center justify-between flex-wrap gap-2 text-xs">
+        <span className="font-bold text-sky-900 flex items-center gap-1.5">
+          <Crown className="w-4 h-4 text-amber-500" />
+          <span>Quick 1-Click Demo Login:</span>
+        </span>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => handleLoginSuccess(DEMO_MEMBERS.alex)}
+            className="px-3 py-1.5 rounded-xl bg-white hover:bg-sky-600 hover:text-white text-slate-800 font-extrabold border border-sky-200 shadow-sm transition-all"
+          >
+            Alex Morgan (Gold Member)
+          </button>
+          <button
+            type="button"
+            onClick={() => handleLoginSuccess(DEMO_MEMBERS.admin)}
+            className="px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-blue-700 text-white font-extrabold shadow-sm transition-all"
+          >
+            Priya Sharma (Staff & Admin)
+          </button>
+        </div>
+      </div>
+
       {/* Animated Dual Panel Card */}
       <div className="card">
         <CardBackground activeView={activeView} />
@@ -133,7 +240,7 @@ export default function LoginPage() {
           buttonText="LOGIN"
           onToggle={toggleView}
         />
-        <RegisterForm activeView={activeView} />
+        <RegisterForm activeView={activeView} onLoginSuccess={handleLoginSuccess} />
         <HeroPanel
           type="login"
           activeView={activeView}
@@ -142,7 +249,7 @@ export default function LoginPage() {
           buttonText="SIGN UP"
           onToggle={toggleView}
         />
-        <LoginForm activeView={activeView} />
+        <LoginForm activeView={activeView} onLoginSuccess={handleLoginSuccess} />
       </div>
 
       {/* Demo Links Footer */}
@@ -151,9 +258,10 @@ export default function LoginPage() {
           Exploring demo staff dashboard?{" "}
           <Link
             href="/dashboard"
-            className="font-bold text-sky-600 hover:underline"
+            className="font-bold text-sky-600 hover:underline flex items-center justify-center gap-1"
           >
-            Go to Admin Dashboard &rarr;
+            <ShieldAlert className="w-3.5 h-3.5" />
+            <span>Go to Admin Dashboard &rarr;</span>
           </Link>
         </p>
         <p className="text-[11px] text-slate-400">
