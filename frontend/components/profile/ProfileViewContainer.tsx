@@ -46,7 +46,7 @@ import {
 import { useCurrentUser, setStoredUser, DEMO_MEMBERS, isStaffOrAdmin, isOwner, type AuthUserProfile } from "@/lib/auth";
 import EmployeeProfileView from "@/components/profile/EmployeeProfileView";
 
-type TabType = "overview" | "crm" | "orders" | "bookings" | "payments" | "settings";
+type TabType = "overview" | "calendar" | "crm" | "orders" | "bookings" | "payments" | "settings";
 
 interface ChatMessage {
   id: string;
@@ -87,10 +87,10 @@ export default function ProfileViewContainer({ forcedMode }: ProfileViewContaine
     forcedMode === "employee"
       ? "employee"
       : forcedMode === "member"
-      ? "member"
-      : isEmployeeWithData
-      ? "employee"
-      : "member";
+        ? "member"
+        : isEmployeeWithData
+          ? "employee"
+          : "member";
   const [viewMode, setViewMode] = useState<"employee" | "member">(initialViewMode);
 
   // Forced mode role enforcement:
@@ -543,13 +543,20 @@ export default function ProfileViewContainer({ forcedMode }: ProfileViewContaine
                     <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-white font-[family-name:var(--font-outfit)]">
                       {activeUser.name}
                     </h1>
-                    <span className={`px-3 py-0.5 rounded-full text-[11px] font-black uppercase border shadow-sm bg-gradient-to-r ${getTierColor(activeUser.membershipPlan)}`}>
-                      <Crown className="w-3.5 h-3.5 inline mr-1 -mt-0.5" />
-                      {activeUser.membershipPlan} MEMBER
-                    </span>
+                    {isSuperOwner ? (
+                      <span className="px-3 py-0.5 rounded-full text-[11px] font-black uppercase border border-amber-300 shadow-sm bg-gradient-to-r from-amber-400 to-amber-600 text-amber-950">
+                        <Crown className="w-3.5 h-3.5 inline mr-1 -mt-0.5" />
+                        CLUB OWNER & SOVEREIGN
+                      </span>
+                    ) : (
+                      <span className={`px-3 py-0.5 rounded-full text-[11px] font-black uppercase border shadow-sm bg-gradient-to-r ${getTierColor(activeUser.membershipPlan)}`}>
+                        <Crown className="w-3.5 h-3.5 inline mr-1 -mt-0.5" />
+                        {activeUser.membershipPlan} MEMBER
+                      </span>
+                    )}
                     <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-green-500/20 text-green-400 border border-green-500/30 flex items-center gap-1">
                       <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" />
-                      {activeUser.membershipStatus}
+                      {isSuperOwner ? "PATRON ACCESS" : activeUser.membershipStatus}
                     </span>
                   </div>
 
@@ -570,44 +577,74 @@ export default function ProfileViewContainer({ forcedMode }: ProfileViewContaine
                 </div>
               </div>
 
-              {/* Balances Pill Box */}
-              <div className="flex items-center gap-4 bg-white/10 backdrop-blur-md rounded-2xl p-3.5 sm:p-4 border border-white/15 shrink-0 self-stretch sm:self-auto justify-around sm:justify-start">
-                <div className="text-right">
-                  <div className="text-[10px] uppercase font-bold text-sky-300 tracking-wider">
-                    Wallet Balance
+              {/* Executive Box for Owner vs Wallet Box for Standard Member */}
+              {isSuperOwner ? (
+                <div className="flex items-center gap-5 bg-white/10 backdrop-blur-md rounded-2xl p-4 border border-white/15 shrink-0 self-stretch sm:self-auto justify-around sm:justify-start">
+                  <div className="text-right">
+                    <div className="text-[10px] uppercase font-bold text-sky-300 tracking-wider">
+                      Club Sovereignty
+                    </div>
+                    <div className="text-xl sm:text-2xl font-black text-white font-[family-name:var(--font-outfit)]">
+                      Master Owner
+                    </div>
+                    <span className="text-[10px] font-bold text-emerald-300 block mt-0.5">
+                      Full Root Access
+                    </span>
                   </div>
-                  <div className="text-xl sm:text-2xl font-black text-white font-[family-name:var(--font-outfit)]">
-                    ₹{activeUser.walletBalance.toLocaleString("en-IN")}
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => setShowTopupModal(true)}
-                    className="text-[10px] font-bold text-sky-300 hover:text-white underline mt-0.5 block ml-auto"
-                  >
-                    + Add Funds
-                  </button>
-                </div>
 
-                <div className="w-px h-10 bg-white/20" />
+                  <div className="w-px h-10 bg-white/20" />
 
-                <div className="text-left">
-                  <div className="text-[10px] uppercase font-bold text-lime-300 tracking-wider">
-                    Active Tab Due
+                  <div className="text-left">
+                    <div className="text-[10px] uppercase font-bold text-amber-300 tracking-wider">
+                      Arena Operations
+                    </div>
+                    <div className="text-xl sm:text-2xl font-black text-white font-[family-name:var(--font-outfit)]">
+                      3 Arenas Live
+                    </div>
+                    <span className="text-[10px] font-bold text-sky-300 block mt-0.5">
+                      Supervisors on Duty
+                    </span>
                   </div>
-                  <div className="text-xl sm:text-2xl font-black text-white font-[family-name:var(--font-outfit)]">
-                    ₹{activeUser.clubTabsOutstanding.toLocaleString("en-IN")}
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => setShowPayTabModal(true)}
-                    disabled={activeUser.clubTabsOutstanding === 0}
-                    className={`text-[10px] font-bold underline mt-0.5 block ${activeUser.clubTabsOutstanding > 0 ? "text-lime-300 hover:text-white cursor-pointer" : "text-slate-400 cursor-not-allowed"
-                      }`}
-                  >
-                    {activeUser.clubTabsOutstanding > 0 ? "Pay Now" : "Settled"}
-                  </button>
                 </div>
-              </div>
+              ) : (
+                <div className="flex items-center gap-4 bg-white/10 backdrop-blur-md rounded-2xl p-3.5 sm:p-4 border border-white/15 shrink-0 self-stretch sm:self-auto justify-around sm:justify-start">
+                  <div className="text-right">
+                    <div className="text-[10px] uppercase font-bold text-sky-300 tracking-wider">
+                      Wallet Balance
+                    </div>
+                    <div className="text-xl sm:text-2xl font-black text-white font-[family-name:var(--font-outfit)]">
+                      ₹{activeUser.walletBalance.toLocaleString("en-IN")}
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setShowTopupModal(true)}
+                      className="text-[10px] font-bold text-sky-300 hover:text-white underline mt-0.5 block ml-auto"
+                    >
+                      + Add Funds
+                    </button>
+                  </div>
+
+                  <div className="w-px h-10 bg-white/20" />
+
+                  <div className="text-left">
+                    <div className="text-[10px] uppercase font-bold text-lime-300 tracking-wider">
+                      Active Tab Due
+                    </div>
+                    <div className="text-xl sm:text-2xl font-black text-white font-[family-name:var(--font-outfit)]">
+                      ₹{activeUser.clubTabsOutstanding.toLocaleString("en-IN")}
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setShowPayTabModal(true)}
+                      disabled={activeUser.clubTabsOutstanding === 0}
+                      className={`text-[10px] font-bold underline mt-0.5 block ${activeUser.clubTabsOutstanding > 0 ? "text-lime-300 hover:text-white cursor-pointer" : "text-slate-400 cursor-not-allowed"
+                        }`}
+                    >
+                      {activeUser.clubTabsOutstanding > 0 ? "Pay Now" : "Settled"}
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
 
           </div>
@@ -638,6 +675,7 @@ export default function ProfileViewContainer({ forcedMode }: ProfileViewContaine
               <nav className="p-3 space-y-1">
                 {[
                   { id: "overview", label: "Overview", icon: User },
+                  { id: "calendar", label: "Club Calendar", icon: CalendarIcon },
                   { id: "crm", label: `CRM & Enquiries`, icon: MessageSquare, badge: inquiries.length },
                   { id: "orders", label: `Orders`, icon: ShoppingBag, badge: activeUser.orders.length },
                   { id: "bookings", label: `Bookings`, icon: CalendarCheck, badge: activeUser.bookings.length },
@@ -651,8 +689,8 @@ export default function ProfileViewContainer({ forcedMode }: ProfileViewContaine
                       key={tab.id}
                       onClick={() => setActiveTab(tab.id as TabType)}
                       className={`w-full flex items-center justify-between gap-2.5 px-3.5 py-2.5 rounded-2xl text-xs font-bold transition-all text-left ${isActive
-                          ? "bg-slate-900 text-white shadow-md"
-                          : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
+                        ? "bg-slate-900 text-white shadow-md"
+                        : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
                         }`}
                     >
                       <span className="flex items-center gap-2.5">
@@ -722,22 +760,6 @@ export default function ProfileViewContainer({ forcedMode }: ProfileViewContaine
                 )}
 
                 <Link
-                  href="/#courts"
-                  className="w-full flex items-center gap-2 px-3.5 py-2.5 rounded-2xl bg-sky-600 hover:bg-sky-700 text-white font-extrabold text-xs shadow-md shadow-sky-600/20 transition-all"
-                >
-                  <CalendarIcon className="w-4 h-4" />
-                  <span>Book Court Slot</span>
-                </Link>
-
-                <Link
-                  href="/#shop"
-                  className="w-full flex items-center gap-2 px-3.5 py-2.5 rounded-2xl bg-white hover:bg-slate-100 text-slate-800 font-extrabold text-xs border border-slate-200 transition-all"
-                >
-                  <ShoppingBag className="w-4 h-4 text-slate-500" />
-                  <span>Pro Shop & Café</span>
-                </Link>
-
-                <Link
                   href="/"
                   className="w-full flex items-center gap-2 px-3.5 py-2 rounded-2xl text-slate-500 hover:text-slate-900 hover:bg-slate-100 text-xs font-bold transition-all text-center justify-center mt-1"
                 >
@@ -752,6 +774,7 @@ export default function ProfileViewContainer({ forcedMode }: ProfileViewContaine
           <div className="lg:hidden w-full flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none mb-2">
             {[
               { id: "overview", label: "Overview", icon: User },
+              { id: "calendar", label: "Calendar", icon: CalendarIcon },
               { id: "crm", label: `CRM (${inquiries.length})`, icon: MessageSquare },
               { id: "orders", label: `Orders (${activeUser.orders.length})`, icon: ShoppingBag },
               { id: "bookings", label: `Bookings (${activeUser.bookings.length})`, icon: CalendarCheck },
@@ -809,259 +832,325 @@ export default function ProfileViewContainer({ forcedMode }: ProfileViewContaine
                   </div>
 
                   <div className="flex items-center gap-2.5 shrink-0 self-end md:self-auto relative z-10">
-                    <a
-                      href="#overview-calendar"
+                    <button
+                      onClick={() => setActiveTab("calendar")}
                       className="px-4 py-2 rounded-xl bg-amber-400 hover:bg-amber-300 text-amber-950 font-black text-xs shadow-md transition-all whitespace-nowrap"
                     >
-                      View in Calendar &darr;
-                    </a>
+                      Open Calendar &rarr;
+                    </button>
                   </div>
                 </div>
 
-                {/* Top 2 High-Visibility Overview KPI Cards */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                  {/* Minimal Executive KPI Cards (3 Clean Cards) */}
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
 
-                  {/* 1. Membership Validity */}
-                  <div className="p-5 sm:p-6 rounded-2xl bg-sky-50/80 border border-sky-200/90 shadow-sm flex flex-col justify-between">
-                    <div>
-                      <div className="text-xs font-extrabold text-sky-800 uppercase tracking-wider mb-2">
-                        Membership Validity
+                    {/* 1. Executive Sovereignty */}
+                    <div className="p-5 rounded-2xl bg-sky-50/80 border border-sky-200/90 shadow-sm flex flex-col justify-between">
+                      <div>
+                        <div className="text-[11px] font-extrabold text-sky-800 uppercase tracking-wider mb-2">
+                          Executive Sovereignty
+                        </div>
+                        <div className="text-xl font-black text-slate-900 font-[family-name:var(--font-outfit)]">
+                          Master Owner & Patron
+                        </div>
+                        <p className="text-xs text-sky-700 mt-1 font-medium">
+                          Unrestricted arena & facility authority
+                        </p>
                       </div>
-                      <div className="text-xl sm:text-2xl font-black text-slate-900 font-[family-name:var(--font-outfit)]">
-                        Expires {activeUser.membershipExpiry}
+                      <div className="mt-4 pt-3 border-t border-sky-200/60 text-xs font-semibold text-slate-600 flex items-center justify-between">
+                        <span>Tier: <strong>Annual VIP</strong></span>
+                        <span className="text-green-700 font-bold flex items-center gap-1">
+                          <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+                          Active
+                        </span>
                       </div>
-                      <p className="text-xs text-sky-700 mt-1.5 font-medium">
-                        Member since {activeUser.joinDate}
-                      </p>
                     </div>
-                    <div className="mt-4 pt-3 border-t border-sky-200/60 text-xs font-semibold text-slate-600 flex items-center justify-between">
-                      <span>Plan: <strong>Annual Gold VIP</strong></span>
-                      <span className="text-green-700 font-bold">● Active</span>
+
+                    {/* 2. Arena Operations & Occupancy */}
+                    <div className="p-5 rounded-2xl bg-lime-50/80 border border-lime-200/90 shadow-sm flex flex-col justify-between">
+                      <div>
+                        <div className="text-[11px] font-extrabold text-lime-900 uppercase tracking-wider mb-2">
+                          Arena Slot Occupancy
+                        </div>
+                        <div className="text-xl font-black text-slate-900 font-[family-name:var(--font-outfit)]">
+                          78% Capacity Live
+                        </div>
+                        <p className="text-xs text-lime-800 mt-1 font-bold flex items-center gap-1.5">
+                          <Clock className="w-3.5 h-3.5 text-lime-700" />
+                          <span>18 Sessions Scheduled Today</span>
+                        </p>
+                      </div>
+                      <div className="mt-4 pt-3 border-t border-lime-200/60 text-xs font-semibold text-slate-600 flex items-center justify-between">
+                        <span>Courts: <strong>3 Active</strong></span>
+                        <button onClick={() => setActiveTab("calendar")} className="text-lime-800 font-bold hover:underline">
+                          View Schedule &rarr;
+                        </button>
+                      </div>
                     </div>
+
+                    {/* 3. Duty Leadership */}
+                    <div className="p-5 rounded-2xl bg-indigo-50/80 border border-indigo-200/90 shadow-sm flex flex-col justify-between">
+                      <div>
+                        <div className="text-[11px] font-extrabold text-indigo-900 uppercase tracking-wider mb-2">
+                          Supervision on Duty
+                        </div>
+                        <div className="text-xl font-black text-slate-900 font-[family-name:var(--font-outfit)]">
+                          4 Staff on Shift
+                        </div>
+                        <p className="text-xs text-indigo-800 mt-1 font-medium">
+                          Rajesh (Head Coach) & Front Concierge
+                        </p>
+                      </div>
+                      <div className="mt-4 pt-3 border-t border-indigo-200/60 text-xs font-semibold text-slate-600 flex items-center justify-between">
+                        <span>Desk Status: <strong>Open</strong></span>
+                        <span className="text-indigo-700 font-bold">Standard Ops</span>
+                      </div>
+                    </div>
+
                   </div>
 
-                  {/* 2. Next Reserved Session */}
-                  <div className="p-5 sm:p-6 rounded-2xl bg-lime-50/80 border border-lime-200/90 shadow-sm flex flex-col justify-between">
-                    <div>
-                      <div className="text-xs font-extrabold text-lime-900 uppercase tracking-wider mb-2">
-                        Next Reserved Session
-                      </div>
-                      <div className="text-base sm:text-lg font-black text-slate-900 truncate font-[family-name:var(--font-outfit)]">
-                        {activeUser.bookings[0]?.courtName || "No upcoming booking"}
-                      </div>
-                      <p className="text-xs text-lime-800 mt-1.5 font-bold flex items-center gap-1.5">
-                        <Clock className="w-3.5 h-3.5 text-lime-700" />
-                        <span>{activeUser.bookings[0]?.timeSlot || "Reserve a court anytime"}</span>
-                      </p>
-                    </div>
-                    <div className="mt-4 pt-3 border-t border-lime-200/60 text-xs font-semibold text-slate-600 flex items-center justify-between">
-                      <span>Surface: <strong>Natural Grass</strong></span>
-                      <a href="#overview-calendar" className="text-lime-800 font-bold hover:underline">
-                        View Calendar ↓
-                      </a>
-                    </div>
-                  </div>
-
-                  {/* ---- REMOVE CONCIERGE CARD 3, keep only 2 KPI cards ---- */}
-
-                </div>
-
-                {/* ============================================================ */}
-                {/* OVERVIEW BOTTOM: INLINE CALENDAR + SCHEDULE + CHAT            */}
-                {/* ============================================================ */}
-                <div id="overview-calendar" className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-
-                  {/* LEFT: COMPACT MONTHLY CALENDAR GRID (5 cols) */}
-                  <div className="lg:col-span-5 p-5 rounded-3xl bg-slate-50/80 border border-slate-200 space-y-4">
-                    {/* Month Header */}
+                  {/* Minimal Upcoming Schedule Overview */}
+                  <div className="p-6 rounded-3xl bg-slate-50/80 border border-slate-200/90 shadow-sm space-y-4">
                     <div className="flex items-center justify-between">
-                      <h3 className="text-sm font-black text-slate-900 font-[family-name:var(--font-outfit)] flex items-center gap-1.5">
-                        <CalendarIcon className="w-4 h-4 text-sky-600" />
-                        {currentMonth}
-                      </h3>
-                      <div className="flex items-center gap-1 bg-white p-0.5 rounded-lg border border-slate-200 shadow-sm">
-                        <button className="p-1 rounded-md hover:bg-slate-100 text-slate-600 transition-colors">
-                          <ChevronLeft className="w-3.5 h-3.5" />
-                        </button>
-                        <button className="p-1 rounded-md hover:bg-slate-100 text-slate-600 transition-colors">
-                          <ChevronRight className="w-3.5 h-3.5" />
-                        </button>
+                      <div>
+                        <h3 className="text-base font-black text-slate-900 font-[family-name:var(--font-outfit)] flex items-center gap-2">
+                          <CalendarCheck className="w-4 h-4 text-sky-600" />
+                          Upcoming Club Fixtures & Key Events
+                        </h3>
+                        <p className="text-xs text-slate-500 mt-0.5">High-priority tournaments, coaching clinics, and court allocations</p>
                       </div>
+                      <button
+                        onClick={() => setActiveTab("calendar")}
+                        className="px-3.5 py-1.5 rounded-xl bg-white hover:bg-slate-100 text-sky-600 font-bold text-xs border border-slate-200 shadow-sm transition-all flex items-center gap-1.5"
+                      >
+                        <CalendarIcon className="w-3.5 h-3.5" />
+                        View Full Calendar in Sidebar &rarr;
+                      </button>
                     </div>
 
-                    {/* Day of Week Headers */}
-                    <div className="grid grid-cols-7 gap-1 text-center text-[10px] font-black uppercase text-slate-400 tracking-wider pb-1.5 border-b border-slate-200/80">
-                      {["S", "M", "T", "W", "T", "F", "S"].map((d, i) => (
-                        <div key={i}>{d}</div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                      {[
+                        { date: "Oct 04", time: "07:00 AM", title: "Padel Match #2", location: "Padel Glass Arena", tag: "Booking", color: "bg-green-100 text-green-800 border-green-200" },
+                        { date: "Oct 07", time: "06:30 PM", title: "Clay Court Masterclass", location: "Red Clay Court 2", tag: "Coaching", color: "bg-indigo-100 text-indigo-800 border-indigo-200" },
+                        { date: "Oct 11", time: "09:00 AM", title: "Gujarat Open Championship", location: "Centre Grass Court", tag: "Tournament", color: "bg-amber-100 text-amber-900 border-amber-200" },
+                        { date: "Oct 18", time: "04:00 PM", title: "VIP Racket Demo & Lounge", location: "Clubhouse Lounge", tag: "Special Event", color: "bg-purple-100 text-purple-800 border-purple-200" },
+                      ].map((item, idx) => (
+                        <div
+                          key={idx}
+                          onClick={() => {
+                            setSelectedDate(parseInt(item.date.split(" ")[1]));
+                            setActiveTab("calendar");
+                          }}
+                          className="p-3.5 rounded-2xl bg-white border border-slate-200 hover:border-sky-300 hover:shadow-md transition-all cursor-pointer flex flex-col justify-between gap-3 group"
+                        >
+                          <div className="flex items-center justify-between">
+                            <span className="font-mono text-xs font-black text-slate-900 bg-slate-100 px-2 py-0.5 rounded-lg border border-slate-200">
+                              {item.date}
+                            </span>
+                            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${item.color}`}>
+                              {item.tag}
+                            </span>
+                          </div>
+                          <div>
+                            <h4 className="text-xs font-black text-slate-800 group-hover:text-sky-600 transition-colors line-clamp-1">
+                              {item.title}
+                            </h4>
+                            <p className="text-[11px] text-slate-500 flex items-center gap-1 mt-1">
+                              <Clock className="w-3 h-3 text-slate-400" />
+                              {item.time}
+                            </p>
+                            <p className="text-[10px] text-slate-400 flex items-center gap-1 mt-0.5">
+                              <MapPin className="w-2.5 h-2.5 text-sky-500" />
+                              {item.location}
+                            </p>
+                          </div>
+                        </div>
                       ))}
                     </div>
-
-                    {/* Month Days Grid */}
-                    <div className="grid grid-cols-7 gap-1 text-center">
-                      {calendarCells.map((day, idx) => {
-                        if (day === null) return <div key={`e-${idx}`} className="h-8 rounded-lg" />;
-                        const hasEvent = importantClubDates[day];
-                        const isSelected = selectedDate === day;
-                        return (
-                          <button
-                            key={day}
-                            onClick={() => setSelectedDate(day)}
-                            className={`h-8 rounded-xl text-[11px] font-bold transition-all relative flex flex-col items-center justify-center ${isSelected
-                              ? "bg-slate-900 text-white shadow-md scale-105"
-                              : hasEvent
-                                ? "bg-white hover:bg-sky-50 text-slate-900 border border-sky-200 font-extrabold shadow-sm"
-                                : "hover:bg-slate-200/60 text-slate-600"
-                              }`}
-                          >
-                            <span>{day}</span>
-                            {hasEvent && (
-                              <span className={`w-1 h-1 rounded-full mt-0.5 ${isSelected ? "bg-lime-400" :
-                                hasEvent.type === "tournament" ? "bg-amber-500" :
-                                  hasEvent.type === "training" ? "bg-indigo-500" : "bg-green-500"
-                                }`} />
-                            )}
-                          </button>
-                        );
-                      })}
-                    </div>
-
-                    {/* Legend */}
-                    <div className="pt-2 border-t border-slate-200/80 flex items-center gap-3 flex-wrap text-[10px] text-slate-500">
-                      <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-green-500" />Booking</span>
-                      <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-amber-500" />Tournament</span>
-                      <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-indigo-500" />Coaching</span>
-                    </div>
-                  </div>
-
-                  {/* CENTRE: UPCOMING EVENTS + SELECTED DATE DETAIL (4 cols) */}
-                  <div className="lg:col-span-4 space-y-4">
-
-                    {/* Selected Date Detail */}
-                    <div className="p-4 rounded-2xl bg-white border border-slate-200 shadow-sm space-y-3">
-                      <div className="flex items-center justify-between">
-                        <h4 className="text-xs font-black text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
-                          <CalendarCheck className="w-3.5 h-3.5 text-sky-600" />
-                          Oct {selectedDate}, 2026
-                        </h4>
-                        <Link href="/#courts" className="p-1 rounded-lg bg-sky-50 text-sky-600 hover:bg-sky-100 transition-colors" title="Book slot">
-                          <Plus className="w-3.5 h-3.5" />
-                        </Link>
-                      </div>
-                      {importantClubDates[selectedDate] ? (
-                        <div className="p-3 rounded-xl bg-sky-50 border border-sky-100 space-y-1.5">
-                          <div className="flex items-center justify-between">
-                            <span className={`px-2 py-0.5 rounded-full text-[10px] font-black uppercase ${importantClubDates[selectedDate].type === "tournament" ? "bg-amber-400 text-amber-950" :
-                              importantClubDates[selectedDate].type === "training" ? "bg-indigo-100 text-indigo-900" :
-                                "bg-green-100 text-green-900"
-                              }`}>{importantClubDates[selectedDate].type}</span>
-                            <span className="font-mono text-[11px] font-bold text-slate-700">{importantClubDates[selectedDate].time}</span>
-                          </div>
-                          <div className="text-xs font-black text-slate-900">{importantClubDates[selectedDate].title}</div>
-                          <div className="text-[11px] text-slate-500 flex items-center gap-1">
-                            <MapPin className="w-3 h-3 text-sky-500" />
-                            {importantClubDates[selectedDate].location}
-                          </div>
-                        </div>
-                      ) : (
-                        <div className="text-center py-4 space-y-2">
-                          <div className="text-xs font-bold text-slate-500">No session on Oct {selectedDate}</div>
-                          <Link href="/#courts" className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-sky-600 hover:bg-sky-700 text-white font-bold text-[11px] shadow-sm transition-all">
-                            <Plus className="w-3 h-3" /> Book Court
-                          </Link>
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Upcoming Club Milestones */}
-                    <div className="p-4 rounded-2xl bg-white border border-slate-200 shadow-sm space-y-2.5">
-                      <div className="flex items-center justify-between mb-1">
-                        <h4 className="text-xs font-black uppercase tracking-wider text-slate-500">Upcoming Events</h4>
-                        <span className="text-[10px] font-bold text-sky-600">Sync iCal</span>
-                      </div>
-                      <div className="space-y-2 text-xs">
-                        {[
-                          { date: "Oct 04", title: "Padel Match #2", time: "07:00 AM", tag: "Booking", color: "bg-green-100 text-green-800" },
-                          { date: "Oct 07", title: "Clay Court Masterclass", time: "06:30 PM", tag: "Coaching", color: "bg-indigo-100 text-indigo-800" },
-                          { date: "Oct 11", title: "Gujarat Open Championship", time: "09:00 AM", tag: "Tournament", color: "bg-amber-100 text-amber-800" },
-                          { date: "Oct 18", title: "VIP Racket Demo", time: "04:00 PM", tag: "Pro Shop", color: "bg-slate-100 text-slate-700" },
-                        ].map((item, i) => (
-                          <div key={i}
-                            className="p-2.5 rounded-xl bg-slate-50 hover:bg-sky-50/50 border border-slate-100 transition-all flex items-center justify-between cursor-pointer"
-                            onClick={() => setSelectedDate(parseInt(item.date.split(" ")[1]))}
-                          >
-                            <div className="flex items-center gap-2.5">
-                              <span className="font-mono font-black text-[11px] text-slate-900 bg-white px-1.5 py-0.5 rounded border border-slate-200">{item.date}</span>
-                              <div>
-                                <div className="font-bold text-slate-800 text-[12px]">{item.title}</div>
-                                <div className="text-[10px] text-slate-400">{item.time}</div>
-                              </div>
-                            </div>
-                            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${item.color}`}>{item.tag}</span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-
-                  </div>
-
-                  {/* RIGHT: LIVE CONCIERGE & DESK CHAT (3 cols) */}
-                  <div className="lg:col-span-3 p-5 rounded-3xl bg-white border border-slate-200 shadow-sm flex flex-col justify-between h-[480px]">
-                    <div>
-                      {/* Chat Header */}
-                      <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-                        <div className="flex items-center gap-2">
-                          <div className="w-7 h-7 rounded-full bg-gradient-to-tr from-sky-500 to-indigo-600 text-white font-bold text-[10px] flex items-center justify-center shadow-sm">VIP</div>
-                          <div>
-                            <div className="text-xs font-black text-slate-900">Desk & Coach Chat</div>
-                            <div className="text-[10px] text-green-600 font-bold flex items-center gap-1">
-                              <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
-                              Online
-                            </div>
-                          </div>
-                        </div>
-                        <span className="text-[10px] font-bold text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full">Live</span>
-                      </div>
-
-                      {/* Messages Scroll Area */}
-                      <div className="space-y-3 py-3 overflow-y-auto max-h-[330px] scrollbar-none pr-1">
-                        {chatMessages.map((msg) => (
-                          <div key={msg.id} className={`flex items-start gap-1.5 ${msg.sender === "user" ? "flex-row-reverse text-right" : "flex-row text-left"
-                            }`}>
-                            <div className={`w-5 h-5 rounded-full text-[9px] font-bold flex items-center justify-center shrink-0 ${msg.sender === "user" ? "bg-slate-900 text-white" :
-                              msg.sender === "coach" ? "bg-amber-500 text-slate-950" : "bg-sky-600 text-white"
-                              }`}>{msg.avatar}</div>
-                            <div className="max-w-[85%]">
-                              <div className="flex items-center gap-1 mb-0.5">
-                                <span className="text-[10px] font-extrabold text-slate-700">{msg.name}</span>
-                                <span className="text-[9px] text-slate-400">{msg.time}</span>
-                              </div>
-                              <div className={`p-2 rounded-xl text-[11px] leading-relaxed ${msg.sender === "user" ? "bg-slate-900 text-white rounded-tr-none" : "bg-slate-100 text-slate-800 rounded-tl-none"
-                                }`}>{msg.text}</div>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-
-                    {/* Message Input */}
-                    <form onSubmit={handleSendMessage} className="pt-2 border-t border-slate-100 flex items-center gap-1.5">
-                      <input
-                        type="text"
-                        placeholder="Message Concierge..."
-                        value={chatInput}
-                        onChange={(e) => setChatInput(e.target.value)}
-                        className="flex-1 px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-[11px] text-slate-900 focus:outline-none focus:border-sky-500"
-                      />
-                      <button type="submit" className="p-1.5 rounded-xl bg-sky-600 hover:bg-sky-700 text-white shadow-sm transition-all" title="Send">
-                        <Send className="w-3 h-3" />
-                      </button>
-                    </form>
                   </div>
 
                 </div>
-
-              </div>
             )}
+
+                {/* ============================================================ */}
+                {/* TAB: CLUB CALENDAR (Full-Width Dedicated Tab from Sidebar)    */}
+                {/* ============================================================ */}
+                {activeTab === "calendar" && (
+                  <div className="p-6 sm:p-8 space-y-6 sm:space-y-8 animate-in fade-in duration-200">
+                    {/* Header Banner */}
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-200">
+                      <div>
+                        <h2 className="text-xl font-black text-slate-900 font-[family-name:var(--font-outfit)] flex items-center gap-2">
+                          <CalendarIcon className="w-5 h-5 text-sky-600" />
+                          Club Calendar & Arena Fixtures
+                        </h2>
+                        <p className="text-xs text-slate-500 mt-1">
+                          Comprehensive monthly schedule of court bookings, championship fixtures, and masterclasses.
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-bold px-3 py-1.5 rounded-xl bg-slate-100 text-slate-700 border border-slate-200 flex items-center gap-1.5">
+                          <span className="w-2 h-2 rounded-full bg-emerald-500" />
+                          Live Feed Synced
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Calendar Layout */}
+                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+                      {/* Left: Monthly Calendar (7 cols) */}
+                      <div className="lg:col-span-7 p-6 rounded-3xl bg-slate-50/80 border border-slate-200 space-y-4">
+                        {/* Month Header */}
+                        <div className="flex items-center justify-between">
+                          <h3 className="text-base font-black text-slate-900 font-[family-name:var(--font-outfit)] flex items-center gap-2">
+                            <CalendarIcon className="w-4 h-4 text-sky-600" />
+                            {currentMonth}
+                          </h3>
+                          <div className="flex items-center gap-1 bg-white p-1 rounded-xl border border-slate-200 shadow-sm">
+                            <button className="p-1 rounded-lg hover:bg-slate-100 text-slate-600 transition-colors">
+                              <ChevronLeft className="w-4 h-4" />
+                            </button>
+                            <button className="p-1 rounded-lg hover:bg-slate-100 text-slate-600 transition-colors">
+                              <ChevronRight className="w-4 h-4" />
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* Day of Week Headers */}
+                        <div className="grid grid-cols-7 gap-2 text-center text-xs font-black uppercase text-slate-400 tracking-wider pb-2 border-b border-slate-200/80">
+                          {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((d, i) => (
+                            <div key={i}>{d}</div>
+                          ))}
+                        </div>
+
+                        {/* Month Days Grid */}
+                        <div className="grid grid-cols-7 gap-2 text-center">
+                          {calendarCells.map((day, idx) => {
+                            if (day === null) return <div key={`e-${idx}`} className="h-12 rounded-xl" />;
+                            const hasEvent = importantClubDates[day];
+                            const isSelected = selectedDate === day;
+                            return (
+                              <button
+                                key={day}
+                                onClick={() => setSelectedDate(day)}
+                                className={`h-12 rounded-2xl text-xs font-bold transition-all relative flex flex-col items-center justify-center ${isSelected
+                                  ? "bg-slate-900 text-white shadow-lg scale-105"
+                                  : hasEvent
+                                    ? "bg-white hover:bg-sky-50 text-slate-900 border border-sky-200 font-extrabold shadow-sm"
+                                    : "hover:bg-slate-200/60 text-slate-600 bg-white/60"
+                                  }`}
+                              >
+                                <span>{day}</span>
+                                {hasEvent && (
+                                  <span className={`w-1.5 h-1.5 rounded-full mt-1 ${isSelected ? "bg-lime-400" :
+                                    hasEvent.type === "tournament" ? "bg-amber-500" :
+                                      hasEvent.type === "training" ? "bg-indigo-500" : "bg-green-500"
+                                    }`} />
+                                )}
+                              </button>
+                            );
+                          })}
+                        </div>
+
+                        {/* Legend */}
+                        <div className="pt-3 border-t border-slate-200/80 flex items-center gap-4 flex-wrap text-xs text-slate-600">
+                          <span className="flex items-center gap-1.5">
+                            <span className="w-2.5 h-2.5 rounded-full bg-green-500" />
+                            Member Booking
+                          </span>
+                          <span className="flex items-center gap-1.5">
+                            <span className="w-2.5 h-2.5 rounded-full bg-amber-500" />
+                            Championship Tournament
+                          </span>
+                          <span className="flex items-center gap-1.5">
+                            <span className="w-2.5 h-2.5 rounded-full bg-indigo-500" />
+                            Coaching & Clinic
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Right: Selected Date & Upcoming Milestones (5 cols) */}
+                      <div className="lg:col-span-5 space-y-4">
+
+                        {/* Selected Date Detail */}
+                        <div className="p-5 rounded-3xl bg-white border border-slate-200 shadow-sm space-y-3">
+                          <div className="flex items-center justify-between">
+                            <h4 className="text-sm font-black text-slate-900 font-[family-name:var(--font-outfit)] flex items-center gap-2">
+                              <CalendarCheck className="w-4 h-4 text-sky-600" />
+                              October {selectedDate}, 2026
+                            </h4>
+                            <span className="text-[11px] font-bold text-slate-400 bg-slate-100 px-2 py-0.5 rounded-full">
+                              Daily Schedule
+                            </span>
+                          </div>
+
+                          {importantClubDates[selectedDate] ? (
+                            <div className="p-4 rounded-2xl bg-sky-50 border border-sky-100 space-y-2">
+                              <div className="flex items-center justify-between">
+                                <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase ${importantClubDates[selectedDate].type === "tournament" ? "bg-amber-400 text-amber-950" :
+                                  importantClubDates[selectedDate].type === "training" ? "bg-indigo-100 text-indigo-900" :
+                                    "bg-green-100 text-green-900"
+                                  }`}>
+                                  {importantClubDates[selectedDate].type}
+                                </span>
+                                <span className="font-mono text-xs font-bold text-slate-700">
+                                  {importantClubDates[selectedDate].time}
+                                </span>
+                              </div>
+                              <div className="text-sm font-black text-slate-900">
+                                {importantClubDates[selectedDate].title}
+                              </div>
+                              <div className="text-xs text-slate-500 flex items-center gap-1">
+                                <MapPin className="w-3.5 h-3.5 text-sky-500" />
+                                {importantClubDates[selectedDate].location}
+                              </div>
+                            </div>
+                          ) : (
+                            <div className="text-center py-6 text-xs text-slate-400">
+                              No major events scheduled for October {selectedDate}. Regular open court practice sessions available.
+                            </div>
+                          )}
+                        </div>
+
+                        {/* All Key Fixtures */}
+                        <div className="p-5 rounded-3xl bg-white border border-slate-200 shadow-sm space-y-3">
+                          <h4 className="text-xs font-black uppercase tracking-wider text-slate-500">
+                            October Milestones & Events
+                          </h4>
+                          <div className="space-y-2 text-xs">
+                            {[
+                              { date: "Oct 04", title: "Padel Match #2", time: "07:00 AM", tag: "Booking", color: "bg-green-100 text-green-800" },
+                              { date: "Oct 07", title: "Clay Court Masterclass", time: "06:30 PM", tag: "Coaching", color: "bg-indigo-100 text-indigo-800" },
+                              { date: "Oct 11", title: "Gujarat Open Championship", time: "09:00 AM", tag: "Tournament", color: "bg-amber-100 text-amber-800" },
+                              { date: "Oct 18", title: "VIP Racket Demo", time: "04:00 PM", tag: "Pro Shop", color: "bg-slate-100 text-slate-700" },
+                            ].map((item, i) => (
+                              <div
+                                key={i}
+                                className="p-3 rounded-2xl bg-slate-50 hover:bg-sky-50 border border-slate-100 transition-all flex items-center justify-between cursor-pointer"
+                                onClick={() => setSelectedDate(parseInt(item.date.split(" ")[1]))}
+                              >
+                                <div className="flex items-center gap-3">
+                                  <span className="font-mono font-black text-xs text-slate-900 bg-white px-2 py-1 rounded-lg border border-slate-200 shadow-2xs">
+                                    {item.date}
+                                  </span>
+                                  <div>
+                                    <div className="font-bold text-slate-800 text-xs">{item.title}</div>
+                                    <div className="text-[11px] text-slate-400">{item.time}</div>
+                                  </div>
+                                </div>
+                                <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${item.color}`}>
+                                  {item.tag}
+                                </span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+
+                      </div>
+                    </div>
+                  </div>
+              )}
 
 
 
@@ -1328,8 +1417,8 @@ export default function ProfileViewContainer({ forcedMode }: ProfileViewContaine
                             {booking.bookingCode}
                           </span>
                           <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-extrabold ${booking.status === "CONFIRMED"
-                              ? "bg-green-100 text-green-800 border border-green-300"
-                              : "bg-slate-100 text-slate-700"
+                            ? "bg-green-100 text-green-800 border border-green-300"
+                            : "bg-slate-100 text-slate-700"
                             }`}>
                             {booking.status}
                           </span>
