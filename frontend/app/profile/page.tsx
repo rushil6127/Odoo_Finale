@@ -208,8 +208,8 @@ export default function ProfilePage() {
 
     const newBalance = activeUser.walletBalance + Number(topupAmount);
     const newPayment = {
-      id: `PAY-${Math.floor(550 + Math.random() * 450)}`,
-      transactionId: `TXN_CC_${Math.floor(10000000 + Math.random() * 90000000)}`,
+      id: `PAY-${Date.now()}-${Math.floor(100 + Math.random() * 900)}`,
+      transactionId: `TXN_CC_${Date.now()}`,
       description: `Wallet Auto-Topup ₹${Number(topupAmount).toLocaleString("en-IN")} via UPI`,
       amount: Number(topupAmount),
       date: "Today, Just now",
@@ -237,8 +237,8 @@ export default function ProfilePage() {
 
     const dueAmount = activeUser.clubTabsOutstanding;
     const newPayment = {
-      id: `PAY-${Math.floor(550 + Math.random() * 450)}`,
-      transactionId: `TXN_CC_${Math.floor(10000000 + Math.random() * 90000000)}`,
+      id: `PAY-${Date.now()}-${Math.floor(100 + Math.random() * 900)}`,
+      transactionId: `TXN_CC_${Date.now()}`,
       description: `Champions Lounge Café & Pro Shop Active Tab Settlement`,
       amount: dueAmount,
       date: "Today, Just now",
@@ -1027,9 +1027,9 @@ export default function ProfilePage() {
                   Active & Past Concierge Inquiries
                 </h4>
 
-                {inquiries.map((inq) => (
+                {inquiries.map((inq, idx) => (
                   <div 
-                    key={inq.id}
+                    key={`${inq.id || "inq"}-${idx}`}
                     className="p-5 rounded-2xl bg-white border border-slate-200/90 shadow-sm hover:border-sky-300 transition-all space-y-3"
                   >
                     <div className="flex items-start justify-between gap-3">
@@ -1111,9 +1111,9 @@ export default function ProfilePage() {
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {filteredOrders.map((order) => (
+                {filteredOrders.map((order, idx) => (
                   <div
-                    key={order.id}
+                    key={`${order.id || "order"}-${idx}`}
                     className="p-5 rounded-2xl bg-white border border-slate-200 shadow-sm space-y-3 flex flex-col justify-between"
                   >
                     <div>
@@ -1204,9 +1204,9 @@ export default function ProfilePage() {
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {filteredBookings.map((booking) => (
+                {filteredBookings.map((booking, idx) => (
                   <div
-                    key={booking.id}
+                    key={`${booking.id || "booking"}-${idx}`}
                     className="p-5 rounded-2xl bg-white border border-slate-200 shadow-sm flex flex-col justify-between space-y-4"
                   >
                     <div className="space-y-2">
@@ -1276,9 +1276,9 @@ export default function ProfilePage() {
               </div>
 
               <div className="space-y-3">
-                {activeUser.payments.map((pay) => (
+                {activeUser.payments.map((pay, idx) => (
                   <div
-                    key={pay.id}
+                    key={`${pay.id || "PAY"}-${pay.transactionId || idx}-${idx}`}
                     className="p-5 rounded-2xl bg-white border border-slate-200/90 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4"
                   >
                     <div className="space-y-1">
