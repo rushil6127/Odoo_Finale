@@ -25,10 +25,13 @@ import {
   RefreshCw,
   Eye,
   Award,
-  DollarSign
+  DollarSign,
+  Download,
+  FileSpreadsheet
 } from "lucide-react";
 import { apiClient } from "@/lib/api/client";
 import { getStoredUser, AuthUser } from "@/lib/auth";
+import { triggerExcelDownload } from "@/lib/exportUtils";
 
 interface MemberRecord {
   id: number;
@@ -192,6 +195,19 @@ export default function MembersPage() {
     fetchMembers();
   }, []);
 
+  const [exporting, setExporting] = useState(false);
+
+  const handleExport = async () => {
+    try {
+      setExporting(true);
+      await triggerExcelDownload("members", "exl");
+    } catch (err: any) {
+      alert(err?.message || "Failed to export members directory");
+    } finally {
+      setExporting(false);
+    }
+  };
+
   const filteredMembers = useMemo(() => {
     return members.filter((m) => {
       const matchesQuery =
@@ -226,7 +242,17 @@ export default function MembersPage() {
             </p>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-3">
+            <button
+              type="button"
+              disabled={exporting}
+              onClick={handleExport}
+              className="inline-flex items-center gap-2 px-3.5 py-2.5 rounded-xl bg-white hover:bg-slate-50 text-slate-700 hover:text-slate-900 border border-slate-200 text-sm font-bold shadow-2xs transition-all active:scale-95 disabled:opacity-50"
+              title="Export all members data to .exl Excel spreadsheet"
+            >
+              <FileSpreadsheet className="w-4 h-4 text-emerald-600" />
+              <span>{exporting ? "Exporting..." : "Export .exl"}</span>
+            </button>
             <button
               type="button"
               onClick={() => setShowAddModal(true)}

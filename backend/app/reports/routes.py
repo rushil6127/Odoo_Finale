@@ -6,14 +6,16 @@ Responses conform to standard structured JSON responses that Next.js
 frontend dashboards can directly consume and render.
 """
 
-from datetime import date
+from datetime import date, datetime
 from typing import Optional, Tuple
-from flask import Blueprint, request
-from flask_jwt_extended import current_user
+from flask import Blueprint, request, send_file
+from flask_jwt_extended import current_user, verify_jwt_in_request, decode_token
 
+from backend.app.extensions import db
+from backend.app.auth.models import User
 from backend.app.common.responses import success_response
 from backend.app.common.permissions import roles_required, RoleEnum
-from backend.app.common.errors import ValidationException
+from backend.app.common.errors import ValidationException, UnauthorizedException, ForbiddenException
 from backend.app.payments.models import PaymentItemType, PaymentMethod
 from backend.app.reports.services import (
     get_dashboard_overview,
@@ -26,8 +28,41 @@ from backend.app.reports.services import (
     get_period_boundaries,
 )
 from backend.app.tasks.jobs import export_data_to_excel_task
+from backend.app.reports.exports import generate_excel_workbook
 
 reports_bp = Blueprint("reports", __name__, url_prefix="/api/v1/reports")
+
+
+def _authenticate_export_user(allowed_roles=(RoleEnum.OWNER, RoleEnum.ADMIN, RoleEnum.FRONT_DESK)):
+    """Authenticate caller via Bearer header or query param 'token', enforcing allowed roles."""
+    token = request.args.get("token")
+    user = None
+    if token:
+        try:
+            decoded = decode_token(token)
+            user_id = int(decoded.get("sub"))
+            user = db.session.get(User, user_id)
+        except Exception:
+            raise UnauthorizedException("Invalid or expired download token")
+    else:
+        try:
+            verify_jwt_in_request()
+            user = current_user
+        except Exception:
+            raise UnauthorizedException("Authentication token required")
+
+    if not user:
+        raise UnauthorizedException("User account not found")
+    if not user.is_active:
+        raise ForbiddenException("Account is disabled")
+
+    if allowed_roles:
+        role_vals = [r.value if hasattr(r, "value") else str(r) for r in allowed_roles]
+        user_role = user.role.value if hasattr(user.role, "value") else str(user.role)
+        if user_role not in role_vals:
+            raise ForbiddenException("Insufficient permissions to export this data")
+
+    return user
 
 
 def _parse_date_params() -> Tuple[Optional[date], Optional[date]]:
@@ -284,4 +319,45 @@ def export_report_excel():
         },
         message=f"{export_type} Excel export task queued successfully",
         status_code=202,
+    )
+
+
+@reports_bp.route("/export/excel", methods=["GET"])
+@reports_bp.route("/export/download", methods=["GET"])
+def export_excel_download():
+    """
+    Direct synchronous Excel export endpoint.
+    Supports individual sections or all combined into a master workbook:
+      - section: all (default) | members | employees | revenue | courts | shop | bar | memberships
+      - format: exl (default) | xlsx
+      - start_date, end_date: YYYY-MM-DD (optional filter)
+    Returns: .exl or .xlsx spreadsheet file stream directly.
+    """
+    _authenticate_export_user(allowed_roles=(RoleEnum.OWNER, RoleEnum.ADMIN, RoleEnum.FRONT_DESK))
+
+    section = request.args.get("section", "all").lower().strip()
+    valid_sections = (
+        "all", "members", "member", "employees", "employee", "staff",
+        "revenue", "all_revenue", "courts", "court", "bookings",
+        "shop", "merchandise", "bar", "pos", "cafe", "memberships", "membership"
+    )
+    if section not in valid_sections:
+        raise ValidationException(
+            f"Invalid export section '{section}'. Supported sections: all, members, employees, revenue, courts, shop, bar, memberships.",
+            code="INVALID_SECTION",
+        )
+
+    start_d, end_d = _parse_date_params()
+    ext = "xlsx" if request.args.get("format", "").lower() == "xlsx" else "exl"
+
+    buffer = generate_excel_workbook(section=section, start_d=start_d, end_d=end_d)
+    timestamp = datetime.utcnow().strftime("%Y%m%d_%H%M%S")
+    clean_sec = "all" if section in ("all", "all_revenue") else section
+    filename = f"champions_club_{clean_sec}_{timestamp}.{ext}"
+
+    return send_file(
+        buffer,
+        mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        as_attachment=True,
+        download_name=filename,
     )
