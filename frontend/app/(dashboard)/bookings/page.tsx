@@ -19,7 +19,11 @@ import {
   X,
   Check,
   Activity,
-  Layers
+  Layers,
+  Trophy,
+  Waves,
+  CircleDot,
+  Target
 } from "lucide-react";
 import { apiClient } from "@/lib/api/client";
 import { getStoredUser, AuthUser } from "@/lib/auth";
@@ -56,13 +60,32 @@ interface BookingItem {
 }
 
 const DEPARTMENTS = [
-  { id: "BADMINTON", name: "Badminton Section", icon: "🏸" },
-  { id: "LAWN_TENNIS", name: "Lawn Tennis Arenas", icon: "🎾" },
-  { id: "BOX_CRICKET", name: "Box Cricket Arenas", icon: "🏏" },
-  { id: "TABLE_TENNIS", name: "Table Tennis Pavilion", icon: "🏓" },
-  { id: "SWIMMING_POOL", name: "Aquatic Pavilion", icon: "🏊‍♂️" },
-  { id: "VOLLEYBALL", name: "Beach Volleyball", icon: "🏐" },
+  { id: "BADMINTON", name: "Badminton Section" },
+  { id: "LAWN_TENNIS", name: "Lawn Tennis Arenas" },
+  { id: "BOX_CRICKET", name: "Box Cricket Arenas" },
+  { id: "TABLE_TENNIS", name: "Table Tennis Pavilion" },
+  { id: "SWIMMING_POOL", name: "Aquatic Pavilion" },
+  { id: "VOLLEYBALL", name: "Beach Volleyball" },
 ];
+
+function getDepartmentIcon(id: string, className = "w-4 h-4") {
+  switch (id) {
+    case "BADMINTON":
+      return <Activity className={className} />;
+    case "LAWN_TENNIS":
+      return <CircleDot className={className} />;
+    case "BOX_CRICKET":
+      return <Trophy className={className} />;
+    case "TABLE_TENNIS":
+      return <Layers className={className} />;
+    case "SWIMMING_POOL":
+      return <Waves className={className} />;
+    case "VOLLEYBALL":
+      return <Target className={className} />;
+    default:
+      return <Building className={className} />;
+  }
+}
 
 export default function BookingsPage() {
   const [currentUser, setCurrentUser] = useState<AuthUser | null>(null);
@@ -190,7 +213,6 @@ export default function BookingsPage() {
   const currentDeptConfig = DEPARTMENTS.find((d) => d.id === selectedSport) || {
     id: selectedSport,
     name: `${selectedSport} Section`,
-    icon: "🏟️",
   };
 
   const filteredBookings = bookings.filter((b) => {
@@ -227,51 +249,58 @@ export default function BookingsPage() {
         </div>
       )}
 
-      {/* Header Banner */}
-      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-zinc-900 via-zinc-900 to-zinc-950 border border-zinc-800 p-6 md:p-8 shadow-xl">
-        <div className="absolute -right-8 -top-8 w-64 h-64 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
+      {/* Header Banner - Light Off-White Theme with Clean SVG Icons */}
+      <div className="relative overflow-hidden rounded-2xl bg-white border border-slate-200/90 p-6 md:p-8 shadow-xs">
+        <div className="absolute -right-8 -top-8 w-64 h-64 bg-emerald-500/5 rounded-full blur-3xl pointer-events-none" />
 
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6 relative z-10">
           <div>
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-semibold uppercase tracking-wider mb-3">
-              <ShieldCheck className="w-3.5 h-3.5" />
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-50 border border-emerald-200/80 text-emerald-800 text-xs font-bold uppercase tracking-wider mb-3">
+              <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
               Staff Operational Schedule & Maintenance Controller
             </div>
-            <h1 className="text-3xl font-extrabold text-white tracking-tight flex items-center gap-3">
-              <span>{currentDeptConfig.icon}</span>
+            <h1 className="text-2xl md:text-3xl font-black text-slate-900 tracking-tight flex items-center gap-3 font-[family-name:var(--font-outfit)]">
+              <div className="w-10 h-10 rounded-xl bg-emerald-50 border border-emerald-200/80 flex items-center justify-center text-emerald-700 shrink-0 shadow-2xs">
+                {getDepartmentIcon(currentDeptConfig.id, "w-5 h-5")}
+              </div>
               <span>{currentDeptConfig.name} Operational Desk</span>
             </h1>
-            <p className="text-sm text-zinc-400 mt-1 max-w-2xl">
+            <p className="text-sm text-slate-500 mt-2 max-w-2xl leading-relaxed">
               Live court reservation feed, member check-ins, and court maintenance management for the {currentDeptConfig.name}.
             </p>
           </div>
 
-          {/* Department Selector (for Admins / Owners / Cross-department managers) */}
+          {/* Department Selector */}
           <div className="flex items-center gap-3">
             {isOwnerOrAdmin ? (
-              <div className="flex items-center gap-2 bg-zinc-800/90 border border-zinc-700 rounded-xl px-3 py-2">
-                <Building className="w-4 h-4 text-emerald-400" />
+              <div className="flex items-center gap-2 bg-slate-50 hover:bg-slate-100/80 border border-slate-200 rounded-xl px-3 py-2 transition-colors shadow-2xs">
+                <div className="text-emerald-700">
+                  {getDepartmentIcon(selectedSport, "w-4 h-4")}
+                </div>
                 <select
                   value={selectedSport}
                   onChange={(e) => setSelectedSport(e.target.value)}
-                  className="bg-transparent text-sm font-semibold text-white focus:outline-none cursor-pointer"
+                  className="bg-transparent text-sm font-bold text-slate-800 focus:outline-none cursor-pointer"
                 >
                   {DEPARTMENTS.map((dept) => (
-                    <option key={dept.id} value={dept.id} className="bg-zinc-900 text-white">
-                      {dept.icon} {dept.name}
+                    <option key={dept.id} value={dept.id} className="bg-white text-slate-800">
+                      {dept.name}
                     </option>
                   ))}
                 </select>
               </div>
             ) : (
-              <div className="px-3.5 py-2 rounded-xl bg-zinc-800 text-xs font-semibold text-zinc-300 border border-zinc-700">
-                Assigned: {currentDeptConfig.name}
+              <div className="px-3.5 py-2 rounded-xl bg-slate-50 text-xs font-bold text-slate-700 border border-slate-200 flex items-center gap-2">
+                <div className="text-emerald-700">
+                  {getDepartmentIcon(currentDeptConfig.id, "w-4 h-4")}
+                </div>
+                <span>Assigned: {currentDeptConfig.name}</span>
               </div>
             )}
 
             <button
               onClick={() => fetchSchedule()}
-              className="inline-flex items-center gap-2 p-2.5 rounded-xl bg-zinc-800 hover:bg-zinc-750 text-zinc-300 hover:text-white border border-zinc-700/60 transition-all"
+              className="inline-flex items-center gap-2 p-2.5 rounded-xl bg-white hover:bg-slate-50 text-slate-600 hover:text-slate-900 border border-slate-200 shadow-2xs transition-all active:scale-95"
               title="Refresh schedule"
             >
               <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />
@@ -280,15 +309,25 @@ export default function BookingsPage() {
         </div>
 
         {/* Section Stats */}
-        <div className="mt-6 pt-5 border-t border-zinc-800/80 flex flex-wrap items-center justify-between gap-4 text-xs">
-          <div className="flex items-center gap-4 text-zinc-300">
-            <span>Section Courts: <strong className="text-white">{courts.length}</strong></span>
-            <span>Today&apos;s Bookings: <strong className="text-emerald-400">{bookings.length}</strong></span>
-            <span>Under Maintenance: <strong className="text-amber-400">{courts.filter(c => c.status === "MAINTENANCE").length}</strong></span>
+        <div className="mt-6 pt-5 border-t border-slate-100 flex flex-wrap items-center justify-between gap-4 text-xs">
+          <div className="flex flex-wrap items-center gap-5 text-slate-600">
+            <span className="flex items-center gap-1.5">
+              <span className="text-slate-500">Section Courts:</span>
+              <strong className="text-slate-900 font-bold bg-slate-100 px-2 py-0.5 rounded-md border border-slate-200/60">{courts.length}</strong>
+            </span>
+            <span className="flex items-center gap-1.5">
+              <span className="text-slate-500">Today&apos;s Bookings:</span>
+              <strong className="text-emerald-700 font-bold bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200/60">{bookings.length}</strong>
+            </span>
+            <span className="flex items-center gap-1.5">
+              <span className="text-slate-500">Under Maintenance:</span>
+              <strong className="text-red-700 font-bold bg-red-50 px-2 py-0.5 rounded-md border border-red-200/60">{courts.filter(c => c.status === "MAINTENANCE").length}</strong>
+            </span>
           </div>
 
-          <div className="text-zinc-500 font-mono text-[11px]">
-            Staff Scope: Employees monitor bookings & maintenance only
+          <div className="text-slate-400 font-mono text-[11px] flex items-center gap-1.5">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+            Staff Scope: Verified operator desk
           </div>
         </div>
       </div>
@@ -313,8 +352,8 @@ export default function BookingsPage() {
                 key={court.id}
                 className={`p-5 sm:p-6 rounded-2xl border transition-all flex flex-col justify-between ${
                   isMaint
-                    ? "bg-red-50/70 border-red-200/90 shadow-2xs hover:shadow-md"
-                    : "bg-slate-50/90 hover:bg-white border-slate-200/90 hover:border-slate-300 shadow-2xs hover:shadow-md"
+                    ? "bg-red-50/60 border-red-200/90 shadow-2xs hover:shadow-md"
+                    : "bg-white hover:bg-slate-50/50 border border-slate-200/90 hover:border-slate-300 shadow-2xs hover:shadow-md"
                 }`}
               >
                 <div>
@@ -454,10 +493,12 @@ export default function BookingsPage() {
                       <tr key={b.id} className="hover:bg-slate-50/70 transition-colors">
                         <td className="py-3.5 px-4">
                           <div className="font-bold text-slate-900 flex items-center gap-2">
-                            <span>{currentDeptConfig.icon}</span>
+                            <div className="w-6 h-6 rounded-md bg-emerald-50 text-emerald-700 flex items-center justify-center shrink-0 border border-emerald-100">
+                              {getDepartmentIcon(currentDeptConfig.id, "w-3.5 h-3.5")}
+                            </div>
                             <span>{b.court_name}</span>
                           </div>
-                          <div className="text-xs text-slate-400">{b.surface_type || "Synthetic Surface"}</div>
+                          <div className="text-xs text-slate-400 pl-8">{b.surface_type || "Synthetic Surface"}</div>
                         </td>
 
                         <td className="py-3.5 px-4">
@@ -536,8 +577,8 @@ export default function BookingsPage() {
                   onChange={(e) => setNewCourtStatus(e.target.value as any)}
                   className="w-full mt-1.5 bg-white border border-slate-300 rounded-xl px-4 py-2.5 text-sm text-slate-900 focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500 shadow-2xs"
                 >
-                  <option value="ACTIVE">✅ Active & Ready for Bookings</option>
-                  <option value="MAINTENANCE">⚠️ Under Maintenance / Cleaning / Repairs</option>
+                  <option value="ACTIVE">Active &amp; Ready for Bookings</option>
+                  <option value="MAINTENANCE">Under Maintenance / Repairs</option>
                 </select>
               </div>
 
