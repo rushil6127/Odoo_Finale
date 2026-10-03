@@ -71,6 +71,19 @@ def create_app(config_name: str = None) -> Flask:
     app = Flask(__name__, instance_relative_config=True)
     app.config.from_object(config_class)
 
+    # Configure database engine options based on SQLite vs PostgreSQL
+    db_uri = app.config.get("SQLALCHEMY_DATABASE_URI", "")
+    if db_uri.startswith("sqlite"):
+        from sqlalchemy.pool import StaticPool
+        app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
+            "connect_args": {"check_same_thread": False},
+            "poolclass": StaticPool,
+        }
+    else:
+        app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
+            "pool_pre_ping": True,
+        }
+
     # Ensure the instance directory exists for SQLite storage
     os.makedirs(app.instance_path, exist_ok=True)
 

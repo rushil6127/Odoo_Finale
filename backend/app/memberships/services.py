@@ -18,6 +18,7 @@ from backend.app.common.errors import (
     ConflictException,
     ForbiddenException,
 )
+from backend.app.extensions import db
 
 
 def add_months(d: date, months: int) -> date:

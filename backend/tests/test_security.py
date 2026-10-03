@@ -115,6 +115,7 @@ EXPLICIT_PUBLIC_ENDPOINTS = {
     "auth.login",
     "auth.register_member",
     "auth.google_auth",
+    "auth.get_roles",
     "membership_plans.list_plans",
     "membership_plans.get_plan_details",
     "courts.list_courts",

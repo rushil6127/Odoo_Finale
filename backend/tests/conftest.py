@@ -30,13 +30,14 @@ from backend.tests.factories import (
 
 @pytest.fixture(scope="function")
 def app():
-    """Create application for testing with fresh in-memory database per test."""
+    """Create application for testing with fresh database per test."""
     app_instance = create_app("testing")
     with app_instance.app_context():
         _db.create_all()
         yield app_instance
         _db.session.remove()
         _db.drop_all()
+        _db.engine.dispose()
 
 
 @pytest.fixture(scope="function")
