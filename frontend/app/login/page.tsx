@@ -43,27 +43,6 @@ const HeroPanel = ({
   </div>
 );
 
-const GoogleIcon = () => (
-  <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24">
-    <path
-      fill="#4285F4"
-      d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.665-5.17 3.665-9.17z"
-    />
-    <path
-      fill="#34A853"
-      d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.25v3.15C3.26 21.36 7.33 24 12 24z"
-    />
-    <path
-      fill="#FBBC05"
-      d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.25C.45 8.18 0 10.04 0 12s.45 3.82 1.25 5.42l4.03-3.15z"
-    />
-    <path
-      fill="#EA4335"
-      d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.33 0 3.26 2.64 1.25 6.58l4.03 3.15c.95-2.83 3.6-4.98 6.72-4.98z"
-    />
-  </svg>
-);
-
 export default function LoginPage() {
   const router = useRouter();
   const [activeView, setActiveView] = useState<"login" | "register">("login");
@@ -114,12 +93,8 @@ export default function LoginPage() {
   }, [router]);
 
   useEffect(() => {
-    // Load Google Identity Services library
-    const script = document.createElement("script");
-    script.src = "https://accounts.google.com/gsi/client";
-    script.async = true;
-    script.defer = true;
-    script.onload = () => {
+    // Function to initialize and render Google button
+    const initGoogle = () => {
       const google = (window as any).google;
       if (google?.accounts?.id) {
         google.accounts.id.initialize({
@@ -128,8 +103,45 @@ export default function LoginPage() {
           auto_select: false,
           cancel_on_tap_outside: true,
         });
+
+        const loginBtn = document.getElementById("google-signin-login");
+        if (loginBtn) {
+          loginBtn.innerHTML = "";
+          google.accounts.id.renderButton(loginBtn, {
+            theme: "outline",
+            size: "large",
+            width: 280,
+            text: "continue_with",
+            shape: "pill",
+          });
+        }
+
+        const regBtn = document.getElementById("google-signin-register");
+        if (regBtn) {
+          regBtn.innerHTML = "";
+          google.accounts.id.renderButton(regBtn, {
+            theme: "outline",
+            size: "large",
+            width: 280,
+            text: "signup_with",
+            shape: "pill",
+          });
+        }
       }
     };
+
+    // If script already exists, just render
+    if ((window as any).google?.accounts?.id) {
+      initGoogle();
+      return;
+    }
+
+    // Load Google Identity Services script
+    const script = document.createElement("script");
+    script.src = "https://accounts.google.com/gsi/client";
+    script.async = true;
+    script.defer = true;
+    script.onload = initGoogle;
 
     document.body.appendChild(script);
 
@@ -138,14 +150,7 @@ export default function LoginPage() {
         document.body.removeChild(script);
       }
     };
-  }, [handleGoogleResponse]);
-
-  const handleCustomGoogleClick = () => {
-    const google = (window as any).google;
-    if (google?.accounts?.id) {
-      google.accounts.id.prompt();
-    }
-  };
+  }, [handleGoogleResponse, activeView]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -232,21 +237,16 @@ export default function LoginPage() {
         <div className={`form register ${activeView === "register" ? "active" : ""}`}>
           <h2>Sign Up</h2>
 
-          {/* Google SSO Button */}
-          <div className="w-full my-1">
-            <button
-              type="button"
-              onClick={handleCustomGoogleClick}
-              disabled={googleLoading}
-              className="w-full py-2.5 px-4 rounded-xl bg-white border border-slate-200 hover:border-slate-300 hover:bg-slate-50 text-slate-700 text-xs font-bold transition-all shadow-sm flex items-center justify-center gap-2.5"
-            >
-              {googleLoading ? (
-                <Loader2 className="w-4 h-4 animate-spin text-sky-600" />
-              ) : (
-                <GoogleIcon />
-              )}
-              <span>Continue with Google</span>
-            </button>
+          {/* Official Google Button Container */}
+          <div className="w-full flex justify-center my-1.5 min-h-[44px]">
+            {googleLoading ? (
+              <div className="flex items-center gap-2 text-xs text-sky-600 font-semibold py-2">
+                <Loader2 className="w-4 h-4 animate-spin" />
+                <span>Connecting with Google...</span>
+              </div>
+            ) : (
+              <div id="google-signin-register" className="flex justify-center" />
+            )}
           </div>
 
           <p className="subtitle">or register with email</p>
@@ -311,21 +311,16 @@ export default function LoginPage() {
         <div className={`form login ${activeView === "login" ? "active" : ""}`}>
           <h2>Login</h2>
 
-          {/* Google SSO Button */}
-          <div className="w-full my-1">
-            <button
-              type="button"
-              onClick={handleCustomGoogleClick}
-              disabled={googleLoading}
-              className="w-full py-2.5 px-4 rounded-xl bg-white border border-slate-200 hover:border-slate-300 hover:bg-slate-50 text-slate-700 text-xs font-bold transition-all shadow-sm flex items-center justify-center gap-2.5"
-            >
-              {googleLoading ? (
-                <Loader2 className="w-4 h-4 animate-spin text-sky-600" />
-              ) : (
-                <GoogleIcon />
-              )}
-              <span>Continue with Google</span>
-            </button>
+          {/* Official Google Button Container */}
+          <div className="w-full flex justify-center my-1.5 min-h-[44px]">
+            {googleLoading ? (
+              <div className="flex items-center gap-2 text-xs text-sky-600 font-semibold py-2">
+                <Loader2 className="w-4 h-4 animate-spin" />
+                <span>Connecting with Google...</span>
+              </div>
+            ) : (
+              <div id="google-signin-login" className="flex justify-center" />
+            )}
           </div>
 
           <p className="subtitle">or login with email</p>
