@@ -98,6 +98,8 @@ export interface UserBooking {
   endTime?: string;
   status: "CONFIRMED" | "COMPLETED" | "CANCELLED";
   amount: number;
+  title?: string;
+  matchType?: string;
   cancellationReason?: string | null;
   cancelledAt?: string | null;
 }
