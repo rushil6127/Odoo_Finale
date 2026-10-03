@@ -402,6 +402,7 @@ def record_stock_in(
     actor_id: Optional[int] = None,
     notes: Optional[str] = None,
     reference_id: Optional[str] = None,
+    auto_commit: bool = True,
 ) -> InventoryMovement:
     """Restock inventory for a product.
     
@@ -437,11 +438,14 @@ def record_stock_in(
         )
         db.session.add(movement)
 
-        try:
-            db.session.commit()
-        except IntegrityError as e:
-            db.session.rollback()
-            raise ConflictException(f"Stock-in transaction failed: {str(e)}", code="STOCK_IN_FAILED")
+        if auto_commit:
+            try:
+                db.session.commit()
+            except IntegrityError as e:
+                db.session.rollback()
+                raise ConflictException(f"Stock-in transaction failed: {str(e)}", code="STOCK_IN_FAILED")
+        else:
+            db.session.flush()
 
         return movement
 
@@ -453,6 +457,7 @@ def record_stock_out(
     actor_id: Optional[int] = None,
     notes: Optional[str] = None,
     reference_id: Optional[str] = None,
+    auto_commit: bool = True,
 ) -> InventoryMovement:
     """Deduct stock for counter sales, online orders, or damage.
     
@@ -512,14 +517,17 @@ def record_stock_out(
         )
         db.session.add(movement)
 
-        try:
-            db.session.commit()
-        except IntegrityError:
-            db.session.rollback()
-            raise ConflictException(
-                "Stock deduction failed: stock cannot be negative.",
-                code="NEGATIVE_STOCK_CONFLICT",
-            )
+        if auto_commit:
+            try:
+                db.session.commit()
+            except IntegrityError:
+                db.session.rollback()
+                raise ConflictException(
+                    "Stock deduction failed: stock cannot be negative.",
+                    code="NEGATIVE_STOCK_CONFLICT",
+                )
+        else:
+            db.session.flush()
 
         return movement
 

@@ -24,6 +24,7 @@ from backend.app.inventory import (  # noqa: F401
     MovementType,
     seed_inventory_command,
 )
+from backend.app.shop import shop_bp, ShopOrder, ShopOrderItem  # noqa: F401
 
 
 def create_app(config_name: str = None) -> Flask:
@@ -69,6 +70,7 @@ def create_app(config_name: str = None) -> Flask:
     app.register_blueprint(bookings_bp)
     app.register_blueprint(payments_bp)
     app.register_blueprint(inventory_bp)
+    app.register_blueprint(shop_bp)
 
     # Register CLI commands
     app.cli.add_command(create_owner_command)

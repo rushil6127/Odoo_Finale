@@ -116,6 +116,17 @@ def validate_item_amount(item_type: PaymentItemType, item_id: int, amount: Decim
                 f"Payment amount ({amount}) does not match membership price ({expected_amount}).",
                 code="AMOUNT_MISMATCH",
             )
+    elif item_type == PaymentItemType.SHOP_ORDER:
+        from backend.app.shop.models import ShopOrder
+        order = db.session.get(ShopOrder, item_id)
+        if not order:
+            raise NotFoundException(f"Shop order with ID {item_id} not found.")
+        expected_amount = Decimal(str(order.total_amount))
+        if amount != expected_amount:
+            raise ValidationException(
+                f"Payment amount ({amount}) does not match shop order total ({expected_amount}).",
+                code="AMOUNT_MISMATCH",
+            )
 
 
 def create_or_initiate_payment(
