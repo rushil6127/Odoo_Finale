@@ -5,12 +5,8 @@ import Image from "next/image";
 import { 
   ChevronLeft, 
   ChevronRight, 
-  Pause, 
-  Play, 
   Camera, 
-  Sparkles,
-  MapPin,
-  Trophy
+  Sparkles 
 } from "lucide-react";
 
 interface GallerySlide {
@@ -55,17 +51,14 @@ const gallerySlides: GallerySlide[] = [
 
 export default function AutoImageGallery() {
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [isPlaying, setIsPlaying] = useState(true);
 
   useEffect(() => {
-    if (!isPlaying) return;
-
     const interval = setInterval(() => {
       setCurrentIndex((prev) => (prev + 1) % gallerySlides.length);
-    }, 4500); // Transitions every 4.5 seconds
+    }, 4000); // Transitions smoothly every 4 seconds
 
     return () => clearInterval(interval);
-  }, [isPlaying]);
+  }, []);
 
   const handlePrev = () => {
     setCurrentIndex((prev) => (prev - 1 + gallerySlides.length) % gallerySlides.length);
@@ -114,34 +107,14 @@ export default function AutoImageGallery() {
             <div className="absolute inset-0 bg-gradient-to-r from-slate-950/70 via-transparent to-transparent hidden md:block" />
           </div>
 
-          {/* Top Badges & Autoplay Indicator on Photo */}
-          <div className="absolute top-6 left-6 right-6 flex items-center justify-between pointer-events-auto z-20">
-            <div className="flex items-center gap-2">
-              <span className="px-3.5 py-1 rounded-full bg-white/90 backdrop-blur-md text-slate-900 text-xs font-extrabold shadow-md border border-white">
-                {current.category}
-              </span>
-              <span className="px-3 py-1 rounded-full bg-lime-400 text-slate-950 text-xs font-extrabold shadow-md">
-                {current.tag}
-              </span>
-            </div>
-
-            <button
-              onClick={() => setIsPlaying(!isPlaying)}
-              className="px-3 py-1.5 rounded-full bg-black/40 hover:bg-black/60 text-white backdrop-blur-md border border-white/20 text-xs font-medium flex items-center gap-1.5 transition-all shadow-md"
-              title={isPlaying ? "Pause Slideshow" : "Resume Slideshow"}
-            >
-              {isPlaying ? (
-                <>
-                  <Pause className="w-3.5 h-3.5 text-lime-400" />
-                  <span className="text-[11px] hidden sm:inline">Auto-Playing</span>
-                </>
-              ) : (
-                <>
-                  <Play className="w-3.5 h-3.5 text-sky-400" />
-                  <span className="text-[11px] hidden sm:inline">Paused</span>
-                </>
-              )}
-            </button>
+          {/* Top Badges */}
+          <div className="absolute top-6 left-6 flex items-center gap-2 z-20">
+            <span className="px-3.5 py-1 rounded-full bg-white/90 backdrop-blur-md text-slate-900 text-xs font-extrabold shadow-md border border-white">
+              {current.category}
+            </span>
+            <span className="px-3 py-1 rounded-full bg-lime-400 text-slate-950 text-xs font-extrabold shadow-md">
+              {current.tag}
+            </span>
           </div>
 
           {/* PREVIOUS BUTTON DIRECTLY ON PHOTO (LEFT) */}
