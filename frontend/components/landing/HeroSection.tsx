@@ -20,7 +20,6 @@ import {
 
 export default function HeroSection() {
   const [selectedSport, setSelectedSport] = useState("tennis");
-  const [selectedSurface, setSelectedSurface] = useState("all");
   const [scrollProgress, setScrollProgress] = useState(0);
 
   useEffect(() => {
@@ -100,7 +99,7 @@ export default function HeroSection() {
           </p>
 
           {/* CTA Buttons */}
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-3.5 sm:gap-4 mb-14">
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-3.5 sm:gap-4 mb-12">
             <Link
               href="#courts"
               className="w-full sm:w-auto inline-flex items-center justify-center gap-2.5 px-7 py-3.5 rounded-full text-sm font-bold text-white bg-gradient-to-r from-sky-500 to-sky-600 hover:from-sky-600 hover:to-blue-700 shadow-lg shadow-sky-500/25 hover:shadow-sky-500/40 hover:-translate-y-0.5 transition-all duration-200"
@@ -122,99 +121,56 @@ export default function HeroSection() {
           </div>
         </div>
 
-        {/* Interactive Quick-Booking / Live Court Finder Card */}
+        {/* Clean, Decongested Quick-Booking & Sport Finder Card */}
         <div 
-          className="glass-card rounded-3xl p-5 sm:p-7 shadow-2xl border border-sky-100/90 max-w-5xl mx-auto backdrop-blur-xl relative transition-all duration-500"
+          className="glass-card rounded-3xl p-6 sm:p-8 shadow-2xl border border-sky-100/90 max-w-3xl mx-auto backdrop-blur-xl relative transition-all duration-500 text-center"
           style={{
             transform: `translateY(${scrollProgress * -20}px)`,
           }}
         >
-          {/* Card Header & Sport Tabs */}
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-5 border-b border-slate-100">
-            <div>
-              <h3 className="text-base sm:text-lg font-bold text-slate-900 flex items-center gap-2">
-                <Activity className="w-5 h-5 text-sky-600" />
-                <span>Instant Court Availability & Booking</span>
-              </h3>
-              <p className="text-xs text-slate-500 mt-0.5">
-                Real-time synchronized slots &bull; 60-min sessions &bull; No overlapping bookings guarantee
-              </p>
-            </div>
-
-            {/* Sport Selectors Pill */}
-            <div className="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0 scrollbar-none">
-              {sports.map((sport) => (
-                <button
-                  key={sport.id}
-                  onClick={() => setSelectedSport(sport.id)}
-                  className={`px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all duration-200 flex items-center gap-1.5 ${
-                    selectedSport === sport.id
-                      ? "bg-sky-600 text-white shadow-sm"
-                      : "bg-slate-100 hover:bg-slate-200 text-slate-700"
-                  }`}
-                >
-                  <span>{sport.icon}</span>
-                  <span>{sport.name}</span>
-                </button>
-              ))}
-            </div>
+          {/* Card Title & Tagline */}
+          <div className="mb-6">
+            <h3 className="text-lg sm:text-xl font-extrabold text-slate-900 inline-flex items-center justify-center gap-2">
+              <Activity className="w-5 h-5 text-sky-600" />
+              <span>Instant Court Availability & Booking</span>
+            </h3>
+            <p className="text-xs text-slate-500 mt-1 max-w-md mx-auto">
+              Select your sport below to view live available slots &bull; 60-min sessions &bull; Conflict-free guaranteed
+            </p>
           </div>
 
-          {/* Booking Parameters Form */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5 pt-5">
-            {/* Court / Surface Type */}
-            <div className="bg-slate-50/80 rounded-2xl p-3 border border-slate-200/70">
-              <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block mb-1">
-                Court Surface
-              </label>
-              <select 
-                value={selectedSurface}
-                onChange={(e) => setSelectedSurface(e.target.value)}
-                className="w-full bg-transparent text-xs font-semibold text-slate-800 focus:outline-none cursor-pointer"
+          {/* Centered Sport Selectors */}
+          <div className="flex items-center justify-center gap-2 flex-wrap mb-6">
+            {sports.map((sport) => (
+              <button
+                key={sport.id}
+                onClick={() => setSelectedSport(sport.id)}
+                className={`px-4 py-2 rounded-full text-xs font-bold transition-all duration-200 flex items-center gap-2 ${
+                  selectedSport === sport.id
+                    ? "bg-sky-600 text-white shadow-md shadow-sky-600/25 scale-105"
+                    : "bg-slate-100 hover:bg-slate-200 text-slate-700"
+                }`}
               >
-                <option value="all">Any Available Surface</option>
-                <option value="grass">Wimbledon Grass Lawn</option>
-                <option value="clay">Roland-Garros Red Clay</option>
-                <option value="hard">Grand Slam Hard Court</option>
-                <option value="indoor">Air-Conditioned Indoor</option>
-              </select>
-            </div>
+                <span>{sport.icon}</span>
+                <span>{sport.name}</span>
+                <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-semibold ${
+                  selectedSport === sport.id ? "bg-white/20 text-white" : "bg-slate-200 text-slate-600"
+                }`}>
+                  {sport.count}
+                </span>
+              </button>
+            ))}
+          </div>
 
-            {/* Date Selection */}
-            <div className="bg-slate-50/80 rounded-2xl p-3 border border-slate-200/70">
-              <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block mb-1">
-                Date & Session
-              </label>
-              <div className="flex items-center justify-between text-xs font-semibold text-slate-800">
-                <span>Today (Open Slots)</span>
-                <span className="text-[10px] bg-green-100 text-green-700 font-bold px-1.5 py-0.5 rounded">Active</span>
-              </div>
-            </div>
-
-            {/* Time Slot */}
-            <div className="bg-slate-50/80 rounded-2xl p-3 border border-slate-200/70">
-              <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block mb-1">
-                Preferred Slot
-              </label>
-              <select className="w-full bg-transparent text-xs font-semibold text-slate-800 focus:outline-none cursor-pointer">
-                <option>06:00 AM – 07:00 AM (Morning)</option>
-                <option>07:00 AM – 08:00 AM (Prime)</option>
-                <option>04:30 PM – 05:30 PM (Twilight)</option>
-                <option>06:00 PM – 07:00 PM (Floodlit)</option>
-                <option>08:00 PM – 09:00 PM (Night Match)</option>
-              </select>
-            </div>
-
-            {/* Action Search CTA */}
-            <div className="flex items-end">
-              <Link
-                href="#courts"
-                className="w-full h-11 inline-flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-sky-500 to-sky-600 hover:from-sky-600 hover:to-blue-700 text-white text-xs font-bold shadow-md shadow-sky-500/20 active:scale-95 transition-all"
-              >
-                <span>Find Available Slots</span>
-                <ArrowRight className="w-3.5 h-3.5" />
-              </Link>
-            </div>
+          {/* Centered Booking Action Button */}
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+            <Link
+              href="#courts"
+              className="w-full sm:w-auto px-8 py-3.5 rounded-full bg-gradient-to-r from-sky-500 via-sky-600 to-blue-700 hover:from-sky-600 hover:to-blue-800 text-white text-xs font-extrabold shadow-lg shadow-sky-500/25 hover:shadow-sky-500/40 hover:scale-105 active:scale-95 transition-all duration-200 flex items-center justify-center gap-2"
+            >
+              <span>Find & Book Available Slots</span>
+              <ArrowRight className="w-4 h-4 text-[#CCFF00]" />
+            </Link>
           </div>
         </div>
 
