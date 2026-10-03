@@ -646,7 +646,7 @@ export function enrichUserProfile(parsed: any): (AuthUserProfile & AuthUser) | n
   } else if (parsed.active_membership?.plan?.code) {
     parsed.membershipPlan = parsed.active_membership.plan.code.toUpperCase();
   } else if (!parsed.membershipPlan) {
-    parsed.membershipPlan = "GOLD";
+    parsed.membershipPlan = "";
   }
 
   // Dynamic membership status binding
@@ -655,7 +655,7 @@ export function enrichUserProfile(parsed: any): (AuthUserProfile & AuthUser) | n
   } else if (parsed.active_membership?.status) {
     parsed.membershipStatus = parsed.active_membership.status;
   } else if (!parsed.membershipStatus) {
-    parsed.membershipStatus = "ACTIVE";
+    parsed.membershipStatus = "NONE";
   }
 
   // Dynamic membership expiry / end date
@@ -664,7 +664,7 @@ export function enrichUserProfile(parsed: any): (AuthUserProfile & AuthUser) | n
   } else if (parsed.active_membership?.end_date) {
     parsed.membershipExpiry = parsed.active_membership.end_date;
   } else if (!parsed.membershipExpiry) {
-    parsed.membershipExpiry = "October 2, 2027";
+    parsed.membershipExpiry = "";
   }
 
   // Dynamic membership start date
@@ -675,16 +675,16 @@ export function enrichUserProfile(parsed: any): (AuthUserProfile & AuthUser) | n
     parsed.joinDate = parsed.active_membership.start_date;
     parsed.membershipStartDate = parsed.active_membership.start_date;
   } else if (!parsed.joinDate) {
-    parsed.joinDate = "October 3, 2026";
-    parsed.membershipStartDate = "October 3, 2026";
+    parsed.joinDate = "";
+    parsed.membershipStartDate = "";
   }
 
-  if (parsed.walletBalance === undefined) parsed.walletBalance = 8500;
-  if (parsed.clubTabsOutstanding === undefined) parsed.clubTabsOutstanding = 1250;
-  if (!parsed.crmInquiries || !Array.isArray(parsed.crmInquiries)) parsed.crmInquiries = DEMO_MEMBERS.alex.crmInquiries;
-  if (!parsed.orders || !Array.isArray(parsed.orders)) parsed.orders = DEMO_MEMBERS.alex.orders;
-  if (!parsed.bookings || !Array.isArray(parsed.bookings)) parsed.bookings = DEMO_MEMBERS.alex.bookings;
-  if (!parsed.payments || !Array.isArray(parsed.payments)) parsed.payments = DEMO_MEMBERS.alex.payments;
+  if (parsed.walletBalance === undefined) parsed.walletBalance = 0;
+  if (parsed.clubTabsOutstanding === undefined) parsed.clubTabsOutstanding = 0;
+  if (!parsed.crmInquiries || !Array.isArray(parsed.crmInquiries)) parsed.crmInquiries = [];
+  if (!parsed.orders || !Array.isArray(parsed.orders)) parsed.orders = [];
+  if (!parsed.bookings || !Array.isArray(parsed.bookings)) parsed.bookings = [];
+  if (!parsed.payments || !Array.isArray(parsed.payments)) parsed.payments = [];
 
   return parsed as (AuthUserProfile & AuthUser);
 }
