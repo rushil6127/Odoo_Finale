@@ -156,14 +156,8 @@ export default function LoginPage() {
     setLoginLoading(true);
 
     try {
-      const data = await loginUser(loginEmail, loginPassword);
-      const user = data.user;
-      
-      if (user?.role === "MEMBER") {
-        router.push("/profile");
-      } else {
-        router.push("/dashboard");
-      }
+      await loginUser(loginEmail, loginPassword);
+      router.push("/profile");
     } catch (err: any) {
       // Fallback: If backend is unreachable or demo testing, allow quick demo login
       if (loginEmail.toLowerCase().includes("alex") || loginEmail === "") {
@@ -203,11 +197,7 @@ export default function LoginPage() {
 
   const handleDemoLogin = (user: AuthUserProfile) => {
     setStoredUser(user);
-    if (user.role === "ADMIN") {
-      router.push("/dashboard");
-    } else {
-      router.push("/profile");
-    }
+    router.push("/profile");
   };
 
   return (
@@ -243,7 +233,14 @@ export default function LoginPage() {
             onClick={() => handleDemoLogin(DEMO_MEMBERS.alex)}
             className="px-3 py-1.5 rounded-xl bg-white hover:bg-sky-600 hover:text-white text-slate-800 font-extrabold border border-sky-200 shadow-sm transition-all"
           >
-            Alex Morgan (Gold Member)
+            Alex Morgan (Member)
+          </button>
+          <button
+            type="button"
+            onClick={() => handleDemoLogin(DEMO_MEMBERS.coach_david)}
+            className="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold shadow-sm transition-all"
+          >
+            🎾 Coach David (Sport Head)
           </button>
           <button
             type="button"
