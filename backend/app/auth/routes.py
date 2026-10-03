@@ -131,23 +131,34 @@ def demo_login():
 
     body = request.get_json(silent=True) or {}
     demo_id = str(body.get("demo_id") or body.get("role") or "").lower()
-    email = str(body.get("email") or "").lower()
+    email = str(body.get("email") or "").lower().strip()
 
-    if "coach" in demo_id or "coach" in email:
+    from backend.app.auth.services import get_user_by_email
+    existing_user = get_user_by_email(email) if email else None
+
+    if existing_user:
+        user = existing_user
+        target_email = user.email
+        first_name = user.first_name
+        last_name = user.last_name
+        role = user.role
+        dept = user.department
+    elif "coach" in demo_id or "coach" in email:
         target_email = "coach.david@championsclub.in"
         first_name, last_name, role = "David", "Miller", RoleEnum.COACH
         dept = "BADMINTON"
+        user = User.query.filter_by(email=target_email).first()
     elif "admin" in demo_id or "admin" in email:
         target_email = "priya.sharma@championsclub.in"
         first_name, last_name, role = "Priya", "Sharma", RoleEnum.ADMIN
         dept = "ADMINISTRATION"
+        user = User.query.filter_by(email=target_email).first()
     else:
         # Default: Alex Morgan (Gold Member)
         target_email = "alex.morgan@championsclub.in"
         first_name, last_name, role = "Alex", "Morgan", RoleEnum.MEMBER
         dept = None
-
-    user = User.query.filter_by(email=target_email).first()
+        user = User.query.filter_by(email=target_email).first()
     if not user:
         user = User(
             email=target_email,

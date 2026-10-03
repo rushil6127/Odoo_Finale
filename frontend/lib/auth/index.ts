@@ -85,15 +85,21 @@ export interface UserOrder {
 }
 
 export interface UserBooking {
-  id: string;
+  id: string | number;
+  numericId?: number;
+  bookingId?: number;
   bookingCode: string;
   courtName: string;
   sport: string;
   surface: string;
   date: string;
   timeSlot: string;
+  startTime?: string;
+  endTime?: string;
   status: "CONFIRMED" | "COMPLETED" | "CANCELLED";
   amount: number;
+  cancellationReason?: string | null;
+  cancelledAt?: string | null;
 }
 
 export interface UserPayment {

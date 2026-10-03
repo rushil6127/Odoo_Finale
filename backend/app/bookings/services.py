@@ -367,6 +367,9 @@ def cancel_booking(
     if booking.status == BookingStatus.CANCELLED:
         raise ValidationException("This booking has already been cancelled.", code="ALREADY_CANCELLED")
 
+    if booking.status == BookingStatus.COMPLETED:
+        raise ValidationException("Completed bookings cannot be cancelled.", code="CANNOT_CANCEL_COMPLETED")
+
     # Free the occupancy half-slots
     CourtOccupancy.query.filter_by(booking_id=booking.id).delete()
 

@@ -2,6 +2,7 @@ from datetime import datetime, date
 from flask import Blueprint, request
 from flask_jwt_extended import jwt_required, current_user
 from backend.app.extensions import limiter
+from backend.app.common.utils import utc_now
 from backend.app.common.responses import success_response
 from backend.app.common.validation import validate_schema
 from backend.app.common.permissions import roles_required, RoleEnum
@@ -350,9 +351,33 @@ def cancel_booking_route(booking_id: int):
         requesting_user=current_user,
     )
 
+    # 12-hour cancellation rule
+    now = utc_now()
+    start_time = booking.start_time
+    if start_time.tzinfo is None and now.tzinfo is not None:
+        start_time = start_time.replace(tzinfo=now.tzinfo)
+    elif start_time.tzinfo is not None and now.tzinfo is None:
+        now = now.replace(tzinfo=start_time.tzinfo)
+
+    hours_to_start = (start_time - now).total_seconds() / 3600.0
+    is_refundable = hours_to_start >= 12.0
+    final_price = float(booking.final_price or 0.0)
+
+    if final_price > 0:
+        if is_refundable:
+            msg = f"Booking cancelled successfully. Full refund of ₹{final_price:.2f} has been processed."
+        else:
+            msg = f"Booking cancelled successfully. Cancellation was made less than 12 hours prior to the slot time, so the booking fee of ₹{final_price:.2f} is non-refundable."
+    else:
+        msg = "Booking cancelled successfully."
+
+    data = booking.to_dict()
+    data["is_refundable"] = is_refundable
+    data["refund_amount"] = final_price if is_refundable else 0.0
+
     return success_response(
-        data=booking.to_dict(),
-        message="Booking cancelled successfully.",
+        data=data,
+        message=msg,
     )
 
 
