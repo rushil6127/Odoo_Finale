@@ -820,9 +820,16 @@ function getServerSnapshot(): string | null {
   return null;
 }
 
+let _cachedUserJson: string | null = null;
+let _cachedUser: (AuthUserProfile & AuthUser) | null = null;
+
 export function useCurrentUser() {
   const userJson = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
-  const user: AuthUserProfile | null = userJson ? enrichUserProfile(JSON.parse(userJson)) : null;
+  if (userJson !== _cachedUserJson) {
+    _cachedUserJson = userJson;
+    _cachedUser = userJson ? enrichUserProfile(JSON.parse(userJson)) : null;
+  }
+  const user = _cachedUser;
 
   return {
     user,

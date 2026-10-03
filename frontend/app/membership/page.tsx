@@ -167,7 +167,7 @@ export default function MembershipPage() {
       }
     } catch (e: any) { setError(e?.message || "Failed to load."); }
     finally { setLoading(false); }
-  }, [user]);
+  }, [user?.id, user?.email]);
 
   useEffect(() => { loadData(); }, [loadData]);
 
