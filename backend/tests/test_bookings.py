@@ -585,30 +585,32 @@ def test_simultaneous_concurrent_bookings_race_condition(app, seed_data, gold_me
     """Two concurrent threads attempt to book the exact same slot simultaneously: exactly 1 succeeds, 1 gets conflict."""
     gold_user, gold_member = gold_member_user
     silver_user, silver_member = silver_member_user
-    tennis = seed_data["tennis"]
+    court_id = seed_data["tennis"].id
+    gold_uid, gold_mid = gold_user.id, gold_member.id
+    silver_uid, silver_mid = silver_user.id, silver_member.id
     start_dt = datetime(2026, 10, 10, 10, 0, 0)
 
     results = []
 
-    def attempt_booking(user, member):
+    def attempt_booking(uid, mid):
         with app.app_context():
             from backend.app.common.errors import ConflictException
             try:
                 b = create_booking(
-                    court_id=tennis.id,
+                    court_id=court_id,
                     start_time=start_dt,
-                    user_id=user.id,
-                    member_id=member.id,
+                    user_id=uid,
+                    member_id=mid,
                 )
                 results.append(("SUCCESS", b.id))
             except ConflictException as e:
                 results.append(("CONFLICT", str(e)))
             except Exception as e:
-                results.append(("OTHER_ERROR", str(e)))
+                results.append(("OTHER_ERROR", f"{type(e).__name__}: {str(e)}"))
 
     with concurrent.futures.ThreadPoolExecutor(max_workers=2) as executor:
-        f1 = executor.submit(attempt_booking, gold_user, gold_member)
-        f2 = executor.submit(attempt_booking, silver_user, silver_member)
+        f1 = executor.submit(attempt_booking, gold_uid, gold_mid)
+        f2 = executor.submit(attempt_booking, silver_uid, silver_mid)
         concurrent.futures.wait([f1, f2])
 
     statuses = [r[0] for r in results]

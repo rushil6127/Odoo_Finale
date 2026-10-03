@@ -56,6 +56,12 @@ class BaseConfig:
     FRIDAY_SOCIAL_PLAY_END_TIME = os.getenv("FRIDAY_SOCIAL_PLAY_END_TIME", "21:00")
     SOCIAL_PLAY_COUNTS_TOWARDS_DAILY_LIMIT = os.getenv("SOCIAL_PLAY_COUNTS_TOWARDS_DAILY_LIMIT", "False").lower() in ("true", "1", "yes")
 
+    # Razorpay Payment Gateway Configuration
+    RAZORPAY_KEY_ID = os.getenv("RAZORPAY_KEY_ID", None)
+    RAZORPAY_KEY_SECRET = os.getenv("RAZORPAY_KEY_SECRET", None)
+    RAZORPAY_WEBHOOK_SECRET = os.getenv("RAZORPAY_WEBHOOK_SECRET", None)
+    DEFAULT_CURRENCY = os.getenv("DEFAULT_CURRENCY", "INR")
+
     # Redis and Celery configuration
     REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379/0")
     CELERY_BROKER_URL = os.getenv("CELERY_BROKER_URL", REDIS_URL)
