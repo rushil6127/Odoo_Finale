@@ -1,5 +1,6 @@
 /**
  * Champions Club — Pro Shop Member Order History & Order Details Drawer/Modal
+ * Luxury Light Theme matching Champions Club design system
  */
 
 "use client";
@@ -32,26 +33,22 @@ export default function MyOrdersModal({
   onPayUnpaidOrder,
 }: MyOrdersModalProps) {
   const [orders, setOrders] = useState<CreatedOrderResponse[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [selectedOrder, setSelectedOrder] = useState<CreatedOrderResponse | null>(null);
-
   const [cancellingOrderId, setCancellingOrderId] = useState<number | null>(null);
-  const [cancelReason, setCancelReason] = useState("");
-  const [isSubmittingCancel, setIsSubmittingCancel] = useState(false);
 
-  const fetchOrders = useCallback(async () => {
+  const fetchMyOrders = useCallback(async () => {
     try {
       setIsLoading(true);
       setError(null);
-      const res = await apiClient.get<{ orders: CreatedOrderResponse[] }>("/shop/orders/my-orders?per_page=50");
+      const res = await apiClient.get<{ orders: CreatedOrderResponse[] }>("/shop/orders/my-orders");
       if (res && Array.isArray(res.orders)) {
         setOrders(res.orders);
       } else {
         setOrders([]);
       }
     } catch (err: any) {
-      setError(err?.message || "Failed to load your order history.");
+      setError(err?.message || "Failed to load order history.");
     } finally {
       setIsLoading(false);
     }
@@ -59,279 +56,264 @@ export default function MyOrdersModal({
 
   useEffect(() => {
     if (isOpen) {
-      fetchOrders();
+      fetchMyOrders();
     }
-  }, [isOpen, fetchOrders]);
+  }, [isOpen, fetchMyOrders]);
+
+  if (!isOpen) return null;
 
   const handleCancelOrder = async (orderId: number) => {
     try {
-      setIsSubmittingCancel(true);
-      const res = await apiClient.post<{ order: CreatedOrderResponse }>(
-        `/shop/orders/${orderId}/cancel`,
-        {
-          reason: cancelReason.trim() || "Customer requested cancellation from portal",
-        }
-      );
-
-      if (res?.order) {
-        setOrders((prev) => prev.map((o) => (o.id === orderId ? res.order : o)));
-        if (selectedOrder?.id === orderId) {
-          setSelectedOrder(res.order);
-        }
-      }
-      setCancellingOrderId(null);
-      setCancelReason("");
+      setCancellingOrderId(orderId);
+      await apiClient.post<{ order: CreatedOrderResponse }>(`/shop/orders/${orderId}/cancel`, {
+        reason: "Cancelled by member from order history",
+      });
+      await fetchMyOrders();
     } catch (err: any) {
       alert(err?.message || "Failed to cancel order.");
     } finally {
-      setIsSubmittingCancel(false);
+      setCancellingOrderId(null);
     }
   };
 
   const getStatusBadge = (status: string) => {
-    const s = (status || "").toUpperCase();
-    switch (s) {
-      case "CONFIRMED":
-        return { label: "Confirmed", bg: "bg-sky-500/10 border-sky-500/30 text-sky-400" };
-      case "PROCESSING":
-        return { label: "Preparing", bg: "bg-indigo-500/10 border-indigo-500/30 text-indigo-400" };
-      case "READY_FOR_PICKUP":
-        return { label: "Ready for Pickup", bg: "bg-lime-500/10 border-lime-500/30 text-lime-400" };
-      case "SHIPPED":
-        return { label: "Shipped", bg: "bg-teal-500/10 border-teal-500/30 text-teal-400" };
-      case "COMPLETED":
-        return { label: "Completed", bg: "bg-emerald-500/10 border-emerald-500/30 text-emerald-400" };
-      case "CANCELLED":
-        return { label: "Cancelled", bg: "bg-rose-500/10 border-rose-500/30 text-rose-400" };
-      default:
-        return { label: "Pending Payment", bg: "bg-amber-500/10 border-amber-500/30 text-amber-400" };
+    const s = status.toUpperCase();
+    if (s === "CONFIRMED" || s === "COMPLETED") {
+      return (
+        <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase bg-emerald-50 text-emerald-800 border border-emerald-200">
+          {status}
+        </span>
+      );
     }
+    if (s === "PROCESSING" || s === "READY_FOR_PICKUP" || s === "SHIPPED") {
+      return (
+        <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase bg-sky-50 text-sky-800 border border-sky-200">
+          {status}
+        </span>
+      );
+    }
+    if (s === "CANCELLED") {
+      return (
+        <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase bg-rose-50 text-rose-800 border border-rose-200">
+          Cancelled
+        </span>
+      );
+    }
+    return (
+      <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase bg-amber-50 text-amber-800 border border-amber-200">
+        {status}
+      </span>
+    );
   };
 
-  if (!isOpen) return null;
-
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 overflow-y-auto bg-slate-950/85 backdrop-blur-md animate-in fade-in duration-200">
-      <div
-        onClick={(e) => e.stopPropagation()}
-        className="relative w-full max-w-3xl bg-slate-900 border border-slate-800 rounded-3xl p-6 sm:p-8 shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200 max-h-[90vh] flex flex-col my-auto"
-      >
-        {/* Header */}
-        <div className="flex items-center justify-between pb-4 border-b border-slate-800 shrink-0">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-sky-500/10 border border-sky-500/20 text-sky-400 flex items-center justify-center">
-              <Package className="w-5 h-5" />
-            </div>
-            <div>
-              <h2 className="text-lg sm:text-xl font-black text-white font-[family-name:var(--font-outfit)]">
-                My Pro Shop Orders
-              </h2>
-              <p className="text-xs text-slate-400">
-                Track live fulfillment, receipts, and order statuses
-              </p>
-            </div>
-          </div>
+    <div className="fixed inset-0 z-50 overflow-hidden bg-slate-950/40 backdrop-blur-sm animate-in fade-in duration-200">
+      <div className="absolute inset-0" onClick={onClose} />
 
-          <div className="flex items-center gap-2">
-            <button
-              type="button"
-              onClick={fetchOrders}
-              disabled={isLoading}
-              className="p-2 rounded-xl bg-slate-800 text-slate-300 hover:text-white hover:bg-slate-700 transition-colors"
-              title="Refresh Orders"
-            >
-              <RotateCcw className={`w-4 h-4 ${isLoading ? "animate-spin text-sky-400" : ""}`} />
-            </button>
-            <button
-              type="button"
-              onClick={onClose}
-              className="p-2 rounded-xl bg-slate-800 text-slate-400 hover:text-white hover:bg-slate-700 transition-colors"
-            >
-              <X className="w-5 h-5" />
-            </button>
-          </div>
-        </div>
-
-        {/* Content Body */}
-        <div className="flex-1 overflow-y-auto py-5 space-y-4 pr-1">
-          {isLoading ? (
-            <div className="py-16 text-center space-y-3">
-              <Loader2 className="w-8 h-8 text-sky-400 animate-spin mx-auto" />
-              <p className="text-xs text-slate-400">Loading your order history...</p>
+      <div className="absolute inset-y-0 right-0 max-w-full flex pl-10 pointer-events-none">
+        <aside aria-label="Member Order History Drawer" className="w-screen max-w-2xl bg-white border-l border-slate-200 shadow-2xl flex flex-col pointer-events-auto animate-in slide-in-from-right duration-300 text-slate-900">
+          {/* Drawer Header */}
+          <div className="p-5 border-b border-slate-200 bg-slate-50/80 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-2xl bg-sky-50 border border-sky-200 text-sky-600 flex items-center justify-center">
+                <Package className="w-5 h-5" />
+              </div>
+              <div>
+                <h2 className="font-extrabold text-base text-slate-900 font-[family-name:var(--font-outfit)]">
+                  My Pro Shop Orders
+                </h2>
+                <p className="text-[11px] text-slate-500">
+                  Track boutique purchases, fulfillment & invoices
+                </p>
+              </div>
             </div>
-          ) : error ? (
-            <div className="p-6 rounded-2xl bg-rose-500/10 border border-rose-500/20 text-center space-y-3">
-              <AlertTriangle className="w-8 h-8 text-rose-400 mx-auto" />
-              <p className="text-xs text-rose-300">{error}</p>
+
+            <div className="flex items-center gap-2">
               <button
                 type="button"
-                onClick={fetchOrders}
-                className="px-4 py-2 rounded-xl text-xs font-bold bg-slate-800 text-white"
+                onClick={fetchMyOrders}
+                title="Refresh order history"
+                className="p-2 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors"
               >
-                Retry
+                <RotateCcw className="w-4 h-4" />
+              </button>
+              <button
+                type="button"
+                onClick={onClose}
+                aria-label="Close orders"
+                className="p-2 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors"
+              >
+                <X className="w-5 h-5" />
               </button>
             </div>
-          ) : orders.length === 0 ? (
-            <div className="py-16 text-center space-y-3">
-              <div className="w-16 h-16 rounded-3xl bg-slate-800/60 border border-slate-750 flex items-center justify-center mx-auto text-slate-500">
-                <ShoppingBag className="w-8 h-8" />
-              </div>
-              <h3 className="text-sm font-bold text-white">No Pro Shop Orders Found</h3>
-              <p className="text-xs text-slate-400 max-w-sm mx-auto">
-                You haven&apos;t placed any Pro Shop orders yet. Browse our racket and gear catalog to get started.
-              </p>
-            </div>
-          ) : (
-            <div className="space-y-4">
-              {orders.map((order) => {
-                const badge = getStatusBadge(order.status);
-                const isCancellable =
-                  ["PENDING", "CONFIRMED", "PROCESSING"].includes(order.status.toUpperCase());
-                const isUnpaid = order.payment_status?.toUpperCase() === "PENDING";
+          </div>
 
-                return (
-                  <div
-                    key={order.id}
-                    className="p-5 rounded-2xl bg-slate-950 border border-slate-800 hover:border-slate-700 transition-all space-y-4 shadow-sm"
-                  >
-                    {/* Top Row: Ref, Date, Status */}
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 pb-3 border-b border-slate-800/80">
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <span className="font-mono font-black text-sm text-sky-400">
-                            {order.order_reference}
-                          </span>
-                          <span
-                            className={`px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase border ${badge.bg}`}
-                          >
-                            {badge.label}
+          {/* Orders Body */}
+          <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4">
+            {isLoading ? (
+              <div className="h-full flex flex-col items-center justify-center text-center p-8 space-y-3">
+                <Loader2 className="w-8 h-8 text-sky-600 animate-spin mx-auto" />
+                <p className="text-xs text-slate-500">Loading your purchase history...</p>
+              </div>
+            ) : error ? (
+              <div className="p-6 rounded-2xl bg-rose-50 border border-rose-200 text-center space-y-3">
+                <AlertTriangle className="w-6 h-6 text-rose-600 mx-auto" />
+                <p className="text-xs text-rose-800">{error}</p>
+                <button
+                  type="button"
+                  onClick={fetchMyOrders}
+                  className="px-3 py-1.5 rounded-lg text-xs font-bold bg-white text-rose-700 border border-rose-200"
+                >
+                  Retry
+                </button>
+              </div>
+            ) : orders.length === 0 ? (
+              <div className="h-full flex flex-col items-center justify-center text-center p-8 space-y-3 my-auto">
+                <div className="w-16 h-16 rounded-3xl bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-400">
+                  <ShoppingBag className="w-8 h-8" />
+                </div>
+                <h3 className="text-base font-bold text-slate-900">No Pro Shop Orders Found</h3>
+                <p className="text-xs text-slate-500 max-w-xs">
+                  You have not placed any boutique orders yet. Browse our rackets, balls and club gear.
+                </p>
+                <button
+                  type="button"
+                  onClick={onClose}
+                  className="px-4 py-2 rounded-xl text-xs font-bold bg-slate-900 hover:bg-sky-600 text-white transition-all shadow-sm"
+                >
+                  Explore Catalog
+                </button>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {orders.map((order) => {
+                  const badge = getStatusBadge(order.status);
+                  const isCancellable =
+                    ["PENDING", "CONFIRMED", "PROCESSING"].includes(order.status.toUpperCase());
+                  const isUnpaid = order.payment_status?.toUpperCase() === "PENDING";
+
+                  return (
+                    <div
+                      key={order.id}
+                      className="p-5 rounded-2xl bg-slate-50 border border-slate-200 hover:border-slate-300 transition-all space-y-4 shadow-2xs"
+                    >
+                      {/* Top Row: Ref, Date, Status */}
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 pb-3 border-b border-slate-200/80">
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <span className="font-mono font-black text-sm text-sky-700">
+                              {order.order_reference}
+                            </span>
+                            {badge}
+                          </div>
+                          <div className="flex items-center gap-2 text-[11px] text-slate-500 mt-1">
+                            <Calendar className="w-3.5 h-3.5" />
+                            <span>
+                              {new Date(order.created_at).toLocaleDateString("en-IN", {
+                                day: "numeric",
+                                month: "short",
+                                year: "numeric",
+                                hour: "2-digit",
+                                minute: "2-digit",
+                              })}
+                            </span>
+                          </div>
+                        </div>
+
+                        <div className="text-left sm:text-right">
+                          <span className="text-xs text-slate-500 block">Total Amount</span>
+                          <span className="text-base font-black text-slate-900 font-[family-name:var(--font-outfit)]">
+                            ₹{order.total_amount.toLocaleString()}
                           </span>
                         </div>
-                        <p className="text-[11px] text-slate-400 mt-0.5 flex items-center gap-1.5">
-                          <Calendar className="w-3 h-3 text-slate-500" />
-                          <span>
-                            {(order as any).created_at
-                              ? new Date((order as any).created_at).toLocaleDateString("en-IN", {
-                                  day: "numeric",
-                                  month: "short",
-                                  year: "numeric",
-                                })
-                              : "Recent Order"}
-                          </span>
-                          <span>•</span>
-                          <span>{order.fulfillment_type}</span>
-                        </p>
                       </div>
 
-                      <div className="flex items-center gap-2 self-start sm:self-auto">
-                        <span className="text-base font-black text-white font-[family-name:var(--font-outfit)]">
-                          ₹{Number(order.total_amount).toLocaleString()}
-                        </span>
-                      </div>
-                    </div>
-
-                    {/* Items List */}
-                    <div className="space-y-2">
-                      <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500">
-                        Purchased Items ({order.items?.length || 0})
-                      </p>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                        {order.items?.map((item, idx) => (
+                      {/* Items Brief */}
+                      <div className="space-y-2">
+                        {order.items?.map((item) => (
                           <div
-                            key={idx}
-                            className="p-2.5 rounded-xl bg-slate-900 border border-slate-800/80 flex justify-between items-center text-xs"
+                            key={item.id}
+                            className="flex justify-between items-center text-xs text-slate-700 bg-white p-2.5 rounded-xl border border-slate-200/70"
                           >
-                            <div className="truncate max-w-[190px]">
-                              <span className="font-bold text-slate-200 block truncate">
-                                {item.product_name}
+                            <div className="truncate pr-2">
+                              <span className="font-black text-slate-900 mr-1">
+                                {item.quantity}x
                               </span>
-                              <span className="text-[10px] text-slate-400 font-mono">
-                                SKU: {item.product_sku} (Qty: {item.quantity})
+                              <span className="font-semibold">{item.product_name}</span>
+                              <span className="text-[10px] text-slate-500 font-mono ml-2">
+                                ({item.product_sku})
                               </span>
                             </div>
-                            <span className="font-mono font-bold text-slate-200 shrink-0">
-                              ₹{Number(item.total_price).toLocaleString()}
+                            <span className="font-bold shrink-0 text-slate-900">
+                              ₹{item.total_price.toLocaleString()}
                             </span>
                           </div>
                         ))}
                       </div>
-                    </div>
 
-                    {/* Bottom Status & Actions Bar */}
-                    <div className="pt-2 border-t border-slate-800/60 flex flex-wrap items-center justify-between gap-3 text-xs">
-                      <div className="flex items-center gap-2">
-                        {order.fulfillment_type === "DELIVERY" ? (
-                          <span className="text-[11px] text-slate-400 flex items-center gap-1">
-                            <Truck className="w-3.5 h-3.5 text-sky-400" />
-                            <span>Courier to: {order.delivery_address || "Provided Address"}</span>
-                          </span>
-                        ) : (
-                          <span className="text-[11px] text-slate-400 flex items-center gap-1">
-                            <Store className="w-3.5 h-3.5 text-emerald-400" />
-                            <span>Hold for Pro Shop Counter Pickup</span>
-                          </span>
-                        )}
+                      {/* Fulfillment & Notes info */}
+                      <div className="flex flex-wrap items-center justify-between gap-2 text-[11px] text-slate-500 pt-1">
+                        <span className="flex items-center gap-1.5 font-medium">
+                          {order.fulfillment_type === "DELIVERY" ? (
+                            <>
+                              <Truck className="w-3.5 h-3.5 text-sky-600" />
+                              <span>Delivery to: {order.delivery_address || "Provided address"}</span>
+                            </>
+                          ) : (
+                            <>
+                              <Store className="w-3.5 h-3.5 text-emerald-600" />
+                              <span>Club Pro Shop Desk Pickup</span>
+                            </>
+                          )}
+                        </span>
+
+                        <span className="font-bold text-slate-700">
+                          Payment: {order.payment_status} ({order.payment_method})
+                        </span>
                       </div>
 
-                      {/* Action Buttons */}
-                      <div className="flex items-center gap-2 ml-auto">
+                      {/* Unpaid Action / Cancel Action Row */}
+                      <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-200">
                         {isUnpaid && order.status !== "CANCELLED" && (
                           <button
                             type="button"
-                            onClick={() => onPayUnpaidOrder(order)}
-                            className="px-3.5 py-1.5 rounded-xl text-xs font-black bg-gradient-to-r from-sky-500 to-blue-600 text-white shadow-md shadow-sky-500/20 hover:scale-102 transition-all flex items-center gap-1.5"
+                            onClick={() => {
+                              onClose();
+                              onPayUnpaidOrder(order);
+                            }}
+                            className="px-3.5 py-1.5 rounded-xl text-xs font-black bg-sky-600 hover:bg-sky-500 text-white shadow-sm transition-all flex items-center gap-1.5"
                           >
                             <CreditCard className="w-3.5 h-3.5" />
-                            <span>Pay Now</span>
+                            <span>Pay Now (₹{order.total_amount.toLocaleString()})</span>
                           </button>
                         )}
 
-                        {isCancellable && (
-                          <div>
+                        {isCancellable && order.status !== "CANCELLED" && (
+                          <button
+                            type="button"
+                            disabled={cancellingOrderId === order.id}
+                            onClick={() => {
+                              if (confirm("Are you sure you want to cancel this order and restore stock?")) {
+                                handleCancelOrder(order.id);
+                              }
+                            }}
+                            className="px-3 py-1.5 rounded-xl text-xs font-bold text-slate-500 hover:text-rose-600 hover:bg-rose-50 border border-slate-200 transition-colors disabled:opacity-50"
+                          >
                             {cancellingOrderId === order.id ? (
-                              <div className="flex items-center gap-2">
-                                <input
-                                  type="text"
-                                  value={cancelReason}
-                                  onChange={(e) => setCancelReason(e.target.value)}
-                                  placeholder="Reason"
-                                  className="px-2.5 py-1 rounded-lg text-xs bg-slate-900 border border-slate-700 text-white"
-                                />
-                                <button
-                                  type="button"
-                                  onClick={() => handleCancelOrder(order.id)}
-                                  disabled={isSubmittingCancel}
-                                  className="px-3 py-1 rounded-lg text-xs font-black bg-rose-600 text-white hover:bg-rose-500 transition-colors"
-                                >
-                                  {isSubmittingCancel ? "Cancelling..." : "Confirm"}
-                                </button>
-                                <button
-                                  type="button"
-                                  onClick={() => setCancellingOrderId(null)}
-                                  className="px-2 py-1 text-xs text-slate-400 hover:text-white"
-                                >
-                                  Back
-                                </button>
-                              </div>
+                              <Loader2 className="w-3.5 h-3.5 animate-spin" />
                             ) : (
-                              <button
-                                type="button"
-                                onClick={() => setCancellingOrderId(order.id)}
-                                className="px-3 py-1.5 rounded-xl text-xs font-bold text-slate-400 hover:text-rose-400 hover:bg-slate-900 border border-slate-800 transition-colors"
-                              >
-                                Cancel Order
-                              </button>
+                              <span>Cancel Order</span>
                             )}
-                          </div>
+                          </button>
                         )}
                       </div>
                     </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        </aside>
       </div>
     </div>
   );

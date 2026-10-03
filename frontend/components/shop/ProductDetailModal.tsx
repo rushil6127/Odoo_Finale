@@ -1,5 +1,6 @@
 /**
  * Champions Club — Pro Shop Product Detail Modal
+ * Luxury Light Theme matching Champions Club design system
  */
 
 "use client";
@@ -79,16 +80,16 @@ export default function ProductDetailModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 overflow-y-auto bg-slate-950/80 backdrop-blur-md animate-in fade-in duration-200">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 overflow-y-auto bg-slate-950/40 backdrop-blur-sm animate-in fade-in duration-200">
       <div
         onClick={(e) => e.stopPropagation()}
-        className="relative w-full max-w-2xl bg-slate-900 border border-slate-800 rounded-3xl p-6 sm:p-8 shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200"
+        className="relative w-full max-w-2xl bg-white border border-slate-200 rounded-3xl p-6 sm:p-8 shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200 text-slate-900"
       >
         {/* Close Button */}
         <button
           type="button"
           onClick={onClose}
-          className="absolute top-4 right-4 p-2 rounded-2xl bg-slate-800/80 hover:bg-slate-700 text-slate-400 hover:text-white transition-colors z-10"
+          className="absolute top-4 right-4 p-2 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-500 hover:text-slate-900 transition-colors z-10"
         >
           <X className="w-5 h-5" />
         </button>
@@ -96,7 +97,7 @@ export default function ProductDetailModal({
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8 items-start">
           {/* Left Media Column */}
           <div className="space-y-3">
-            <div className="relative w-full h-64 sm:h-72 rounded-2xl overflow-hidden bg-slate-950 border border-slate-800 flex items-center justify-center shadow-inner">
+            <div className="relative w-full h-64 sm:h-72 rounded-2xl overflow-hidden bg-slate-50 border border-slate-200 flex items-center justify-center shadow-inner">
               {product.image_url ? (
                 <Image
                   src={product.image_url}
@@ -107,10 +108,10 @@ export default function ProductDetailModal({
                 />
               ) : (
                 <div className="text-center p-6 space-y-2">
-                  <div className="w-16 h-16 rounded-2xl bg-sky-500/10 border border-sky-500/20 text-sky-400 flex items-center justify-center mx-auto shadow-inner">
+                  <div className="w-16 h-16 rounded-2xl bg-sky-50 border border-sky-200 text-sky-600 flex items-center justify-center mx-auto shadow-2xs">
                     <ShoppingBag className="w-8 h-8" />
                   </div>
-                  <p className="text-xs font-black uppercase tracking-widest text-slate-400">
+                  <p className="text-xs font-black uppercase tracking-widest text-slate-500">
                     {categoryName}
                   </p>
                 </div>
@@ -119,15 +120,15 @@ export default function ProductDetailModal({
               {/* Status Badge */}
               <div className="absolute top-3 left-3">
                 {isOutOfStock ? (
-                  <span className="px-3 py-1 rounded-full text-xs font-black uppercase bg-rose-500 text-white shadow-sm">
+                  <span className="px-3 py-1 rounded-full text-xs font-black uppercase bg-rose-50 text-rose-700 border border-rose-200 shadow-2xs">
                     Out of Stock
                   </span>
                 ) : isLowStock ? (
-                  <span className="px-3 py-1 rounded-full text-xs font-black uppercase bg-amber-500 text-slate-950 shadow-sm animate-pulse">
+                  <span className="px-3 py-1 rounded-full text-xs font-black uppercase bg-amber-50 text-amber-800 border border-amber-300 shadow-2xs animate-pulse">
                     Only {product.stock_quantity} Available
                   </span>
                 ) : (
-                  <span className="px-3 py-1 rounded-full text-xs font-black uppercase bg-emerald-500 text-slate-950 shadow-sm">
+                  <span className="px-3 py-1 rounded-full text-xs font-black uppercase bg-emerald-50 text-emerald-800 border border-emerald-200 shadow-2xs">
                     {product.stock_quantity} In Stock
                   </span>
                 )}
@@ -135,130 +136,135 @@ export default function ProductDetailModal({
             </div>
 
             {/* Quality Assurance Badges */}
-            <div className="grid grid-cols-2 gap-2 text-[11px] font-semibold text-slate-400">
-              <div className="p-2.5 rounded-xl bg-slate-950/60 border border-slate-800 flex items-center gap-2">
-                <ShieldCheck className="w-4 h-4 text-sky-400 shrink-0" />
-                <span>100% Authentic</span>
+            <div className="grid grid-cols-2 gap-2 text-[11px] font-semibold text-slate-600">
+              <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-200/80 flex items-center gap-2">
+                <ShieldCheck className="w-4 h-4 text-sky-600 shrink-0" />
+                <span>100% Genuine Tour Gear</span>
               </div>
-              <div className="p-2.5 rounded-xl bg-slate-950/60 border border-slate-800 flex items-center gap-2">
-                <Truck className="w-4 h-4 text-emerald-400 shrink-0" />
-                <span>Club Pickup & Delivery</span>
+              <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-200/80 flex items-center gap-2">
+                <Truck className="w-4 h-4 text-emerald-600 shrink-0" />
+                <span>Pickup or Direct Delivery</span>
               </div>
             </div>
           </div>
 
-          {/* Right Product Info Column */}
+          {/* Right Product Details & Actions */}
           <div className="space-y-4">
             <div>
-              <div className="flex items-center gap-2 mb-1">
-                <span className="px-2 py-0.5 rounded-md bg-slate-800 text-[10px] font-mono font-bold text-slate-300">
-                  {product.sku}
+              <div className="flex items-center gap-2 mb-1.5">
+                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-sky-50 border border-sky-200 text-sky-700">
+                  {categoryName}
                 </span>
-                <span className="text-xs font-bold text-sky-400">{categoryName}</span>
+                <span className="text-[11px] font-mono text-slate-500">
+                  SKU: {product.sku}
+                </span>
               </div>
-              <h2 className="text-xl sm:text-2xl font-black text-white font-[family-name:var(--font-outfit)] leading-tight">
+              <h2 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight font-[family-name:var(--font-outfit)]">
                 {product.name}
               </h2>
             </div>
 
-            {/* Price Section */}
-            <div className="p-4 rounded-2xl bg-slate-950 border border-slate-800/80 space-y-1.5">
-              <div className="flex items-baseline gap-2.5">
-                <span className="text-2xl font-black text-white font-[family-name:var(--font-outfit)]">
+            {/* Description */}
+            <div className="text-xs sm:text-sm text-slate-600 leading-relaxed max-h-36 overflow-y-auto pr-1">
+              {product.description ||
+                "Official Champions Club pro shop performance gear. Tested and approved for tournament competition and masterclass training."}
+            </div>
+
+            {/* Price & Savings */}
+            <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/90 space-y-1">
+              <div className="flex items-baseline justify-between">
+                <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+                  List Price:
+                </span>
+                <span className="text-2xl font-black text-slate-900 font-[family-name:var(--font-outfit)]">
                   ₹{Number(product.price).toLocaleString()}
                 </span>
-                <span className="text-xs text-slate-400 font-bold">List Price (Inc. Taxes)</span>
               </div>
               {estimatedDiscountPct > 0 ? (
-                <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-300 text-xs font-extrabold">
-                  <Crown className="w-3 h-3 text-amber-400" />
-                  <span>
-                    {planName} Member Benefit: {estimatedDiscountPct}% Discount Applied at Checkout
+                <div className="pt-2 border-t border-slate-200/80 flex items-center justify-between text-xs">
+                  <span className="font-extrabold text-amber-800 flex items-center gap-1.5">
+                    <Crown className="w-3.5 h-3.5 text-amber-600" />
+                    <span>Member Privilege ({estimatedDiscountPct}% Off)</span>
+                  </span>
+                  <span className="font-black text-sky-600">
+                    ≈ ₹{Math.round(product.price * (1 - estimatedDiscountPct / 100)).toLocaleString()}
                   </span>
                 </div>
               ) : (
-                <p className="text-[11px] text-slate-400">
-                  Member discounts are calculated dynamically by backend rules upon checkout.
+                <p className="text-[11px] text-slate-500 pt-1">
+                  Member discounts will be calculated on server at checkout.
                 </p>
               )}
             </div>
 
-            {/* Description */}
-            <div className="space-y-1">
-              <p className="text-xs font-bold uppercase tracking-wider text-slate-400">Description</p>
-              <p className="text-xs text-slate-300 leading-relaxed max-h-32 overflow-y-auto pr-1">
-                {product.description ||
-                  "Tour-grade equipment meeting international sporting federation standards with precision balance and performance durability."}
-              </p>
-            </div>
-
-            {/* Quantity Controls & Action Buttons */}
-            <div className="pt-3 border-t border-slate-800 space-y-3">
-              {!isOutOfStock && (
-                <div className="flex items-center justify-between gap-4">
-                  <span className="text-xs font-bold text-slate-300">Select Quantity:</span>
-                  <div className="inline-flex items-center bg-slate-950 border border-slate-800 rounded-xl p-1">
-                    <button
-                      type="button"
-                      onClick={() => setQuantity((q) => Math.max(1, q - 1))}
-                      disabled={quantity <= 1}
-                      className="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-white hover:bg-slate-800 disabled:opacity-30 transition-colors"
-                    >
-                      <Minus className="w-3.5 h-3.5" />
-                    </button>
-                    <span className="w-8 text-center text-sm font-black text-white select-none">
-                      {quantity}
-                    </span>
-                    <button
-                      type="button"
-                      onClick={() =>
-                        setQuantity((q) => Math.min(product.stock_quantity, q + 1))
-                      }
-                      disabled={quantity >= product.stock_quantity}
-                      className="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-white hover:bg-slate-800 disabled:opacity-30 transition-colors"
-                    >
-                      <Plus className="w-3.5 h-3.5" />
-                    </button>
-                  </div>
-                </div>
-              )}
-
-              <div className="flex gap-2">
-                <button
-                  type="button"
-                  onClick={handleAdd}
-                  disabled={isOutOfStock}
-                  className={`flex-1 py-3 px-4 rounded-xl text-xs font-black transition-all flex items-center justify-center gap-2 ${
-                    isOutOfStock
-                      ? "bg-slate-800 text-slate-500 cursor-not-allowed"
-                      : justAdded
-                      ? "bg-emerald-500 text-slate-950 shadow-md shadow-emerald-500/20"
-                      : "bg-slate-800 hover:bg-slate-700 text-white border border-slate-700"
-                  }`}
-                >
-                  {justAdded ? (
-                    <>
-                      <Check className="w-4 h-4 stroke-[3]" />
-                      <span>Added to Cart</span>
-                    </>
-                  ) : (
-                    <>
-                      <ShoppingBag className="w-4 h-4" />
-                      <span>Add to Cart</span>
-                    </>
-                  )}
-                </button>
-
-                {!isOutOfStock && (
+            {/* Quantity Selector */}
+            {!isOutOfStock && (
+              <div className="flex items-center justify-between gap-4 pt-1">
+                <span className="text-xs font-bold text-slate-700">Quantity:</span>
+                <div className="inline-flex items-center bg-slate-100 border border-slate-200 rounded-xl p-1">
                   <button
                     type="button"
-                    onClick={handleBuyNow}
-                    className="flex-1 py-3 px-4 rounded-xl text-xs font-black bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-400 hover:to-blue-500 text-white shadow-md shadow-sky-500/20 transition-all active:scale-95"
+                    onClick={() => setQuantity((q) => Math.max(1, q - 1))}
+                    disabled={quantity <= 1}
+                    className="w-8 h-8 rounded-lg flex items-center justify-center text-slate-600 hover:text-slate-900 hover:bg-white disabled:opacity-30 transition-colors shadow-2xs"
                   >
-                    Proceed to Checkout
+                    <Minus className="w-3.5 h-3.5" />
                   </button>
-                )}
+                  <span className="w-10 text-center text-sm font-black text-slate-900">
+                    {quantity}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setQuantity((q) => Math.min(product.stock_quantity, q + 1))
+                    }
+                    disabled={quantity >= product.stock_quantity}
+                    className="w-8 h-8 rounded-lg flex items-center justify-center text-slate-600 hover:text-slate-900 hover:bg-white disabled:opacity-30 transition-colors shadow-2xs"
+                  >
+                    <Plus className="w-3.5 h-3.5" />
+                  </button>
+                </div>
               </div>
+            )}
+
+            {/* Actions */}
+            <div className="flex gap-2.5 pt-2">
+              <button
+                type="button"
+                onClick={handleAdd}
+                disabled={isOutOfStock}
+                className={`flex-1 py-3 px-4 rounded-xl text-xs font-black transition-all flex items-center justify-center gap-2 ${
+                  isOutOfStock
+                    ? "bg-slate-100 text-slate-400 border border-slate-200 cursor-not-allowed"
+                    : justAdded
+                    ? "bg-emerald-600 text-white shadow-md"
+                    : "bg-slate-900 hover:bg-slate-800 text-white shadow-sm"
+                }`}
+              >
+                {isOutOfStock ? (
+                  <span>Out of Stock</span>
+                ) : justAdded ? (
+                  <>
+                    <Check className="w-4 h-4 stroke-[3]" />
+                    <span>Added to Cart!</span>
+                  </>
+                ) : (
+                  <>
+                    <ShoppingBag className="w-4 h-4" />
+                    <span>Add to Cart</span>
+                  </>
+                )}
+              </button>
+
+              {!isOutOfStock && (
+                <button
+                  type="button"
+                  onClick={handleBuyNow}
+                  className="flex-1 py-3 px-4 rounded-xl text-xs font-black bg-sky-600 hover:bg-sky-500 text-white shadow-md shadow-sky-600/25 transition-all"
+                >
+                  Instant Checkout
+                </button>
+              )}
             </div>
           </div>
         </div>

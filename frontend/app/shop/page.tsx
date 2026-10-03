@@ -1,37 +1,28 @@
 /**
  * Champions Club — Member-Facing Pro Shop Main Application (/shop)
- *
- * Full-featured member commerce boutique:
- * - Real-time inventory synchronization from backend
- * - Category tabs, live search & multi-criterion sorter
- * - Stock availability states (In Stock, Low Stock, Out of Stock)
- * - Persistent Cart with automatic server quote & member tier discounts
- * - Checkout with Pickup & Delivery fulfillment validation
- * - Online payment via Razorpay test gateway with backend verification
- * - Order confirmation and complete order history tracking
+ * Luxury Light Theme matching the entire Champions Club design system
  */
 
 "use client";
 
 import { useState, useEffect, useCallback, useMemo } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
   ShoppingBag,
   Sparkles,
   Search,
-  Filter,
-  Package,
   AlertTriangle,
   RotateCcw,
   Loader2,
-  Crown,
-  Zap,
-  ArrowRight,
+  ChevronLeft,
 } from "lucide-react";
 import { apiClient } from "@/lib/api/client";
 import { useCurrentUser } from "@/lib/auth";
 import { useCart } from "@/lib/cart/useCart";
 
+import Navbar from "@/components/landing/Navbar";
+import Footer from "@/components/landing/Footer";
 import ProShopHeader from "@/components/shop/ProShopHeader";
 import CategoryFilterBar, { CategoryOption } from "@/components/shop/CategoryFilterBar";
 import ProductCard, { BackendProduct } from "@/components/shop/ProductCard";
@@ -57,7 +48,6 @@ export default function ProShopPage() {
     updateQuantity,
     removeFromCart,
     clearCart,
-    refreshQuote,
   } = useCart();
 
   // Data states
@@ -105,7 +95,7 @@ export default function ProShopPage() {
           }))
         );
       } else {
-        // Fallback default category tabs
+        // Default category tabs
         setCategories([
           { id: "1", name: "Rackets", slug: "rackets" },
           { id: "2", name: "Balls & Shuttles", slug: "balls" },
@@ -118,15 +108,32 @@ export default function ProShopPage() {
       // Set products
       const rawProducts = Array.isArray(prodRes)
         ? prodRes
-        : (prodRes as any)?.products || (prodRes as any)?.data || [];
+        : prodRes && Array.isArray(prodRes.products)
+        ? prodRes.products
+        : [];
 
-      if (Array.isArray(rawProducts)) {
-        setProducts(rawProducts);
-      } else {
-        setProducts([]);
-      }
+      // Map backend products
+      const mapped = rawProducts.map((p: any) => ({
+        id: p.id,
+        sku: p.sku || `SKU-${p.id}`,
+        name: p.name,
+        category_id: p.category_id,
+        category: p.category,
+        price: typeof p.price === "number" ? p.price : parseFloat(p.price || "0"),
+        cost_price: p.cost_price ? parseFloat(p.cost_price) : undefined,
+        stock_quantity: p.stock_quantity ?? 0,
+        low_stock_threshold: p.low_stock_threshold || 5,
+        description: p.description,
+        barcode: p.barcode,
+        image_url: p.image_url || null,
+        is_active: p.is_active ?? true,
+        is_low_stock: (p.stock_quantity ?? 0) <= (p.low_stock_threshold || 5) && (p.stock_quantity ?? 0) > 0,
+        is_out_of_stock: (p.stock_quantity ?? 0) <= 0,
+      }));
+
+      setProducts(mapped);
     } catch (err: any) {
-      setLoadError(err?.message || "Failed to load Pro Shop products. Ensure backend is active.");
+      setLoadError(err?.message || "Failed to load boutique catalog. Please verify connection.");
     } finally {
       setIsLoading(false);
     }
@@ -136,51 +143,58 @@ export default function ProShopPage() {
     fetchShopData();
   }, [fetchShopData]);
 
-  // Filter & Sort Pipeline
+  // Filter and sort products
   const filteredProducts = useMemo(() => {
-    return products
-      .filter((product) => {
-        // Category filter
-        if (selectedCategory !== "ALL") {
-          const catSlug = product.category?.slug?.toLowerCase() || "";
-          if (catSlug !== selectedCategory.toLowerCase()) return false;
-        }
+    return products.filter((p) => {
+      // Category filter
+      if (selectedCategory !== "ALL") {
+        const prodCatSlug = p.category?.slug?.toLowerCase() || "";
+        const prodCatName = p.category?.name?.toLowerCase() || "";
+        const sel = selectedCategory.toLowerCase();
+        const matchesCategory =
+          prodCatSlug.includes(sel) ||
+          prodCatName.includes(sel) ||
+          (sel === "rackets" && (p.name.toLowerCase().includes("racket") || p.name.toLowerCase().includes("pure") || p.name.toLowerCase().includes("staff") || p.name.toLowerCase().includes("astrox"))) ||
+          (sel === "balls" && (p.name.toLowerCase().includes("ball") || p.name.toLowerCase().includes("shuttle"))) ||
+          (sel === "shoes" && (p.name.toLowerCase().includes("shoe") || p.name.toLowerCase().includes("barricade"))) ||
+          (sel === "apparel" && (p.name.toLowerCase().includes("polo") || p.name.toLowerCase().includes("shirt") || p.name.toLowerCase().includes("wear"))) ||
+          (sel === "accessories" && (p.name.toLowerCase().includes("grip") || p.name.toLowerCase().includes("string") || p.name.toLowerCase().includes("dampener")));
 
-        // In stock only filter
-        if (inStockOnly && product.stock_quantity <= 0) {
-          return false;
-        }
+        if (!matchesCategory) return false;
+      }
 
-        // Search query
-        if (searchQuery.trim()) {
-          const q = searchQuery.toLowerCase();
-          const matchName = product.name?.toLowerCase().includes(q);
-          const matchSku = product.sku?.toLowerCase().includes(q);
-          const matchDesc = product.description?.toLowerCase().includes(q);
-          const matchCat = product.category?.name?.toLowerCase().includes(q);
-          if (!matchName && !matchSku && !matchDesc && !matchCat) return false;
-        }
+      // Search filter
+      if (searchQuery.trim()) {
+        const q = searchQuery.toLowerCase().trim();
+        const matchesSearch =
+          p.name.toLowerCase().includes(q) ||
+          p.sku.toLowerCase().includes(q) ||
+          (p.description && p.description.toLowerCase().includes(q)) ||
+          (p.category?.name && p.category.name.toLowerCase().includes(q));
+        if (!matchesSearch) return false;
+      }
 
-        return true;
-      })
-      .sort((a, b) => {
-        if (sortBy === "price_asc") return Number(a.price) - Number(b.price);
-        if (sortBy === "price_desc") return Number(b.price) - Number(a.price);
-        if (sortBy === "stock") return b.stock_quantity - a.stock_quantity;
-        return a.id - b.id; // default featured
-      });
-  }, [products, selectedCategory, inStockOnly, searchQuery, sortBy]);
+      // In stock only filter
+      if (inStockOnly && p.stock_quantity <= 0) {
+        return false;
+      }
 
-  // Handlers
-  const handleAddToCart = (product: BackendProduct, quantity = 1) => {
+      return true;
+    }).sort((a, b) => {
+      if (sortBy === "price_asc") return a.price - b.price;
+      if (sortBy === "price_desc") return b.price - a.price;
+      if (sortBy === "stock") return b.stock_quantity - a.stock_quantity;
+      return 0; // featured default
+    });
+  }, [products, selectedCategory, searchQuery, sortBy, inStockOnly]);
+
+  const handleAddToCart = (product: BackendProduct, quantity: number) => {
     addToCart(
       {
         id: product.id,
-        sku: product.sku,
         name: product.name,
-        categoryName: product.category?.name,
-        categorySlug: product.category?.slug,
-        price: Number(product.price),
+        sku: product.sku,
+        price: product.price,
         stockQuantity: product.stock_quantity,
         imageUrl: product.image_url,
       },
@@ -188,7 +202,7 @@ export default function ProShopPage() {
     );
   };
 
-  const handleInstantCheckout = (product: BackendProduct, quantity = 1) => {
+  const handleInstantCheckout = (product: BackendProduct, quantity: number) => {
     handleAddToCart(product, quantity);
     setSelectedDetailProduct(null);
     if (!isAuthenticated) {
@@ -221,7 +235,7 @@ export default function ProShopPage() {
     fetchShopData(); // refresh stock numbers
   };
 
-  const handleOrderCancelled = (cancelledOrder: CreatedOrderResponse) => {
+  const handleOrderCancelled = () => {
     setIsPaymentOpen(false);
     setActiveOrder(null);
     fetchShopData(); // refresh restored stock
@@ -242,40 +256,63 @@ export default function ProShopPage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col selection:bg-sky-500 selection:text-white">
-      {/* Top Header Navigation */}
-      <ProShopHeader
-        cartCount={totalItemsCount}
-        onOpenCart={() => setIsCartOpen(true)}
-        onOpenOrders={handleOpenMyOrders}
-      />
+    <div className="min-h-screen bg-slate-50/70 text-slate-900 flex flex-col selection:bg-sky-200 selection:text-sky-900 font-sans">
+      {/* Ambient background decoration */}
+      <div className="fixed inset-0 pointer-events-none overflow-hidden">
+        <div className="absolute -top-40 -right-40 w-[600px] h-[600px] rounded-full bg-sky-400/5 blur-3xl" />
+        <div className="absolute top-1/2 -left-60 w-[500px] h-[500px] rounded-full bg-emerald-400/5 blur-3xl" />
+        <div className="absolute bottom-0 right-1/4 w-[500px] h-[500px] rounded-full bg-amber-400/5 blur-3xl" />
+      </div>
 
-      {/* Hero Banner Showcase */}
-      <section className="relative overflow-hidden bg-gradient-to-b from-slate-900 to-slate-950 border-b border-slate-800/80 py-10 sm:py-14">
-        {/* Glow Spheres */}
-        <div className="absolute top-0 right-1/4 w-96 h-96 bg-sky-500/10 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute bottom-0 left-1/4 w-96 h-96 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none" />
-
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
-          <div className="max-w-2xl space-y-3">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-gradient-to-r from-sky-500/20 to-blue-500/20 border border-sky-500/30 text-sky-400 text-xs font-black uppercase tracking-wider">
-              <Sparkles className="w-3.5 h-3.5 text-sky-400" />
-              <span>Official Match & Workshop Store</span>
-            </div>
-
-            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black text-white font-[family-name:var(--font-outfit)] tracking-tight leading-tight">
-              Tour Equipment, Rackets & Club Merchandise
-            </h1>
-
-            <p className="text-xs sm:text-sm text-slate-300 leading-relaxed max-w-xl">
-              Equip yourself with authorized Wilson, Babolat, Head, and Yonex performance gear with real-time stock allocation and digital member tier discounts.
-            </p>
-          </div>
-        </div>
-      </section>
+      {/* Main Global Floating Pill Navbar */}
+      <Navbar />
 
       {/* Main Catalog View Container */}
-      <main className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6 w-full">
+      <main className="relative z-10 flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 sm:pt-32 pb-16 space-y-6 w-full">
+        {/* Navigation Breadcrumb */}
+        <div className="flex items-center gap-2 text-xs text-slate-500">
+          <Link href="/" className="hover:text-sky-600 transition-colors flex items-center gap-1">
+            <ChevronLeft className="w-3.5 h-3.5" />
+            <span>Home</span>
+          </Link>
+          <span>/</span>
+          <span className="text-slate-800 font-bold">The Pro Shop</span>
+        </div>
+
+        {/* Hero Banner Showcase — Luxury Light Theme */}
+        <div className="relative rounded-3xl overflow-hidden border border-slate-200/90 bg-white p-6 sm:p-10 shadow-sm">
+          <div className="absolute top-0 right-0 w-96 h-96 bg-gradient-to-br from-sky-400/10 via-blue-500/5 to-transparent rounded-full blur-3xl pointer-events-none" />
+
+          <div className="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+            <div className="max-w-2xl space-y-2.5">
+              <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-sky-50 border border-sky-200/80 text-sky-700 text-xs font-bold uppercase tracking-wider">
+                <Sparkles className="w-3.5 h-3.5 text-sky-600" />
+                <span>Authorized Performance Boutique</span>
+              </div>
+
+              <h1 className="text-2xl sm:text-4xl lg:text-5xl font-black text-slate-900 font-[family-name:var(--font-outfit)] tracking-tight leading-tight">
+                Tour Equipment, Rackets &{" "}
+                <span className="bg-gradient-to-r from-sky-600 via-blue-700 to-sky-800 bg-clip-text text-transparent">
+                  Club Merchandise
+                </span>
+              </h1>
+
+              <p className="text-xs sm:text-sm text-slate-600 leading-relaxed max-w-xl">
+                Equip yourself with authorized Wilson, Babolat, Head, and Yonex performance gear with real-time stock allocation and digital member tier discounts.
+              </p>
+            </div>
+
+            {/* Quick Action Strip embedded inside Hero */}
+            <div className="shrink-0 w-full lg:w-auto">
+              <ProShopHeader
+                cartCount={totalItemsCount}
+                onOpenCart={() => setIsCartOpen(true)}
+                onOpenOrders={handleOpenMyOrders}
+              />
+            </div>
+          </div>
+        </div>
+
         {/* Stock Conflict Banner */}
         <StockErrorBanner
           errorMessage={stockErrorMessage}
@@ -300,37 +337,37 @@ export default function ProShopPage() {
         {/* Product Grid Content */}
         {isLoading ? (
           <div className="py-24 text-center space-y-4">
-            <Loader2 className="w-10 h-10 text-sky-400 animate-spin mx-auto" />
+            <Loader2 className="w-10 h-10 text-sky-600 animate-spin mx-auto" />
             <div>
-              <h3 className="text-base font-bold text-white">Loading Pro Shop Inventory...</h3>
-              <p className="text-xs text-slate-400 mt-1">Connecting to club warehouse database.</p>
+              <h3 className="text-base font-bold text-slate-900">Loading Pro Shop Inventory...</h3>
+              <p className="text-xs text-slate-500 mt-1">Connecting to club warehouse database.</p>
             </div>
           </div>
         ) : loadError ? (
-          <div className="py-16 text-center space-y-4 max-w-md mx-auto p-8 rounded-3xl bg-slate-900 border border-slate-800 shadow-xl">
-            <div className="w-12 h-12 rounded-2xl bg-rose-500/10 border border-rose-500/20 text-rose-400 flex items-center justify-center mx-auto">
+          <div className="py-16 text-center space-y-4 max-w-md mx-auto p-8 rounded-3xl bg-white border border-slate-200 shadow-sm">
+            <div className="w-12 h-12 rounded-2xl bg-rose-50 border border-rose-200 text-rose-600 flex items-center justify-center mx-auto">
               <AlertTriangle className="w-6 h-6" />
             </div>
             <div>
-              <h3 className="text-base font-bold text-white">Unable to Load Inventory</h3>
-              <p className="text-xs text-slate-400 mt-1">{loadError}</p>
+              <h3 className="text-base font-bold text-slate-900">Unable to Load Inventory</h3>
+              <p className="text-xs text-slate-500 mt-1">{loadError}</p>
             </div>
             <button
               type="button"
               onClick={fetchShopData}
-              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-black bg-sky-600 hover:bg-sky-500 text-white transition-all shadow-md shadow-sky-600/20"
+              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-black bg-slate-900 hover:bg-sky-600 text-white transition-all shadow-sm"
             >
               <RotateCcw className="w-4 h-4" />
               <span>Retry Connection</span>
             </button>
           </div>
         ) : filteredProducts.length === 0 ? (
-          <div className="py-20 text-center space-y-3 p-8 rounded-3xl bg-slate-900/60 border border-slate-800/80">
-            <div className="w-16 h-16 rounded-3xl bg-slate-800 flex items-center justify-center mx-auto text-slate-500">
+          <div className="py-20 text-center space-y-3 p-8 rounded-3xl bg-white border border-slate-200/90 shadow-sm">
+            <div className="w-16 h-16 rounded-3xl bg-slate-100 flex items-center justify-center mx-auto text-slate-400">
               <Search className="w-8 h-8" />
             </div>
-            <h3 className="text-base font-bold text-white">No Products Matched Your Criteria</h3>
-            <p className="text-xs text-slate-400 max-w-sm mx-auto">
+            <h3 className="text-base font-bold text-slate-900">No Products Matched Your Criteria</h3>
+            <p className="text-xs text-slate-500 max-w-sm mx-auto">
               Try adjusting your category filter or search keywords to find available items.
             </p>
             <button
@@ -340,13 +377,13 @@ export default function ProShopPage() {
                 setSearchQuery("");
                 setInStockOnly(false);
               }}
-              className="px-4 py-2 rounded-xl text-xs font-bold bg-slate-800 text-slate-200 hover:text-white"
+              className="px-4 py-2 rounded-xl text-xs font-bold bg-slate-100 text-slate-800 hover:bg-slate-200 transition-colors"
             >
               Reset Filters
             </button>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {filteredProducts.map((product) => (
               <ProductCard
                 key={product.id}
@@ -359,6 +396,9 @@ export default function ProShopPage() {
           </div>
         )}
       </main>
+
+      {/* Global Footer matching the rest of the site */}
+      <Footer />
 
       {/* Product Detail Modal */}
       <ProductDetailModal
@@ -379,8 +419,8 @@ export default function ProShopPage() {
         isQuoteLoading={isQuoteLoading}
         quoteError={quoteError}
         currentUser={currentUser}
-        onUpdateQuantity={updateQuantity}
-        onRemoveItem={removeFromCart}
+        onUpdateQuantity={(pid, qty) => updateQuantity(pid, qty)}
+        onRemoveItem={(pid) => removeFromCart(pid)}
         onClearCart={clearCart}
         onProceedToCheckout={handleProceedToCheckout}
       />
@@ -393,10 +433,10 @@ export default function ProShopPage() {
         quote={quote}
         currentUser={currentUser}
         onOrderCreated={handleOrderCreated}
-        onStockError={handleStockError}
+        onStockConflict={handleStockError}
       />
 
-      {/* Online Payment Modal */}
+      {/* Payment Gateway Modal */}
       <PaymentModal
         order={activeOrder}
         isOpen={isPaymentOpen}
@@ -405,27 +445,22 @@ export default function ProShopPage() {
         onOrderCancelled={handleOrderCancelled}
       />
 
-      {/* Order Confirmation Screen */}
+      {/* Order Confirmation Modal */}
       <OrderConfirmationModal
         order={activeOrder}
         isOpen={isConfirmationOpen}
-        onClose={() => {
-          setIsConfirmationOpen(false);
-          setActiveOrder(null);
-        }}
+        onClose={() => setIsConfirmationOpen(false)}
         onViewMyOrders={() => {
           setIsConfirmationOpen(false);
-          setActiveOrder(null);
           setIsOrdersOpen(true);
         }}
       />
 
-      {/* My Orders History Modal */}
+      {/* My Orders History Drawer */}
       <MyOrdersModal
         isOpen={isOrdersOpen}
         onClose={() => setIsOrdersOpen(false)}
         onPayUnpaidOrder={(order) => {
-          setIsOrdersOpen(false);
           setActiveOrder(order);
           setIsPaymentOpen(true);
         }}

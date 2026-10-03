@@ -1,5 +1,6 @@
 /**
  * Champions Club — Pro Shop Category Bar, Live Search & Sorter
+ * Luxury Light Theme matching Champions Club design system
  */
 
 "use client";
@@ -47,17 +48,17 @@ export default function CategoryFilterBar({
   return (
     <div className="space-y-4">
       {/* Category Pills Slider */}
-      <div className="flex items-center gap-2 overflow-x-auto pb-1.5 scrollbar-none select-none">
+      <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none select-none">
         <button
           type="button"
           onClick={() => onSelectCategory("ALL")}
           className={`shrink-0 inline-flex items-center gap-2 px-4 py-2 rounded-2xl text-xs font-black transition-all duration-200 ${
             selectedCategory === "ALL"
-              ? "bg-sky-600 text-white shadow-md shadow-sky-600/30 scale-[1.02]"
-              : "bg-slate-900/90 text-slate-300 border border-slate-800 hover:bg-slate-800 hover:text-white"
+              ? "bg-slate-900 text-white shadow-sm scale-[1.02]"
+              : "bg-white text-slate-700 border border-slate-200/90 hover:bg-slate-50 hover:border-slate-300 shadow-2xs"
           }`}
         >
-          <Sparkles className="w-3.5 h-3.5" />
+          <Sparkles className="w-3.5 h-3.5 text-sky-400" />
           <span>All Collection</span>
         </button>
 
@@ -70,8 +71,8 @@ export default function CategoryFilterBar({
               onClick={() => onSelectCategory(cat.slug)}
               className={`shrink-0 inline-flex items-center gap-2 px-4 py-2 rounded-2xl text-xs font-bold transition-all duration-200 ${
                 isActive
-                  ? "bg-sky-600 text-white shadow-md shadow-sky-600/30 scale-[1.02]"
-                  : "bg-slate-900/90 text-slate-300 border border-slate-800 hover:bg-slate-800 hover:text-white"
+                  ? "bg-slate-900 text-white shadow-sm scale-[1.02]"
+                  : "bg-white text-slate-700 border border-slate-200/90 hover:bg-slate-50 hover:border-slate-300 shadow-2xs"
               }`}
             >
               <span>{cat.name}</span>
@@ -81,7 +82,7 @@ export default function CategoryFilterBar({
       </div>
 
       {/* Search, Sort & Availability Row */}
-      <div className="bg-slate-900/80 border border-slate-800/80 rounded-2xl p-3 sm:p-4 shadow-sm flex flex-col md:flex-row gap-3 items-stretch md:items-center justify-between">
+      <div className="bg-white border border-slate-200/90 rounded-2xl sm:rounded-3xl p-3.5 sm:p-4 shadow-sm flex flex-col md:flex-row gap-3 items-stretch md:items-center justify-between">
         {/* Search Input */}
         <div className="relative flex-1 max-w-md">
           <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
@@ -90,13 +91,13 @@ export default function CategoryFilterBar({
             value={searchQuery}
             onChange={(e) => onSearchChange(e.target.value)}
             placeholder="Search gear by name, brand, SKU or specification..."
-            className="w-full pl-9 pr-9 py-2 rounded-xl text-xs bg-slate-950 border border-slate-800 text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-sky-500/30 focus:border-sky-500 transition-all"
+            className="w-full pl-9 pr-9 py-2.5 rounded-xl text-xs bg-slate-50 border border-slate-200 text-slate-900 placeholder-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 transition-all"
           />
           {searchQuery && (
             <button
               type="button"
               onClick={() => onSearchChange("")}
-              className="absolute right-3 top-1/2 -translate-y-1/2 p-0.5 rounded-full text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
+              className="absolute right-3 top-1/2 -translate-y-1/2 p-1 rounded-full text-slate-400 hover:text-slate-700 hover:bg-slate-200 transition-colors"
               title="Clear search"
             >
               <X className="w-3.5 h-3.5" />
@@ -110,20 +111,20 @@ export default function CategoryFilterBar({
           <button
             type="button"
             onClick={onToggleInStockOnly}
-            className={`inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold transition-all border ${
+            className={`inline-flex items-center gap-2 px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all border ${
               inStockOnly
-                ? "bg-emerald-500/15 border-emerald-500/40 text-emerald-400"
-                : "bg-slate-950 border-slate-800 text-slate-400 hover:text-slate-200"
+                ? "bg-emerald-50 border-emerald-300 text-emerald-800 shadow-2xs"
+                : "bg-slate-50 border-slate-200 text-slate-600 hover:text-slate-900 hover:bg-slate-100"
             }`}
           >
             <div
-              className={`w-3.5 h-3.5 rounded flex items-center justify-center border ${
+              className={`w-4 h-4 rounded flex items-center justify-center border transition-colors ${
                 inStockOnly
-                  ? "bg-emerald-500 border-emerald-500 text-slate-950"
-                  : "border-slate-700 bg-slate-900"
+                  ? "bg-emerald-600 border-emerald-600 text-white"
+                  : "border-slate-300 bg-white"
               }`}
             >
-              {inStockOnly && <Check className="w-2.5 h-2.5 stroke-[3]" />}
+              {inStockOnly && <Check className="w-3 h-3 stroke-[3]" />}
             </div>
             <span>In Stock Only</span>
           </button>
@@ -135,7 +136,7 @@ export default function CategoryFilterBar({
                 value={sortBy}
                 onChange={(e) => onSortChange(e.target.value as any)}
                 aria-label="Sort products"
-                className="appearance-none pl-8 pr-8 py-2 rounded-xl text-xs font-bold bg-slate-950 border border-slate-800 text-slate-200 focus:outline-none focus:ring-2 focus:ring-sky-500/30 cursor-pointer"
+                className="appearance-none pl-8 pr-8 py-2.5 rounded-xl text-xs font-bold bg-slate-50 border border-slate-200 text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 cursor-pointer transition-all"
               >
                 <option value="featured">Featured Catalog</option>
                 <option value="price_asc">Price: Low to High</option>
@@ -146,7 +147,7 @@ export default function CategoryFilterBar({
             </div>
           </div>
 
-          <span className="text-[11px] font-bold text-slate-500 hidden lg:inline">
+          <span className="text-[11px] font-bold text-slate-500 hidden lg:inline pl-1">
             {totalProductsCount} item{totalProductsCount !== 1 ? "s" : ""}
           </span>
         </div>
