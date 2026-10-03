@@ -1,9 +1,57 @@
+import time
+from collections import defaultdict
+from threading import Lock
 from typing import Tuple, Optional
+from flask import has_request_context, request
 from flask_jwt_extended import create_access_token
 from backend.app.extensions import db
 from backend.app.auth.models import User
 from backend.app.common.permissions import RoleEnum
-from backend.app.common.errors import UnauthorizedException, ConflictException, NotFoundException
+from backend.app.common.errors import (
+    UnauthorizedException,
+    ConflictException,
+    NotFoundException,
+    TooManyRequestsException,
+)
+
+_failed_attempts = defaultdict(list)
+_throttle_lock = Lock()
+MAX_FAILED_ATTEMPTS = 5
+LOCKOUT_WINDOW_SECONDS = 300  # 5 minutes
+
+
+def _get_throttle_key(email: str) -> str:
+    ip = "unknown"
+    if has_request_context() and request.remote_addr:
+        ip = request.remote_addr
+    return f"{ip}:{email.lower().strip()}"
+
+
+def _check_rate_limit(key: str) -> None:
+    now = time.time()
+    with _throttle_lock:
+        _failed_attempts[key] = [t for t in _failed_attempts[key] if now - t < LOCKOUT_WINDOW_SECONDS]
+        if len(_failed_attempts[key]) >= MAX_FAILED_ATTEMPTS:
+            raise TooManyRequestsException(
+                "Too many failed login attempts. Please try again after 5 minutes."
+            )
+
+
+def _record_failed_attempt(key: str) -> None:
+    now = time.time()
+    with _throttle_lock:
+        _failed_attempts[key].append(now)
+
+
+def _record_successful_login(key: str) -> None:
+    with _throttle_lock:
+        if key in _failed_attempts:
+            del _failed_attempts[key]
+
+
+def reset_login_throttle() -> None:
+    with _throttle_lock:
+        _failed_attempts.clear()
 
 
 OWNER_EMAILS = {"pushplamba104@gmail.com", "admin@championsclub.in"}
@@ -57,20 +105,27 @@ def create_user(
 
 def authenticate_user(email: str, password: str) -> Tuple[User, str]:
     """Authenticate user credentials and issue a JWT access token."""
+    throttle_key = _get_throttle_key(email)
+    _check_rate_limit(throttle_key)
+
     normalized_email = email.lower().strip()
     user = get_user_by_email(normalized_email)
 
     # Use a generic error message for invalid credentials to avoid enumeration
     if user is None or not user.check_password(password):
+        _record_failed_attempt(throttle_key)
         raise UnauthorizedException("Invalid email or password.")
 
     if not user.is_active:
+        _record_failed_attempt(throttle_key)
         raise UnauthorizedException("Account is disabled. Please contact club administration.")
 
     # Ensure designated owners maintain OWNER role
     if normalized_email in OWNER_EMAILS and user.role != RoleEnum.OWNER:
         user.role = RoleEnum.OWNER
         db.session.commit()
+
+    _record_successful_login(throttle_key)
 
     role_val = user.role.value if hasattr(user.role, "value") else str(user.role)
     access_token = create_access_token(
