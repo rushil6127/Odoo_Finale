@@ -16,6 +16,14 @@ from backend.app.memberships import (  # noqa: F401
 from backend.app.courts import courts_bp, seed_courts_command, Court  # noqa: F401
 from backend.app.bookings import bookings_bp, Booking, CourtOccupancy  # noqa: F401
 from backend.app.payments import payments_bp, Payment, PaymentAudit, PaymentWebhookEvent  # noqa: F401
+from backend.app.inventory import (  # noqa: F401
+    inventory_bp,
+    ProductCategory,
+    Product,
+    InventoryMovement,
+    MovementType,
+    seed_inventory_command,
+)
 
 
 def create_app(config_name: str = None) -> Flask:
@@ -60,10 +68,12 @@ def create_app(config_name: str = None) -> Flask:
     app.register_blueprint(courts_bp)
     app.register_blueprint(bookings_bp)
     app.register_blueprint(payments_bp)
+    app.register_blueprint(inventory_bp)
 
     # Register CLI commands
     app.cli.add_command(create_owner_command)
     app.cli.add_command(seed_plans_command)
     app.cli.add_command(seed_courts_command)
+    app.cli.add_command(seed_inventory_command)
 
     return app
