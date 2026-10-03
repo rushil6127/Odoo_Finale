@@ -81,42 +81,16 @@ const getItemImage = (id: number, name: string = "", category: string = "") => {
   return "https://images.unsplash.com/photo-1513558161293-cdaf765ed2fd?w=200&h=200&fit=crop&q=80";
 };
 
-const MENU_ITEMS: MenuItem[] = [
-  { id: 1, name: "Berry Whey Protein Shake", category: "SMOOTHIES", price: 340, isPopular: true, calories: "320 kcal", image: "https://images.unsplash.com/photo-1553530666-ba11a7da3888?w=200&h=200&fit=crop&q=80" },
-  { id: 2, name: "Avocado & Grilled Chicken Bowl", category: "BOWLS", price: 480, isPopular: true, calories: "450 kcal", image: "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=200&h=200&fit=crop&q=80" },
-  { id: 3, name: "Double Shot Cortado & Almond Milk", category: "COFFEE", price: 260, calories: "90 kcal", image: "https://images.unsplash.com/photo-1534778101976-62847782c213?w=200&h=200&fit=crop&q=80" },
-  { id: 4, name: "Coconut Electrolyte Hydration Pitcher", category: "DRINKS", price: 220, isPopular: true, calories: "80 kcal", image: "https://images.unsplash.com/photo-1513558161293-cdaf765ed2fd?w=200&h=200&fit=crop&q=80" },
-  { id: 5, name: "Artisanal Club Sandwich & Sweet Potato Fries", category: "MAINS", price: 420, calories: "520 kcal", image: "https://images.unsplash.com/photo-1528735602780-2552fd46c7af?w=200&h=200&fit=crop&q=80" },
-  { id: 6, name: "Matcha Recovery Smoothie", category: "SMOOTHIES", price: 360, calories: "290 kcal", image: "https://images.unsplash.com/photo-1536256263959-770b48d82b0a?w=200&h=200&fit=crop&q=80" },
-  { id: 7, name: "Mediterranean Hummus & Falafel Wrap", category: "MAINS", price: 390, calories: "410 kcal", image: "https://images.unsplash.com/photo-1626700051175-6818013e1d4f?w=200&h=200&fit=crop&q=80" },
-  { id: 8, name: "Acai Superfood Bowl with Chia", category: "BOWLS", price: 450, isPopular: true, calories: "380 kcal", image: "https://images.unsplash.com/photo-1590301157890-4810ed352733?w=200&h=200&fit=crop&q=80" },
-  { id: 9, name: "Iced Cold Brew Tonic", category: "COFFEE", price: 280, calories: "40 kcal", image: "https://images.unsplash.com/photo-1517701550927-30cf4ba1dba5?w=200&h=200&fit=crop&q=80" },
-  { id: 10, name: "Craft Wheat Beer Pint", category: "DRINKS", price: 490, calories: "210 kcal", image: "https://images.unsplash.com/photo-1535958636474-b021ee887b13?w=200&h=200&fit=crop&q=80" },
-];
-
 interface CartItem extends MenuItem {
   qty: number;
 }
 
-const TABLES = [
-  { id: "T1", name: "Table 1 (Lounge)", status: "OPEN" },
-  { id: "T2", name: "Table 2 (Lounge)", status: "OCCUPIED" },
-  { id: "T3", name: "Table 3 (Courtside)", status: "OCCUPIED" },
-  { id: "T4", name: "Table 4 (Courtside)", status: "OPEN" },
-  { id: "VIP1", name: "VIP Cabana Poolside", status: "OCCUPIED" },
-  { id: "BAR1", name: "Bar Stool 1", status: "OPEN" },
-];
-
 export default function POSPage() {
-  const [tables, setTables] = useState(TABLES);
-  const [menuItems, setMenuItems] = useState<MenuItem[]>(MENU_ITEMS);
-  const [activeTable, setActiveTable] = useState("T3");
+  const [tables, setTables] = useState<{ id: string; name: string; status: string }[]>([]);
+  const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
+  const [activeTable, setActiveTable] = useState("");
   const [selectedCat, setSelectedCat] = useState<string>("ALL");
-  const [cart, setCart] = useState<CartItem[]>([
-    { ...MENU_ITEMS[0], qty: 2 },
-    { ...MENU_ITEMS[1], qty: 1 },
-    { ...MENU_ITEMS[3], qty: 1 },
-  ]);
+  const [cart, setCart] = useState<CartItem[]>([]);
   const [orderSent, setOrderSent] = useState(false);
   const [showPayModal, setShowPayModal] = useState(false);
   const [paymentSuccess, setPaymentSuccess] = useState(false);
@@ -140,7 +114,14 @@ export default function POSPage() {
             status: t.status === "OCCUPIED" ? "OCCUPIED" : "OPEN",
           }));
           setTables(mappedTables);
+          if (mappedTables.length > 0) {
+            setActiveTable(mappedTables[0].id);
+          }
+        } else {
+          setTables([]);
         }
+      } else {
+        setTables([]);
       }
 
       if (menuRes.status === "fulfilled" && menuRes.value) {
@@ -167,10 +148,15 @@ export default function POSPage() {
             };
           });
           setMenuItems(mappedMenu);
+        } else {
+          setMenuItems([]);
         }
+      } else {
+        setMenuItems([]);
       }
     } catch (err) {
-      console.log("Using seeded fallback POS data:", err);
+      setTables([]);
+      setMenuItems([]);
     } finally {
       setLoading(false);
     }
@@ -213,7 +199,6 @@ export default function POSPage() {
   const handleCompletePayment = async (method: string) => {
     try {
       setActionLoading(true);
-      // Attempt backend tab payment recording
       await apiClient.post<any>("/payments", {
         item_type: "POS_BAR_CAFE",
         amount: grandTotal,
@@ -226,13 +211,8 @@ export default function POSPage() {
         setShowPayModal(false);
         setPaymentSuccess(false);
       }, 2000);
-    } catch (err) {
-      setPaymentSuccess(true);
-      setTimeout(() => {
-        setCart([]);
-        setShowPayModal(false);
-        setPaymentSuccess(false);
-      }, 2000);
+    } catch (err: any) {
+      alert(err?.message || "Failed to process POS payment with backend.");
     } finally {
       setActionLoading(false);
     }
@@ -264,7 +244,7 @@ export default function POSPage() {
         {/* Table Selector Pills */}
         <div className="flex flex-wrap items-center gap-1.5">
           <span className="text-xs font-black text-slate-400 uppercase tracking-wider mr-1">Table:</span>
-          {TABLES.map((t) => (
+          {tables.map((t) => (
             <button
               key={t.id}
               type="button"

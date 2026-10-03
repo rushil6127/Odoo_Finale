@@ -1,6 +1,6 @@
 import enum
 import threading
-from datetime import date, datetime
+from datetime import date, datetime, time, timedelta
 from decimal import Decimal
 from typing import Optional, Dict, Any, List, Tuple
 
@@ -841,17 +841,27 @@ def get_daily_sales_report(target_date: Optional[date] = None) -> Dict[str, Any]
     if target_date is None:
         target_date = utc_now().date()
 
+    target_str = target_date.isoformat()
+    start_dt = datetime.combine(target_date - timedelta(days=1), time(12, 0))
+    end_dt = datetime.combine(target_date + timedelta(days=1), time(12, 0))
+
     # 1. Closed tabs on target date
     closed_tabs = POSTab.query.filter(
         POSTab.status == TabStatus.CLOSED,
-        func.date(POSTab.closed_at) == target_date,
+        or_(
+            func.date(POSTab.closed_at) == target_str,
+            (POSTab.closed_at >= start_dt) & (POSTab.closed_at <= end_dt)
+        )
     ).all()
 
     # 2. Paid payments on target date for POS_ORDER
     paid_payments = Payment.query.filter(
         Payment.item_type == PaymentItemType.POS_ORDER,
         Payment.status == PaymentStatus.PAID,
-        func.date(Payment.paid_at) == target_date,
+        or_(
+            func.date(Payment.paid_at) == target_str,
+            (Payment.paid_at >= start_dt) & (Payment.paid_at <= end_dt)
+        )
     ).all()
 
     total_gross = sum((tab.subtotal_amount for tab in closed_tabs), Decimal("0.00"))

@@ -637,12 +637,12 @@ export function enrichUserProfile(parsed: any): (AuthUserProfile & AuthUser) | n
   if (!parsed.membershipStatus) parsed.membershipStatus = "ACTIVE";
   if (!parsed.membershipExpiry) parsed.membershipExpiry = "March 31, 2027";
   if (!parsed.joinDate) parsed.joinDate = "January 15, 2024";
-  if (parsed.walletBalance === undefined) parsed.walletBalance = 8500;
-  if (parsed.clubTabsOutstanding === undefined) parsed.clubTabsOutstanding = 1250;
-  if (!parsed.crmInquiries || !Array.isArray(parsed.crmInquiries)) parsed.crmInquiries = DEMO_MEMBERS.alex.crmInquiries;
-  if (!parsed.orders || !Array.isArray(parsed.orders)) parsed.orders = DEMO_MEMBERS.alex.orders;
-  if (!parsed.bookings || !Array.isArray(parsed.bookings)) parsed.bookings = DEMO_MEMBERS.alex.bookings;
-  if (!parsed.payments || !Array.isArray(parsed.payments)) parsed.payments = DEMO_MEMBERS.alex.payments;
+  if (parsed.walletBalance === undefined) parsed.walletBalance = 0;
+  if (parsed.clubTabsOutstanding === undefined) parsed.clubTabsOutstanding = 0;
+  if (!parsed.crmInquiries || !Array.isArray(parsed.crmInquiries)) parsed.crmInquiries = [];
+  if (!parsed.orders || !Array.isArray(parsed.orders)) parsed.orders = [];
+  if (!parsed.bookings || !Array.isArray(parsed.bookings)) parsed.bookings = [];
+  if (!parsed.payments || !Array.isArray(parsed.payments)) parsed.payments = [];
 
   return parsed as (AuthUserProfile & AuthUser);
 }

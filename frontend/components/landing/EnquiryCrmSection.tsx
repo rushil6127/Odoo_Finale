@@ -49,10 +49,8 @@ export default function EnquiryCrmSection() {
       });
       setSubmitted(true);
     } catch (err: any) {
-      // If error or unauthenticated, still provide friendly feedback
       console.error("CRM lead capture error:", err);
-      // Fallback: accept submission locally if network issue
-      setSubmitted(true);
+      setError(err?.message || "Unable to submit your enquiry at this time. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -141,6 +139,13 @@ export default function EnquiryCrmSection() {
                       Fill out the form below to reserve your complimentary session
                     </p>
                   </div>
+
+                  {error && (
+                    <div className="flex items-center gap-2 p-3 rounded-xl bg-red-50 text-red-700 text-xs border border-red-200">
+                      <AlertCircle className="w-4 h-4 shrink-0" />
+                      <span>{error}</span>
+                    </div>
+                  )}
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>

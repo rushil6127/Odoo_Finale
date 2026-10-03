@@ -2633,3 +2633,102 @@ The system enforces 7 distinct hierarchical roles:
 ```
 - **Business Rules:** N/A
 
+
+---
+
+## Employees Endpoints (`/api/v1/employees`)
+
+### Export Employees Excel
+- **Endpoint:** `GET /api/v1/employees/export`
+- **Authentication:** Required
+- **Role Requirement:** (TODO: Fill role)
+- **Query Parameters:** (TODO: Fill params)
+- **Success Response:**
+```json
+{
+  "success": true,
+  "data": {}
+}
+```
+- **Business Rules:** (TODO: Add rules)
+
+### Export Employees Excel
+- **Endpoint:** `GET /api/v1/employees/export/excel`
+- **Authentication:** Required
+- **Role Requirement:** (TODO: Fill role)
+- **Query Parameters:** (TODO: Fill params)
+- **Success Response:**
+```json
+{
+  "success": true,
+  "data": {}
+}
+```
+- **Business Rules:** (TODO: Add rules)
+
+
+---
+
+## Members Endpoints (`/api/v1/members`)
+
+### Export Members Excel
+- **Endpoint:** `GET /api/v1/members/export`
+- **Authentication:** Required
+- **Role Requirement:** (TODO: Fill role)
+- **Query Parameters:** (TODO: Fill params)
+- **Success Response:**
+```json
+{
+  "success": true,
+  "data": {}
+}
+```
+- **Business Rules:** (TODO: Add rules)
+
+### Export Members Excel
+- **Endpoint:** `GET /api/v1/members/export/excel`
+- **Authentication:** Required
+- **Role Requirement:** (TODO: Fill role)
+- **Query Parameters:** (TODO: Fill params)
+- **Success Response:**
+```json
+{
+  "success": true,
+  "data": {}
+}
+```
+- **Business Rules:** (TODO: Add rules)
+
+
+---
+
+## Reports Endpoints (`/api/v1/reports`)
+
+### Export Excel Download
+- **Endpoint:** `GET /api/v1/reports/export/download`
+- **Authentication:** Required
+- **Role Requirement:** (TODO: Fill role)
+- **Query Parameters:** (TODO: Fill params)
+- **Success Response:**
+```json
+{
+  "success": true,
+  "data": {}
+}
+```
+- **Business Rules:** (TODO: Add rules)
+
+### Export Excel Download
+- **Endpoint:** `GET /api/v1/reports/export/excel`
+- **Authentication:** Required
+- **Role Requirement:** (TODO: Fill role)
+- **Query Parameters:** (TODO: Fill params)
+- **Success Response:**
+```json
+{
+  "success": true,
+  "data": {}
+}
+```
+- **Business Rules:** (TODO: Add rules)
+

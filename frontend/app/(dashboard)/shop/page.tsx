@@ -55,19 +55,8 @@ const getProductCategoryIcon = (category: string) => {
   }
 };
 
-const PRODUCTS: Product[] = [
-  { id: 1, name: "Yonex Astrox 99 Pro Badminton Racket", category: "RACKETS", brand: "Yonex", price: 18500, stock: 12, rating: 4.9, inStock: true, image: "https://images.unsplash.com/photo-1626224583764-f87db24ac4ea?w=200&h=200&fit=crop&q=80" },
-  { id: 2, name: "Wilson Pro Staff 97 v14 Tennis Racket", category: "RACKETS", brand: "Wilson", price: 24000, stock: 8, rating: 5.0, inStock: true, image: "https://images.unsplash.com/photo-1599474924187-334a4ae5bd3c?w=200&h=200&fit=crop&q=80" },
-  { id: 3, name: "Yonex Aerosensa 50 Feather Shuttlecocks (Tube of 12)", category: "BALLS_SHUTTLES", brand: "Yonex", price: 2600, stock: 48, rating: 4.8, inStock: true, image: "https://images.unsplash.com/photo-1521537634581-0dced2fee2ef?w=200&h=200&fit=crop&q=80" },
-  { id: 4, name: "Slazenger Wimbledon Championship Tennis Balls (Can of 4)", category: "BALLS_SHUTTLES", brand: "Slazenger", price: 850, stock: 34, rating: 4.9, inStock: true, image: "https://images.unsplash.com/photo-1595435934249-5df7ed86e1c0?w=200&h=200&fit=crop&q=80" },
-  { id: 5, name: "Champions Club Signature Tech Dri-FIT Polo", category: "APPAREL", brand: "Champions Club", price: 3200, stock: 25, rating: 4.7, inStock: true, image: "https://images.unsplash.com/photo-1581655353564-df123a1eb820?w=200&h=200&fit=crop&q=80" },
-  { id: 6, name: "Speedo Vanquisher 2.0 Mirrored Swimming Goggles", category: "ACCESSORIES", brand: "Speedo", price: 2900, stock: 15, rating: 4.8, inStock: true, image: "https://images.unsplash.com/photo-1576610616656-d3aa5d1f4534?w=200&h=200&fit=crop&q=80" },
-  { id: 7, name: "Precision Racket Restringing (Yonex BG65 Ti)", category: "SERVICES", brand: "Club Pro Stringer", price: 850, stock: 99, rating: 5.0, inStock: true, image: "https://images.unsplash.com/photo-1587280501635-68a0e82cd5ff?w=200&h=200&fit=crop&q=80" },
-  { id: 8, name: "SS Ton Master English Willow Cricket Bat", category: "RACKETS", brand: "SS Sunridges", price: 16500, stock: 4, rating: 4.9, inStock: true, image: "https://images.unsplash.com/photo-1540747913346-19e32dc3e97e?w=200&h=200&fit=crop&q=80" },
-];
-
 export default function ShopPage() {
-  const [products, setProducts] = useState<Product[]>(PRODUCTS);
+  const [products, setProducts] = useState<Product[]>([]);
   const [selectedCat, setSelectedCat] = useState<string>("ALL");
   const [searchQuery, setSearchQuery] = useState("");
   const [showAddModal, setShowAddModal] = useState(false);
@@ -104,9 +93,11 @@ export default function ShopPage() {
           inStock: (p.stock_quantity ?? p.stock ?? 1) > 0,
         }));
         setProducts(mapped);
+      } else {
+        setProducts([]);
       }
     } catch (err) {
-      console.log("Using seeded fallback products:", err);
+      setProducts([]);
     } finally {
       setLoading(false);
     }
@@ -131,22 +122,9 @@ export default function ShopPage() {
       });
       setShowAddModal(false);
       setNewName("");
-      fetchProducts();
-    } catch (err) {
-      // Optimistic fallback append
-      const newP: Product = {
-        id: Date.now(),
-        name: newName.trim(),
-        brand: newBrand,
-        category: newCategory,
-        price: Number(newPrice),
-        stock: Number(newStock),
-        rating: 5.0,
-        inStock: Number(newStock) > 0,
-      };
-      setProducts([newP, ...products]);
-      setShowAddModal(false);
-      setNewName("");
+      await fetchProducts();
+    } catch (err: any) {
+      alert(err?.message || "Failed to create product in database.");
     } finally {
       setActionLoading(false);
     }

@@ -40,14 +40,6 @@ interface Lead {
   notes: string;
 }
 
-const INITIAL_LEADS: Lead[] = [
-  { id: 1, name: "Rajesh Singhania", email: "rajesh.s@singhania-group.com", phone: "+91 99000 11223", interestedPlan: "Black Card VIP", source: "Executive Referral", stage: "PROPOSAL_SENT", notes: "Interested in corporate court package & cabana access." },
-  { id: 2, name: "Dr. Sunita Deshmukh", email: "sunita.ortho@med.org", phone: "+91 99111 22334", interestedPlan: "Platinum Elite", source: "Instagram Ad", stage: "TRIAL_SCHEDULED", notes: "Lawn tennis trial session booked for Sunday 9 AM." },
-  { id: 3, name: "Karan Johar", email: "karan.j@productions.in", phone: "+91 99222 33445", interestedPlan: "Gold Club", source: "Website Lead Form", stage: "NEW_INQUIRY", notes: "Inquired about badminton coaching for family." },
-  { id: 4, name: "Meera Kapoor", email: "meera.kapoor@art.com", phone: "+91 99333 44556", interestedPlan: "Platinum Elite", source: "Club Walk-in", stage: "TOUR_COMPLETED", notes: "Toured pool and Olympic fitness center. Loved facilities." },
-  { id: 5, name: "Sameer Nambiar", email: "sameer.n@tech.io", phone: "+91 99444 55667", interestedPlan: "Black Card VIP", source: "Owner Direct Invite", stage: "CONVERTED", notes: "Membership payment verified. Activated." },
-];
-
 const STAGES = [
   { id: "NEW_INQUIRY", title: "New Inquiries", bg: "bg-sky-50 border-sky-200 text-sky-800" },
   { id: "TRIAL_SCHEDULED", title: "Trial Scheduled", bg: "bg-amber-50 border-amber-200 text-amber-800" },
@@ -57,7 +49,7 @@ const STAGES = [
 ];
 
 export default function CRMPage() {
-  const [leads, setLeads] = useState<Lead[]>(INITIAL_LEADS);
+  const [leads, setLeads] = useState<Lead[]>([]);
   const [loading, setLoading] = useState(false);
   const [actionLoading, setActionLoading] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);
@@ -113,9 +105,11 @@ export default function CRMPage() {
           notes: l.initial_message || l.notes || "Lead registered through concierge.",
         }));
         setLeads(mapped);
+      } else {
+        setLeads([]);
       }
     } catch (err: any) {
-      console.log("Using seeded fallback leads:", err);
+      setLeads([]);
     } finally {
       setLoading(false);
     }
@@ -131,7 +125,7 @@ export default function CRMPage() {
 
     try {
       setActionLoading(true);
-      const res = await apiClient.post<any>("/crm/leads", {
+      await apiClient.post<any>("/crm/leads", {
         first_name: firstName.trim(),
         last_name: lastName.trim() || undefined,
         email: email.trim() || undefined,
@@ -149,22 +143,9 @@ export default function CRMPage() {
       setEmail("");
       setPhone("");
       setNotes("");
-      fetchLeads();
+      await fetchLeads();
     } catch (err: any) {
-      // Local fallback append
-      const newLead: Lead = {
-        id: Date.now(),
-        name: `${firstName} ${lastName}`.trim(),
-        email: email || "—",
-        phone: phone || "—",
-        interestedPlan: interestedPlan,
-        source: source,
-        stage: "NEW_INQUIRY",
-        notes: notes || "New prospect.",
-      };
-      setLeads([newLead, ...leads]);
-      setShowAddModal(false);
-      showToast("success", `Lead '${firstName}' added to pipeline.`);
+      showToast("error", err?.message || "Failed to create lead in database.");
     } finally {
       setActionLoading(false);
     }
@@ -178,16 +159,9 @@ export default function CRMPage() {
       });
       showToast("success", "Lead converted to active club member!");
       setSelectedLead(null);
-      fetchLeads();
+      await fetchLeads();
     } catch (err: any) {
-      // Optimistic update
-      setLeads((prev) =>
-        prev.map((l) => (l.id === leadId ? { ...l, stage: "CONVERTED" } : l))
-      );
-      if (selectedLead?.id === leadId) {
-        setSelectedLead((prev) => (prev ? { ...prev, stage: "CONVERTED" } : null));
-      }
-      showToast("success", "Lead marked as Converted.");
+      showToast("error", err?.message || "Failed to convert lead in database.");
     } finally {
       setActionLoading(false);
     }

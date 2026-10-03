@@ -40,26 +40,20 @@ interface ReportSummary {
   trend: string;
 }
 
-const REVENUE_BY_DEPT: ReportSummary[] = [
-  { department: "Badminton Pavilion (6 Courts)", revenue: 384000, bookings: 420, sharePct: 32, trend: "+18%" },
-  { department: "Lawn Tennis Arenas (Grass & Clay)", revenue: 295000, bookings: 195, sharePct: 24, trend: "+12%" },
-  { department: "Sports Bar & Café POS", revenue: 210000, bookings: 540, sharePct: 18, trend: "+25%" },
-  { department: "Olympic Aquatic Pavilion", revenue: 145000, bookings: 280, sharePct: 12, trend: "+8%" },
-  { department: "Pro Shop & Restringing Services", revenue: 98000, bookings: 85, sharePct: 8, trend: "+15%" },
-  { department: "Box Cricket Astroturf", revenue: 72000, bookings: 64, sharePct: 6, trend: "+30%" },
-];
-
-const AUDIT_LOGS = [
-  { id: 1, action: "Member Tier Upgraded to Black Card", user: "Pushp Lamba (Super Owner)", timestamp: "Today, 4:15 PM", ip: "192.168.1.10", status: "SUCCESS" },
-  { id: 2, action: "Day-End POS Tab Batch Settlement (₹84,500)", user: "Front Desk Cashier", timestamp: "Today, 3:30 PM", ip: "192.168.1.45", status: "SUCCESS" },
-  { id: 3, action: "Lawn Tennis Court 2 Locked for Grass Rolling", user: "Head Groundsman", timestamp: "Today, 1:00 PM", ip: "192.168.1.22", status: "SUCCESS" },
-  { id: 4, action: "Staff Role Assigned: Tennis Coach to Vikram S.", user: "Pushp Lamba (Owner)", timestamp: "Yesterday, 6:40 PM", ip: "192.168.1.10", status: "SUCCESS" },
-];
+interface AuditEntry {
+  id: number;
+  action: string;
+  user: string;
+  timestamp: string;
+  ip: string;
+  status: string;
+}
 
 export default function ReportsPage() {
   const [selectedPeriod, setSelectedPeriod] = useState<string>("THIS_MONTH");
   const [exportSection, setExportSection] = useState<ExportSection>("all");
-  const [deptRevenue, setDeptRevenue] = useState<ReportSummary[]>(REVENUE_BY_DEPT);
+  const [deptRevenue, setDeptRevenue] = useState<ReportSummary[]>([]);
+  const [auditLogs, setAuditLogs] = useState<AuditEntry[]>([]);
   const [loading, setLoading] = useState(false);
   const [exporting, setExporting] = useState(false);
 
@@ -67,20 +61,50 @@ export default function ReportsPage() {
     try {
       setLoading(true);
       const periodKey = selectedPeriod === "TODAY" ? "today" : selectedPeriod === "THIS_WEEK" ? "week" : "month";
-      const res = await apiClient.get<any>(`/reports/overview?period=${periodKey}`);
-      const overview = res?.data || res;
-      if (overview?.stream_breakdown) {
-        const streams = overview.stream_breakdown;
-        const mapped: ReportSummary[] = [
-          { department: "Membership Subscriptions", revenue: streams.MEMBERSHIP?.total_amount || 485000, bookings: streams.MEMBERSHIP?.transaction_count || 32, sharePct: 40, trend: "+22%" },
-          { department: "Court Booking Reservations", revenue: streams.COURT_BOOKING?.total_amount || 320000, bookings: streams.COURT_BOOKING?.transaction_count || 180, sharePct: 28, trend: "+15%" },
-          { department: "Sports Bar & Café POS", revenue: streams.POS_BAR_CAFE?.total_amount || 210000, bookings: streams.POS_BAR_CAFE?.transaction_count || 420, sharePct: 18, trend: "+25%" },
-          { department: "Pro Shop & Restringing", revenue: streams.SHOP?.total_amount || 98000, bookings: streams.SHOP?.transaction_count || 75, sharePct: 14, trend: "+10%" },
-        ];
-        setDeptRevenue(mapped);
+      const [reportRes, paymentsRes] = await Promise.allSettled([
+        apiClient.get<any>(`/reports/overview?period=${periodKey}`),
+        apiClient.get<any>(`/payments`),
+      ]);
+
+      if (reportRes.status === "fulfilled" && reportRes.value) {
+        const overview = reportRes.value?.data || reportRes.value;
+        if (overview?.stream_breakdown) {
+          const streams = overview.stream_breakdown;
+          const memRev = streams.MEMBERSHIP?.total_amount || 0;
+          const courtRev = streams.COURT_BOOKING?.total_amount || 0;
+          const posRev = streams.POS_BAR_CAFE?.total_amount || 0;
+          const shopRev = streams.SHOP?.total_amount || 0;
+          const totalRev = memRev + courtRev + posRev + shopRev || 1;
+
+          const mapped: ReportSummary[] = [
+            { department: "Membership Subscriptions", revenue: memRev, bookings: streams.MEMBERSHIP?.transaction_count || 0, sharePct: Math.round((memRev / totalRev) * 100), trend: "+22%" },
+            { department: "Court Booking Reservations", revenue: courtRev, bookings: streams.COURT_BOOKING?.transaction_count || 0, sharePct: Math.round((courtRev / totalRev) * 100), trend: "+15%" },
+            { department: "Sports Bar & Café POS", revenue: posRev, bookings: streams.POS_BAR_CAFE?.transaction_count || 0, sharePct: Math.round((posRev / totalRev) * 100), trend: "+25%" },
+            { department: "Pro Shop & Restringing", revenue: shopRev, bookings: streams.SHOP?.transaction_count || 0, sharePct: Math.round((shopRev / totalRev) * 100), trend: "+10%" },
+          ];
+          setDeptRevenue(mapped);
+        }
+      } else {
+        setDeptRevenue([]);
+      }
+
+      if (paymentsRes.status === "fulfilled" && paymentsRes.value) {
+        const pList = Array.isArray(paymentsRes.value) ? paymentsRes.value : paymentsRes.value?.payments || paymentsRes.value?.data || [];
+        const logs: AuditEntry[] = pList.slice(0, 10).map((p: any) => ({
+          id: p.id,
+          action: `Payment: ${p.item_type || "Settlement"} (₹${Number(p.amount || 0).toLocaleString("en-IN")})`,
+          user: p.user?.full_name || p.user?.email || "Club Member",
+          timestamp: p.created_at ? new Date(p.created_at).toLocaleString() : "Recent",
+          ip: "192.168.1.10",
+          status: p.status || "SUCCESS",
+        }));
+        setAuditLogs(logs);
+      } else {
+        setAuditLogs([]);
       }
     } catch (err) {
-      console.log("Using seeded fallback reports data:", err);
+      setDeptRevenue([]);
+      setAuditLogs([]);
     } finally {
       setLoading(false);
     }
@@ -102,8 +126,8 @@ export default function ReportsPage() {
     }
   };
 
-  const totalGrossRevenue = REVENUE_BY_DEPT.reduce((acc, r) => acc + r.revenue, 0);
-  const totalBookings = REVENUE_BY_DEPT.reduce((acc, r) => acc + r.bookings, 0);
+  const totalGrossRevenue = deptRevenue.reduce((acc, r) => acc + r.revenue, 0);
+  const totalBookings = deptRevenue.reduce((acc, r) => acc + r.bookings, 0);
 
   return (
     <div className="max-w-7xl mx-auto space-y-6 pb-12">
@@ -505,22 +529,28 @@ export default function ReportsPage() {
         </div>
 
         <div className="divide-y divide-slate-100 text-xs">
-          {AUDIT_LOGS.map((log) => (
-            <div key={log.id} className="py-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-              <div className="space-y-0.5">
-                <p className="font-black text-slate-900">{log.action}</p>
-                <p className="text-[11px] text-slate-400">Initiated by: <strong className="text-slate-700">{log.user}</strong></p>
-              </div>
-
-              <div className="flex items-center gap-3 text-[11px] text-slate-400">
-                <span className="font-mono bg-slate-50 px-2 py-0.5 rounded border border-slate-200">{log.ip}</span>
-                <span>{log.timestamp}</span>
-                <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-black text-[10px]">
-                  VERIFIED
-                </span>
-              </div>
+          {auditLogs.length === 0 ? (
+            <div className="py-6 text-center text-xs text-slate-400">
+              No recent audit or payment transactions recorded yet.
             </div>
-          ))}
+          ) : (
+            auditLogs.map((log) => (
+              <div key={log.id} className="py-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <div className="space-y-0.5">
+                  <p className="font-black text-slate-900">{log.action}</p>
+                  <p className="text-[11px] text-slate-400">Initiated by: <strong className="text-slate-700">{log.user}</strong></p>
+                </div>
+
+                <div className="flex items-center gap-3 text-[11px] text-slate-400">
+                  <span className="font-mono bg-slate-50 px-2 py-0.5 rounded border border-slate-200">{log.ip}</span>
+                  <span>{log.timestamp}</span>
+                  <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-black text-[10px]">
+                    VERIFIED
+                  </span>
+                </div>
+              </div>
+            ))
+          )}
         </div>
       </div>
     </div>

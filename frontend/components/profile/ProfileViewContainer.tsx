@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
@@ -43,7 +43,8 @@ import {
   Building2,
   Key
 } from "lucide-react";
-import { useCurrentUser, setStoredUser, DEMO_MEMBERS, isStaffOrAdmin, isOwner, type AuthUserProfile } from "@/lib/auth";
+import { useCurrentUser, setStoredUser, isStaffOrAdmin, isOwner, type AuthUserProfile } from "@/lib/auth";
+import { apiClient } from "@/lib/api/client";
 import EmployeeProfileView from "@/components/profile/EmployeeProfileView";
 
 type TabType = "overview" | "calendar" | "crm" | "orders" | "bookings" | "payments" | "settings";
@@ -68,21 +69,99 @@ export default function ProfileViewContainer({ forcedMode }: ProfileViewContaine
   const [activeTab, setActiveTab] = useState<TabType>("overview");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  // Fallback demo member if unauthenticated or missing sub-arrays
-  const fallbackProfile = forcedMode === "employee" ? DEMO_MEMBERS.coach_david : DEMO_MEMBERS.alex;
+  // Real Database Member Data State
+  const [memberBookings, setMemberBookings] = useState<any[]>([]);
+  const [memberOrders, setMemberOrders] = useState<any[]>([]);
+  const [memberProfileData, setMemberProfileData] = useState<any>(null);
+  const [profileLoading, setProfileLoading] = useState(false);
+
+  useEffect(() => {
+    const fetchLiveMemberData = async () => {
+      try {
+        setProfileLoading(true);
+        const [meRes, bookingsRes, ordersRes] = await Promise.allSettled([
+          apiClient.get<any>("/members/me"),
+          apiClient.get<any>("/bookings/my-history"),
+          apiClient.get<any>("/shop/orders/my-orders"),
+        ]);
+
+        if (meRes.status === "fulfilled" && meRes.value) {
+          const mem = meRes.value?.member || meRes.value?.data || meRes.value;
+          setMemberProfileData(mem);
+        }
+
+        if (bookingsRes.status === "fulfilled" && bookingsRes.value) {
+          const bList = Array.isArray(bookingsRes.value)
+            ? bookingsRes.value
+            : bookingsRes.value?.bookings || bookingsRes.value?.data || [];
+          setMemberBookings(
+            bList.map((b: any) => ({
+              id: b.booking_reference || `BK-${b.id}`,
+              courtName: b.court?.name || `Court #${b.court_id}`,
+              sport: b.court?.sport_type || "Tennis",
+              date: b.start_time ? new Date(b.start_time).toLocaleDateString() : "Today",
+              timeSlot: b.start_time
+                ? `${new Date(b.start_time).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })} – ${new Date(b.end_time).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`
+                : "05:00 PM – 06:00 PM",
+              status: b.status || "CONFIRMED",
+              participants: b.guest_name ? [b.guest_name] : ["Club Member"],
+              fee: b.price ? Number(b.price) : 0,
+            }))
+          );
+        }
+
+        if (ordersRes.status === "fulfilled" && ordersRes.value) {
+          const oList = Array.isArray(ordersRes.value)
+            ? ordersRes.value
+            : ordersRes.value?.orders || ordersRes.value?.data || [];
+          setMemberOrders(
+            oList.map((o: any) => ({
+              id: o.order_number || `ORD-${o.id}`,
+              orderNumber: o.order_number || `#CC-${o.id}`,
+              type: o.order_type === "CAFE" ? "CAFE" : "PRO_SHOP",
+              items: (o.items || []).map((i: any) => ({
+                name: i.product?.name || i.menu_item?.name || i.name || "Club Item",
+                quantity: i.quantity || 1,
+                price: Number(i.unit_price || i.price || 0),
+              })),
+              totalAmount: Number(o.total_amount || 0),
+              status: o.status || "COMPLETED",
+              date: o.created_at ? new Date(o.created_at).toLocaleDateString() : "Today",
+              paymentMethod: o.payment_method || "Online",
+            }))
+          );
+        }
+      } catch (err) {
+        console.error("Failed to load live member profile data:", err);
+      } finally {
+        setProfileLoading(false);
+      }
+    };
+
+    fetchLiveMemberData();
+  }, [user?.id]);
+
   const activeUser: AuthUserProfile = {
-    ...fallbackProfile,
-    ...(user || {}),
-    name: user?.name || user?.full_name || (user?.first_name ? `${user.first_name} ${user.last_name || ""}`.trim() : fallbackProfile.name),
-    email: user?.email || fallbackProfile.email,
-    orders: user?.orders && user.orders.length > 0 ? user.orders : fallbackProfile.orders,
-    bookings: user?.bookings && user.bookings.length > 0 ? user.bookings : fallbackProfile.bookings,
-    payments: user?.payments && user.payments.length > 0 ? user.payments : fallbackProfile.payments,
-    crmInquiries: user?.crmInquiries && user.crmInquiries.length > 0 ? user.crmInquiries : fallbackProfile.crmInquiries,
-    employeeData: user?.employeeData || (forcedMode === "employee" ? DEMO_MEMBERS.coach_david.employeeData : fallbackProfile.employeeData),
+    id: user?.id || 1,
+    memberCode: memberProfileData?.membership_number || `CC-MEM-${user?.id || 101}`,
+    name: user?.name || user?.full_name || (user?.first_name ? `${user.first_name} ${user.last_name || ""}`.trim() : "Club Member"),
+    email: user?.email || "member@championsclub.in",
+    phone: memberProfileData?.phone || user?.phone || "+91 98765 43210",
+    role: user?.role || "MEMBER",
+    membershipPlan: memberProfileData?.active_membership?.plan_code || user?.membershipPlan || "GOLD",
+    membershipStatus: memberProfileData?.is_active ? "ACTIVE" : (user?.membershipStatus || "ACTIVE"),
+    membershipExpiry: memberProfileData?.active_membership?.end_date ? new Date(memberProfileData.active_membership.end_date).toLocaleDateString() : "Active Member",
+    joinDate: memberProfileData?.created_at ? new Date(memberProfileData.created_at).toLocaleDateString() : (user?.joinDate || "Jan 2024"),
+    walletBalance: Number(memberProfileData?.wallet_balance ?? user?.walletBalance ?? 0),
+    clubTabsOutstanding: Number(user?.clubTabsOutstanding ?? 0),
+    orders: memberOrders.length > 0 ? memberOrders : (user?.orders || []),
+    bookings: memberBookings.length > 0 ? memberBookings : (user?.bookings || []),
+    payments: user?.payments || [],
+    crmInquiries: user?.crmInquiries || [],
+    employeeData: user?.employeeData,
   };
 
-  const isEmployeeWithData = !!activeUser.employeeData || forcedMode === "employee";
+  const isEmployeeWithData = !!activeUser.employeeData || forcedMode === "employee" || isStaffOrAdmin(activeUser);
   const initialViewMode: "employee" | "member" =
     forcedMode === "employee"
       ? "employee"
@@ -94,12 +173,8 @@ export default function ProfileViewContainer({ forcedMode }: ProfileViewContaine
   const [viewMode, setViewMode] = useState<"employee" | "member">(initialViewMode);
 
   // Forced mode role enforcement:
-  // - "owner": guarantees owner privileges & sovereignty tools
-  // - "employee": strictly employee duty workspace, NO Staff & Admin Console button
-  // - "member": strictly standard member features (no owner delegator, no staff console)
   const isSuperOwner = (forcedMode === "member" || forcedMode === "employee") ? false : (forcedMode === "owner" || isOwner(activeUser));
   const canAccessConsole = (forcedMode === "member" || forcedMode === "employee") ? false : (forcedMode === "owner" || isStaffOrAdmin(activeUser));
-
 
   // Super Owner Role & Department Access Delegator State
   const [showGrantModal, setShowGrantModal] = useState(false);
@@ -119,32 +194,19 @@ export default function ProfileViewContainer({ forcedMode }: ProfileViewContaine
     setGrantErrorMsg("");
 
     try {
-      const token = typeof window !== "undefined" ? localStorage.getItem("cc_token") : null;
-      const res = await fetch("http://localhost:5000/api/v1/auth/assign-access", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        },
-        body: JSON.stringify({
-          email: grantEmail.trim().toLowerCase(),
-          role: grantRole,
-          department: grantDepartment,
-          first_name: grantName.split(" ")[0] || "Staff",
-          last_name: grantName.split(" ").slice(1).join(" ") || "Member",
-        }),
+      const data = await apiClient.post<any>("/auth/assign-access", {
+        email: grantEmail.trim().toLowerCase(),
+        role: grantRole,
+        department: grantDepartment,
+        first_name: grantName.split(" ")[0] || "Staff",
+        last_name: grantName.split(" ").slice(1).join(" ") || "Member",
       });
 
-      const data = await res.json();
-      if (!res.ok) {
-        throw new Error(data.message || "Failed to grant access");
-      }
-
-      setGrantSuccessMsg(`Master Sovereignty Applied: Granted role '${grantRole}' in '${grantDepartment}' department to ${grantEmail}`);
+      setGrantSuccessMsg(`Access Granted: ${grantEmail} assigned role '${grantRole}' in '${grantDepartment}' department.`);
       setGrantEmail("");
       setGrantName("");
     } catch (err: any) {
-      setGrantErrorMsg(err.message || "Error assigning role");
+      setGrantErrorMsg(err?.message || "Error assigning role");
     } finally {
       setIsGranting(false);
     }
@@ -280,63 +342,45 @@ export default function ProfileViewContainer({ forcedMode }: ProfileViewContaine
     setTimeout(() => setShowInquirySuccess(false), 4000);
   };
 
-  const handleTopup = (e: React.FormEvent) => {
+  const handleTopup = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!topupAmount || topupAmount <= 0) return;
 
-    const newBalance = activeUser.walletBalance + Number(topupAmount);
-    const newPayment = {
-      id: `PAY-${Date.now()}-${Math.floor(100 + Math.random() * 900)}`,
-      transactionId: `TXN_CC_${Date.now()}`,
-      description: `Wallet Auto-Topup ₹${Number(topupAmount).toLocaleString("en-IN")} via UPI`,
-      amount: Number(topupAmount),
-      date: "Today, Just now",
-      method: "UPI" as const,
-      status: "PAID" as const,
-      invoiceUrl: "#",
-    };
-
-    const updatedUser: AuthUserProfile = {
-      ...activeUser,
-      walletBalance: newBalance,
-      payments: [newPayment, ...(activeUser.payments || [])],
-    };
-
-    setStoredUser(updatedUser);
-    setTopupSuccess(true);
-    setTimeout(() => {
-      setTopupSuccess(false);
-      setShowTopupModal(false);
-    }, 1500);
+    try {
+      await apiClient.post<any>("/payments", {
+        item_type: "WALLET_TOPUP",
+        amount: Number(topupAmount),
+        payment_method: "UPI",
+        notes: `Wallet Auto-Topup via UPI`,
+      });
+      setTopupSuccess(true);
+      setTimeout(() => {
+        setTopupSuccess(false);
+        setShowTopupModal(false);
+      }, 1500);
+    } catch (err: any) {
+      alert(err?.message || "Payment topup failed.");
+    }
   };
 
-  const handlePayTab = () => {
+  const handlePayTab = async () => {
     if (activeUser.clubTabsOutstanding <= 0) return;
 
-    const dueAmount = activeUser.clubTabsOutstanding;
-    const newPayment = {
-      id: `PAY-${Date.now()}-${Math.floor(100 + Math.random() * 900)}`,
-      transactionId: `TXN_CC_${Date.now()}`,
-      description: `Champions Lounge Café & Pro Shop Active Tab Settlement`,
-      amount: dueAmount,
-      date: "Today, Just now",
-      method: "CARD" as const,
-      status: "PAID" as const,
-      invoiceUrl: "#",
-    };
-
-    const updatedUser: AuthUserProfile = {
-      ...activeUser,
-      clubTabsOutstanding: 0,
-      payments: [newPayment, ...(activeUser.payments || [])],
-    };
-
-    setStoredUser(updatedUser);
-    setPayTabSuccess(true);
-    setTimeout(() => {
-      setPayTabSuccess(false);
-      setShowPayTabModal(false);
-    }, 1500);
+    try {
+      await apiClient.post<any>("/payments", {
+        item_type: "POS_BAR_CAFE",
+        amount: activeUser.clubTabsOutstanding,
+        payment_method: "CARD",
+        notes: "Champions Lounge Café & Pro Shop Active Tab Settlement",
+      });
+      setPayTabSuccess(true);
+      setTimeout(() => {
+        setPayTabSuccess(false);
+        setShowPayTabModal(false);
+      }, 1500);
+    } catch (err: any) {
+      alert(err?.message || "Tab settlement failed.");
+    }
   };
 
   const handleSaveSettings = (e: React.FormEvent) => {
