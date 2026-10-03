@@ -3,10 +3,10 @@
 import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { 
-  Sparkles, 
-  Clock, 
-  ArrowRight, 
+import {
+  Sparkles,
+  Clock,
+  ArrowRight,
   SlidersHorizontal,
   ChevronRight,
   ShieldCheck,
@@ -37,7 +37,7 @@ const courtFacilities: CourtFacility[] = [
     count: 4,
     sport: "Tennis",
     surface: "Natural Ryegrass (Wimbledon Spec)",
-    image: "/images/grass-court.jpg",
+    image: "https://i.pinimg.com/1200x/00/40/d3/0040d3c46aec9fee98ea2c53a128987a.jpg",
     tag: "Grass Surface",
     price: "₹800 / hr",
     memberPerk: "Complimentary (Gold & Silver)",
@@ -151,8 +151,8 @@ export default function CourtsShowcase() {
   const [filterSport, setFilterSport] = useState("all");
   const [selectedCourt, setSelectedCourt] = useState<CourtFacility | null>(null);
 
-  const filteredCourts = filterSport === "all" 
-    ? courtFacilities 
+  const filteredCourts = filterSport === "all"
+    ? courtFacilities
     : courtFacilities.filter(c => c.sport.toLowerCase().includes(filterSport.toLowerCase()));
 
   return (
@@ -183,11 +183,10 @@ export default function CourtsShowcase() {
               <button
                 key={btn.id}
                 onClick={() => setFilterSport(btn.id)}
-                className={`px-4 py-2 rounded-full text-xs font-bold transition-all duration-200 ${
-                  filterSport === btn.id
-                    ? "bg-slate-900 text-white shadow-md scale-105"
-                    : "bg-slate-100 text-slate-700 hover:bg-slate-200"
-                }`}
+                className={`px-4 py-2 rounded-full text-xs font-bold transition-all duration-200 ${filterSport === btn.id
+                  ? "bg-slate-900 text-white shadow-md scale-105"
+                  : "bg-slate-100 text-slate-700 hover:bg-slate-200"
+                  }`}
               >
                 {btn.label}
               </button>
