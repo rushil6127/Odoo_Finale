@@ -80,7 +80,7 @@ export default function ProfileViewContainer({ forcedMode }: ProfileViewContaine
     crmInquiries: user?.crmInquiries && user.crmInquiries.length > 0 ? user.crmInquiries : DEMO_MEMBERS.alex.crmInquiries,
   };
 
-  const isEmployeeWithData = !!activeUser.employeeData;
+  const isEmployeeWithData = !!activeUser.employeeData || forcedMode === "employee";
   const initialViewMode: "employee" | "member" =
     forcedMode === "employee"
       ? "employee"
@@ -91,9 +91,13 @@ export default function ProfileViewContainer({ forcedMode }: ProfileViewContaine
       : "member";
   const [viewMode, setViewMode] = useState<"employee" | "member">(initialViewMode);
 
+  // Forced mode role enforcement:
+  // - "owner": guarantees owner privileges & sovereignty tools
+  // - "employee": guarantees staff console & employee duty portal
+  // - "member": strictly standard member features (no owner delegator, no staff console)
+  const isSuperOwner = forcedMode === "member" ? false : (forcedMode === "owner" || isOwner(activeUser));
+  const canAccessConsole = forcedMode === "member" ? false : (forcedMode === "owner" || forcedMode === "employee" || isStaffOrAdmin(activeUser));
 
-  const canAccessConsole = isStaffOrAdmin(activeUser);
-  const isSuperOwner = isOwner(activeUser);
 
   // Super Owner Role & Department Access Delegator State
   const [showGrantModal, setShowGrantModal] = useState(false);
