@@ -316,34 +316,37 @@ export function setStoredToken(token: string): void {
   localStorage.setItem(TOKEN_KEY, token);
 }
 
+export function enrichUserProfile(parsed: any): (AuthUserProfile & AuthUser) | null {
+  if (!parsed) return null;
+  if (!parsed.full_name && parsed.first_name) {
+    parsed.full_name = `${parsed.first_name} ${parsed.last_name || ""}`.trim();
+  }
+  if (!parsed.name) {
+    parsed.name = parsed.full_name || (parsed.email ? parsed.email.split("@")[0] : "Member");
+  }
+  if (!parsed.memberCode) parsed.memberCode = `CC-${(parsed.role || "MEM").toUpperCase()}-${parsed.id || 101}`;
+  if (!parsed.phone) parsed.phone = "+91 98765 43210";
+  if (!parsed.membershipPlan) parsed.membershipPlan = "GOLD";
+  if (!parsed.membershipStatus) parsed.membershipStatus = "ACTIVE";
+  if (!parsed.membershipExpiry) parsed.membershipExpiry = "March 31, 2027";
+  if (!parsed.joinDate) parsed.joinDate = "January 15, 2024";
+  if (parsed.walletBalance === undefined) parsed.walletBalance = 8500;
+  if (parsed.clubTabsOutstanding === undefined) parsed.clubTabsOutstanding = 1250;
+  if (!parsed.crmInquiries || !Array.isArray(parsed.crmInquiries)) parsed.crmInquiries = DEMO_MEMBERS.alex.crmInquiries;
+  if (!parsed.orders || !Array.isArray(parsed.orders)) parsed.orders = DEMO_MEMBERS.alex.orders;
+  if (!parsed.bookings || !Array.isArray(parsed.bookings)) parsed.bookings = DEMO_MEMBERS.alex.bookings;
+  if (!parsed.payments || !Array.isArray(parsed.payments)) parsed.payments = DEMO_MEMBERS.alex.payments;
+
+  return parsed as (AuthUserProfile & AuthUser);
+}
+
 export function getStoredUser(): (AuthUserProfile & AuthUser) | null {
   if (typeof window === "undefined") return null;
   try {
     const raw = localStorage.getItem(STORAGE_KEY) || localStorage.getItem(USER_KEY);
     if (!raw) return null;
     const parsed = JSON.parse(raw);
-    if (!parsed) return null;
-
-    if (!parsed.full_name && parsed.first_name) {
-      parsed.full_name = `${parsed.first_name} ${parsed.last_name || ""}`.trim();
-    }
-    if (!parsed.name) {
-      parsed.name = parsed.full_name || (parsed.email ? parsed.email.split("@")[0] : "Member");
-    }
-    if (!parsed.memberCode) parsed.memberCode = `CC-${(parsed.role || "MEM").toUpperCase()}-${parsed.id || 101}`;
-    if (!parsed.phone) parsed.phone = "+91 98765 43210";
-    if (!parsed.membershipPlan) parsed.membershipPlan = "GOLD";
-    if (!parsed.membershipStatus) parsed.membershipStatus = "ACTIVE";
-    if (!parsed.membershipExpiry) parsed.membershipExpiry = "March 31, 2027";
-    if (!parsed.joinDate) parsed.joinDate = "January 15, 2024";
-    if (parsed.walletBalance === undefined) parsed.walletBalance = 5000;
-    if (parsed.clubTabsOutstanding === undefined) parsed.clubTabsOutstanding = 0;
-    if (!parsed.crmInquiries) parsed.crmInquiries = [];
-    if (!parsed.orders) parsed.orders = [];
-    if (!parsed.bookings) parsed.bookings = [];
-    if (!parsed.payments) parsed.payments = [];
-
-    return parsed as (AuthUserProfile & AuthUser);
+    return enrichUserProfile(parsed);
   } catch {
     return null;
   }
@@ -470,7 +473,7 @@ function getServerSnapshot(): string | null {
 
 export function useCurrentUser() {
   const userJson = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
-  const user: AuthUserProfile | null = userJson ? JSON.parse(userJson) : null;
+  const user: AuthUserProfile | null = userJson ? enrichUserProfile(JSON.parse(userJson)) : null;
 
   return {
     user,

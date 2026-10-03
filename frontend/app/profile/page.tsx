@@ -60,8 +60,17 @@ export default function ProfilePage() {
   const [activeTab, setActiveTab] = useState<TabType>("overview");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  // Fallback demo member if unauthenticated
-  const activeUser = user || DEMO_MEMBERS.alex;
+  // Fallback demo member if unauthenticated or missing sub-arrays
+  const activeUser: AuthUserProfile = {
+    ...DEMO_MEMBERS.alex,
+    ...(user || {}),
+    name: user?.name || user?.full_name || (user?.first_name ? `${user.first_name} ${user.last_name || ""}`.trim() : DEMO_MEMBERS.alex.name),
+    email: user?.email || DEMO_MEMBERS.alex.email,
+    orders: user?.orders && user.orders.length > 0 ? user.orders : DEMO_MEMBERS.alex.orders,
+    bookings: user?.bookings && user.bookings.length > 0 ? user.bookings : DEMO_MEMBERS.alex.bookings,
+    payments: user?.payments && user.payments.length > 0 ? user.payments : DEMO_MEMBERS.alex.payments,
+    crmInquiries: user?.crmInquiries && user.crmInquiries.length > 0 ? user.crmInquiries : DEMO_MEMBERS.alex.crmInquiries,
+  };
 
   // Calendar State (October 2026)
   const [selectedDate, setSelectedDate] = useState<number>(3); // Oct 3
@@ -276,12 +285,12 @@ export default function ProfilePage() {
     }
   };
 
-  const filteredOrders = activeUser.orders.filter((o) => {
+  const filteredOrders = (activeUser.orders || []).filter((o) => {
     if (orderFilter === "ALL") return true;
     return o.type === orderFilter;
   });
 
-  const filteredBookings = activeUser.bookings.filter((b) => {
+  const filteredBookings = (activeUser.bookings || []).filter((b) => {
     if (bookingFilter === "ALL") return true;
     return b.status === bookingFilter;
   });
