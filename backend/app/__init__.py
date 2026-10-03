@@ -4,6 +4,7 @@ from backend.app.config import config_by_name, DevelopmentConfig
 from backend.app.extensions import db, migrate, jwt, bcrypt, ma, cors
 from backend.app.common.errors import register_error_handlers
 from backend.app.health.routes import health_bp
+from backend.app.auth import auth_bp, create_owner_command, User  # noqa: F401
 
 
 def create_app(config_name: str = None) -> Flask:
@@ -41,5 +42,9 @@ def create_app(config_name: str = None) -> Flask:
 
     # Register blueprints
     app.register_blueprint(health_bp)
+    app.register_blueprint(auth_bp)
+
+    # Register CLI commands
+    app.cli.add_command(create_owner_command)
 
     return app
