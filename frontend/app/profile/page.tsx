@@ -38,9 +38,11 @@ import {
   CalendarCheck,
   AlertCircle,
   Award,
-  Flame
+  Flame,
+  Activity
 } from "lucide-react";
 import { useCurrentUser, setStoredUser, DEMO_MEMBERS, type AuthUserProfile } from "@/lib/auth";
+import EmployeeProfileView from "@/components/profile/EmployeeProfileView";
 
 type TabType = "overview" | "crm" | "orders" | "bookings" | "payments" | "settings";
 
@@ -57,20 +59,29 @@ interface ChatMessage {
 export default function ProfilePage() {
   const router = useRouter();
   const { user, isAuthenticated, logout } = useCurrentUser();
+  
+  // Profile Persona View: "member" or "employee"
+  const isDefaultEmployee = user?.role === "COACH" || user?.role === "ADMIN" || user?.role === "OWNER" || user?.role === "FRONT_DESK" || user?.role === "SHOP_STAFF" || user?.role === "BAR_STAFF";
+  const [profilePersona, setProfilePersona] = useState<"member" | "employee">(isDefaultEmployee ? "employee" : "member");
   const [activeTab, setActiveTab] = useState<TabType>("overview");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  // Fallback demo member if unauthenticated or missing sub-arrays
-  const activeUser: AuthUserProfile = {
-    ...DEMO_MEMBERS.alex,
-    ...(user || {}),
-    name: user?.name || user?.full_name || (user?.first_name ? `${user.first_name} ${user.last_name || ""}`.trim() : DEMO_MEMBERS.alex.name),
-    email: user?.email || DEMO_MEMBERS.alex.email,
-    orders: user?.orders && user.orders.length > 0 ? user.orders : DEMO_MEMBERS.alex.orders,
-    bookings: user?.bookings && user.bookings.length > 0 ? user.bookings : DEMO_MEMBERS.alex.bookings,
-    payments: user?.payments && user.payments.length > 0 ? user.payments : DEMO_MEMBERS.alex.payments,
-    crmInquiries: user?.crmInquiries && user.crmInquiries.length > 0 ? user.crmInquiries : DEMO_MEMBERS.alex.crmInquiries,
-  };
+  // Active user data based on selected persona
+  const activeUser: AuthUserProfile = profilePersona === "employee"
+    ? {
+        ...DEMO_MEMBERS.coach_david,
+        ...(user?.role === "COACH" ? user : {}),
+        employeeData: user?.employeeData || DEMO_MEMBERS.coach_david.employeeData,
+      }
+    : {
+        ...DEMO_MEMBERS.alex,
+        ...(user?.role === "MEMBER" ? user : {}),
+        name: user?.role === "MEMBER" ? (user?.name || user?.full_name || DEMO_MEMBERS.alex.name) : DEMO_MEMBERS.alex.name,
+        orders: user?.orders && user.orders.length > 0 ? user.orders : DEMO_MEMBERS.alex.orders,
+        bookings: user?.bookings && user.bookings.length > 0 ? user.bookings : DEMO_MEMBERS.alex.bookings,
+        payments: user?.payments && user.payments.length > 0 ? user.payments : DEMO_MEMBERS.alex.payments,
+        crmInquiries: user?.crmInquiries && user.crmInquiries.length > 0 ? user.crmInquiries : DEMO_MEMBERS.alex.crmInquiries,
+      };
 
   // Calendar State (October 2026)
   const [selectedDate, setSelectedDate] = useState<number>(3); // Oct 3
@@ -458,6 +469,67 @@ export default function ProfilePage() {
       {/* ============================================================ */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 sm:pt-32 pb-20 w-full flex-1">
         
+        {/* ============================================================ */}
+        {/* ACTIVE PROFILE PERSONA SWITCHER STRIP                        */}
+        {/* ============================================================ */}
+        <div className="mb-6 flex items-center justify-between bg-white/95 backdrop-blur-md p-2 sm:p-2.5 rounded-2xl shadow-md border border-slate-200/80 flex-wrap gap-3">
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="text-xs font-black text-slate-500 pl-2 uppercase tracking-wider">
+              Profile Persona:
+            </span>
+            <div className="flex items-center bg-slate-100 p-1 rounded-xl gap-1">
+              <button
+                type="button"
+                onClick={() => setProfilePersona("member")}
+                className={`px-3.5 py-1.5 rounded-lg text-xs font-extrabold transition-all flex items-center gap-1.5 ${
+                  profilePersona === "member"
+                    ? "bg-slate-900 text-white shadow-sm"
+                    : "text-slate-600 hover:text-slate-900"
+                }`}
+              >
+                <Crown className="w-3.5 h-3.5 text-amber-400" />
+                <span>Club Member (Alex Morgan)</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setProfilePersona("employee")}
+                className={`px-3.5 py-1.5 rounded-lg text-xs font-extrabold transition-all flex items-center gap-1.5 ${
+                  profilePersona === "employee"
+                    ? "bg-emerald-600 text-white shadow-sm"
+                    : "text-slate-600 hover:text-slate-900"
+                }`}
+              >
+                <Activity className="w-3.5 h-3.5 text-emerald-200" />
+                <span>Coach & Sport Head (David Vance)</span>
+              </button>
+            </div>
+          </div>
+
+          <div className="text-[11px] font-bold text-slate-500 pr-2 hidden sm:block">
+            {profilePersona === "employee" ? (
+              <span className="text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-200">
+                🎾 Supervised Arenas: <strong>Tennis (Grass & Clay)</strong>
+              </span>
+            ) : (
+              <span className="text-sky-700 bg-sky-50 px-2.5 py-1 rounded-lg border border-sky-200">
+                ⭐ Membership: <strong>Gold VIP Tier</strong>
+              </span>
+            )}
+          </div>
+        </div>
+
+        {profilePersona === "employee" ? (
+          <EmployeeProfileView
+            user={activeUser}
+            onLogout={() => {
+              logout();
+              router.push("/");
+            }}
+            onSwitchToMemberView={() => setProfilePersona("member")}
+          />
+        ) : (
+          <>
         {/* ============================================================ */}
         {/* TOP HERO PROFILE BANNER (Signature Champions Luxury Theme) */}
         {/* ============================================================ */}
@@ -1427,6 +1499,8 @@ export default function ProfilePage() {
           </div>
         </div>
       </div>
+          </>
+        )}
 
       </main>
 

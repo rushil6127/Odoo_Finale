@@ -243,7 +243,14 @@ export default function LoginPage() {
             onClick={() => handleDemoLogin(DEMO_MEMBERS.alex)}
             className="px-3 py-1.5 rounded-xl bg-white hover:bg-sky-600 hover:text-white text-slate-800 font-extrabold border border-sky-200 shadow-sm transition-all"
           >
-            Alex Morgan (Gold Member)
+            Alex Morgan (Member)
+          </button>
+          <button
+            type="button"
+            onClick={() => handleDemoLogin(DEMO_MEMBERS.coach_david)}
+            className="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold shadow-sm transition-all"
+          >
+            🎾 Coach David (Sport Head)
           </button>
           <button
             type="button"

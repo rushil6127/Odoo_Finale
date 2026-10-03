@@ -107,6 +107,63 @@ export interface UserPayment {
   invoiceUrl?: string;
 }
 
+export interface EmployeeCourtSlot {
+  id: string;
+  timeSlot: string;
+  courtName: string;
+  sport: string;
+  memberId?: number;
+  memberName: string;
+  memberTier: string;
+  memberAvatar?: string;
+  type: "MEMBER_BOOKING" | "COACHING_SESSION" | "TOURNAMENT_MATCH" | "MAINTENANCE_BLOCK";
+  status: "CONFIRMED" | "CHECKED_IN" | "IN_PROGRESS" | "COMPLETED" | "CANCELLED";
+  specialRequests?: string;
+  equipmentRequired?: string[];
+  coachingPlan?: string;
+}
+
+export interface EmployeeTrainee {
+  id: string;
+  name: string;
+  tier: string;
+  phone: string;
+  skillLevel: string;
+  sport: string;
+  totalSessionsCompleted: number;
+  nextSessionDate: string;
+  focusArea: string;
+  lastProgressNote: string;
+}
+
+export interface EmployeeMaintenanceTask {
+  id: string;
+  courtName: string;
+  taskType: "GRASS_MOWING" | "CLAY_ROLLING" | "NET_TENSION" | "LIGHTING_CHECK" | "STRINGING_JOB";
+  status: "READY" | "IN_PROGRESS" | "SCHEDULED" | "REQUIRES_ATTENTION";
+  scheduledTime: string;
+  assignedStaff: string;
+  notes: string;
+}
+
+export interface EmployeeData {
+  employeeId: string;
+  designation: string;
+  primarySport: string;
+  secondarySports: string[];
+  assignedCourts: string[];
+  shiftTiming: string;
+  shiftName: string;
+  dutyStatus: "ON_DUTY" | "IN_SESSION" | "ON_BREAK" | "OFF_DUTY";
+  certifications: string[];
+  yearsExperience: number;
+  rating: number;
+  totalSessionsConducted: number;
+  todaySlots: EmployeeCourtSlot[];
+  trainees: EmployeeTrainee[];
+  maintenanceTasks: EmployeeMaintenanceTask[];
+}
+
 export interface AuthUserProfile {
   id: number;
   memberCode: string;
@@ -129,6 +186,7 @@ export interface AuthUserProfile {
   last_name?: string;
   full_name?: string;
   is_active?: boolean;
+  employeeData?: EmployeeData;
 }
 
 // ============================================================================
@@ -294,6 +352,255 @@ export const DEMO_MEMBERS: Record<string, AuthUserProfile> = {
     orders: [],
     bookings: [],
     payments: [],
+  },
+  coach_david: {
+    id: 42,
+    memberCode: "CC-COACH-042",
+    name: "Coach David Vance",
+    email: "david.vance@championsclub.in",
+    phone: "+91 98980 44120",
+    role: "COACH",
+    membershipPlan: "GOLD",
+    membershipStatus: "ACTIVE",
+    membershipExpiry: "Staff Lifetime Contract",
+    joinDate: "August 10, 2022",
+    walletBalance: 24500,
+    clubTabsOutstanding: 0,
+    crmInquiries: [
+      {
+        id: "CRM-2041",
+        title: "VIP Wimbledon Grass Court Private Coaching Request (Alex Morgan)",
+        category: "COACHING",
+        status: "APPROVED",
+        date: "Today, 10:30 AM",
+        notes: "Focusing on low-bounce slice service & grass court baseline defense.",
+        assignedTo: "David Vance (Senior Coach)",
+      },
+      {
+        id: "CRM-2105",
+        title: "Junior High-Performance Academy Trial Assessment (Dev Patel)",
+        category: "TRIAL_PASS",
+        status: "NEW",
+        date: "Today, 12:15 PM",
+        notes: "NTRP assessment required for U-16 Gujarat State championship entry.",
+        assignedTo: "David Vance (Senior Coach)",
+      },
+    ],
+    orders: [],
+    bookings: [],
+    payments: [],
+    employeeData: {
+      employeeId: "EMP-TR-042",
+      designation: "Head Coach & Arena Supervisor",
+      primarySport: "Tennis",
+      secondarySports: ["Padel", "Pickleball"],
+      assignedCourts: [
+        "Centre Grass Court #1 (Natural Lawn)",
+        "Roland-Garros Red Clay Arena #3",
+        "Grandstand Synthetic Court #2"
+      ],
+      shiftName: "Morning & Afternoon Shift",
+      shiftTiming: "06:00 AM – 02:00 PM (Active Duty)",
+      dutyStatus: "ON_DUTY",
+      certifications: [
+        "ITF Level 3 High Performance Certified Coach",
+        "USPTA Elite Professional (Tennis)",
+        "PTR Certified Tennis & Padel Director",
+        "CPR / AED Emergency Sports First Responder"
+      ],
+      yearsExperience: 12,
+      rating: 4.95,
+      totalSessionsConducted: 428,
+      todaySlots: [
+        {
+          id: "SLOT-101",
+          timeSlot: "06:00 AM – 07:00 AM",
+          courtName: "Roland-Garros Red Clay Arena #3",
+          sport: "Tennis",
+          memberName: "Rohan Gupta",
+          memberTier: "Gold Member",
+          type: "COACHING_SESSION",
+          status: "COMPLETED",
+          specialRequests: "Heavy top-spin drills from baseline & endurance",
+          equipmentRequired: ["72 Slazenger Clay Balls", "Agility Cones"],
+          coachingPlan: "Crosscourt forehand heavy spin repetition",
+        },
+        {
+          id: "SLOT-102",
+          timeSlot: "07:30 AM – 08:30 AM",
+          courtName: "Centre Grass Court #1 (Natural Lawn)",
+          sport: "Tennis",
+          memberName: "Ananya Deshmukh",
+          memberTier: "Silver Member",
+          type: "MEMBER_BOOKING",
+          status: "COMPLETED",
+          specialRequests: "Court booking with ball boy assistance",
+          equipmentRequired: ["Slazenger Match Balls (Can of 4)"],
+        },
+        {
+          id: "SLOT-103",
+          timeSlot: "09:00 AM – 10:30 AM",
+          courtName: "Centre Grass Court #1 (Natural Lawn)",
+          sport: "Tennis",
+          memberName: "Junior High Performance Squad",
+          memberTier: "Academy Trainees",
+          type: "COACHING_SESSION",
+          status: "COMPLETED",
+          specialRequests: "Group footwork and net volley approach drill",
+          equipmentRequired: ["Lobster Grand Series Ball Machine", "Target Markers"],
+          coachingPlan: "Grass court short-hop volley reaction training",
+        },
+        {
+          id: "SLOT-104",
+          timeSlot: "11:00 AM – 12:00 PM",
+          courtName: "Roland-Garros Red Clay Arena #3",
+          sport: "Tennis",
+          memberName: "Vikram & Sameer (Doubles Match)",
+          memberTier: "Platinum VIP",
+          type: "MEMBER_BOOKING",
+          status: "COMPLETED",
+          specialRequests: "Court watered & rolled prior to start",
+        },
+        {
+          id: "SLOT-105",
+          timeSlot: "03:00 PM – 04:00 PM",
+          courtName: "Centre Grass Court #1 (Natural Lawn)",
+          sport: "Tennis",
+          memberName: "Dev Patel (Trial Pass Candidate)",
+          memberTier: "Trial Guest",
+          type: "COACHING_SESSION",
+          status: "CHECKED_IN",
+          specialRequests: "NTRP assessment & trial evaluation for Academy admission",
+          equipmentRequired: ["Assessment Evaluation Sheet", "Speed Radar Gun"],
+          coachingPlan: "Serve velocity & baseline consistency testing",
+        },
+        {
+          id: "SLOT-106",
+          timeSlot: "05:00 PM – 06:00 PM",
+          courtName: "Centre Grass Court #1 (Natural Lawn)",
+          sport: "Tennis",
+          memberName: "Alex Morgan",
+          memberTier: "Gold VIP Member",
+          type: "MEMBER_BOOKING",
+          status: "CONFIRMED",
+          specialRequests: "Lawn freshly cut, Babolat RPM stringing ready at shop",
+          equipmentRequired: ["Match Balls", "Towel Service"],
+        },
+        {
+          id: "SLOT-107",
+          timeSlot: "06:30 PM – 07:30 PM",
+          courtName: "Roland-Garros Red Clay Arena #3",
+          sport: "Tennis",
+          memberName: "Meera Singhania",
+          memberTier: "Gold Member",
+          type: "COACHING_SESSION",
+          status: "CONFIRMED",
+          specialRequests: "Serve toss alignment and second serve kick practice",
+          equipmentRequired: ["Basket of 60 Balls", "Video Analysis iPad"],
+          coachingPlan: "Second serve kick bounce mechanics",
+        },
+        {
+          id: "SLOT-108",
+          timeSlot: "08:00 PM – 09:30 PM",
+          courtName: "Centre Grass Court #1 (Natural Lawn)",
+          sport: "Tennis",
+          memberName: "Gujarat Open Club Doubles Quarterfinals",
+          memberTier: "Club Tournament",
+          type: "TOURNAMENT_MATCH",
+          status: "CONFIRMED",
+          specialRequests: "Floodlights on (800 LUX), Head Umpire Chair prepared",
+          equipmentRequired: ["Tournament Slazenger Hydroguard Cans", "Scoreboard Flipchart"],
+        },
+      ],
+      trainees: [
+        {
+          id: "TR-01",
+          name: "Alex Morgan",
+          tier: "Gold VIP",
+          phone: "+91 98250 14820",
+          skillLevel: "NTRP 4.5 (Advanced)",
+          sport: "Tennis",
+          totalSessionsCompleted: 28,
+          nextSessionDate: "Today, 05:00 PM",
+          focusArea: "Grass Court Serve & Volley transition",
+          lastProgressNote: "Backhand slice is staying low consistently. Ready for upcoming club championship.",
+        },
+        {
+          id: "TR-02",
+          name: "Rohan Gupta",
+          tier: "Gold Member",
+          phone: "+91 98110 55219",
+          skillLevel: "NTRP 4.0 (Intermediate-High)",
+          sport: "Tennis",
+          totalSessionsCompleted: 19,
+          nextSessionDate: "Oct 06, 06:00 AM",
+          focusArea: "Heavy Clay baseline topspin & foot recovery",
+          lastProgressNote: "Forehand RPM increased by 15%. Stamina in 3rd set drills improved significantly.",
+        },
+        {
+          id: "TR-03",
+          name: "Ananya Deshmukh",
+          tier: "Silver Member",
+          phone: "+91 97240 88910",
+          skillLevel: "NTRP 3.5 (Intermediate)",
+          sport: "Tennis",
+          totalSessionsCompleted: 12,
+          nextSessionDate: "Oct 07, 05:30 PM",
+          focusArea: "First serve consistency & Continental grip adjustment",
+          lastProgressNote: "First serve percentage reached 62% in practice set. Good foot placement.",
+        },
+        {
+          id: "TR-04",
+          name: "Dev Patel",
+          tier: "Academy Trial",
+          phone: "+91 99040 33211",
+          skillLevel: "NTRP 4.0 (Junior U-16)",
+          sport: "Tennis",
+          totalSessionsCompleted: 0,
+          nextSessionDate: "Today, 03:00 PM",
+          focusArea: "Academy Entrance Assessment & Kinetic Chain Analysis",
+          lastProgressNote: "First evaluation session today. Candidate shows excellent natural athleticism.",
+        },
+      ],
+      maintenanceTasks: [
+        {
+          id: "MT-01",
+          courtName: "Centre Grass Court #1 (Natural Lawn)",
+          taskType: "GRASS_MOWING",
+          status: "READY",
+          scheduledTime: "05:30 AM (Completed)",
+          assignedStaff: "Groundsman Ramesh",
+          notes: "Cut to 8.5mm tournament height. Net height verified 36 inches center.",
+        },
+        {
+          id: "MT-02",
+          courtName: "Roland-Garros Red Clay Arena #3",
+          taskType: "CLAY_ROLLING",
+          status: "READY",
+          scheduledTime: "01:30 PM (Completed)",
+          assignedStaff: "Groundsman Manoj",
+          notes: "Moisture level optimal. Line tape swept and cleaned.",
+        },
+        {
+          id: "MT-03",
+          courtName: "Centre Grass Court #1 (Natural Lawn)",
+          taskType: "LIGHTING_CHECK",
+          status: "SCHEDULED",
+          scheduledTime: "06:00 PM (Prior to Night Match)",
+          assignedStaff: "Electrician Suresh",
+          notes: "Check 800 LUX floodlight array #4 before Quarterfinal doubles.",
+        },
+        {
+          id: "MT-04",
+          courtName: "Pro Shop Stringing Workshop",
+          taskType: "STRINGING_JOB",
+          status: "READY",
+          scheduledTime: "10:00 AM (Completed)",
+          assignedStaff: "Coach David & Pro Shop Staff",
+          notes: "Alex Morgan's Babolat Pure Aero strung with RPM Blast 54 lbs.",
+        },
+      ],
+    },
   },
 };
 
