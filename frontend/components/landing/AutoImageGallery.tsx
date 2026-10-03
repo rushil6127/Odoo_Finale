@@ -5,12 +5,8 @@ import Image from "next/image";
 import { 
   ChevronLeft, 
   ChevronRight, 
-  Pause, 
-  Play, 
   Camera, 
-  Sparkles,
-  MapPin,
-  Trophy
+  Sparkles 
 } from "lucide-react";
 
 interface GallerySlide {
@@ -55,17 +51,14 @@ const gallerySlides: GallerySlide[] = [
 
 export default function AutoImageGallery() {
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [isPlaying, setIsPlaying] = useState(true);
 
   useEffect(() => {
-    if (!isPlaying) return;
-
     const interval = setInterval(() => {
       setCurrentIndex((prev) => (prev + 1) % gallerySlides.length);
-    }, 4500); // Transitions every 4.5 seconds
+    }, 4000); // Transitions smoothly every 4 seconds
 
     return () => clearInterval(interval);
-  }, [isPlaying]);
+  }, []);
 
   const handlePrev = () => {
     setCurrentIndex((prev) => (prev - 1 + gallerySlides.length) % gallerySlides.length);
@@ -85,55 +78,28 @@ export default function AutoImageGallery() {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-10">
-          <div>
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-sky-100 text-sky-700 text-xs font-bold uppercase tracking-wider mb-2">
-              <Camera className="w-3.5 h-3.5" />
-              <span>Campus Visual Tour</span>
-            </div>
-            <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
-              World-Class Arenas & Amenities
-            </h2>
-            <p className="text-slate-600 text-sm mt-1 max-w-xl">
-              Tour our tournament courts, clubhouse, swimming pavilion, and state-of-the-art sporting facilities.
-            </p>
+        <div className="mb-10 text-center md:text-left">
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-sky-100 text-sky-700 text-xs font-bold uppercase tracking-wider mb-2">
+            <Camera className="w-3.5 h-3.5" />
+            <span>Campus Visual Tour</span>
           </div>
-
-          {/* Autoplay & Navigation Controls */}
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => setIsPlaying(!isPlaying)}
-              className="p-2.5 rounded-full bg-white text-slate-700 hover:text-sky-600 border border-slate-200 shadow-sm transition-all hover:scale-105"
-              title={isPlaying ? "Pause Slideshow" : "Resume Slideshow"}
-              aria-label="Toggle Slideshow Playback"
-            >
-              {isPlaying ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
-            </button>
-            <button
-              onClick={handlePrev}
-              className="p-2.5 rounded-full bg-white text-slate-700 hover:text-sky-600 border border-slate-200 shadow-sm transition-all hover:scale-105"
-              aria-label="Previous Slide"
-            >
-              <ChevronLeft className="w-4 h-4" />
-            </button>
-            <button
-              onClick={handleNext}
-              className="p-2.5 rounded-full bg-white text-slate-700 hover:text-sky-600 border border-slate-200 shadow-sm transition-all hover:scale-105"
-              aria-label="Next Slide"
-            >
-              <ChevronRight className="w-4 h-4" />
-            </button>
-          </div>
+          <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
+            World-Class Arenas & Amenities
+          </h2>
+          <p className="text-slate-600 text-sm mt-1 max-w-xl">
+            Tour our tournament courts, clubhouse, swimming pavilion, and state-of-the-art sporting facilities.
+          </p>
         </div>
 
         {/* Featured Large Slide Showcase */}
-        <div className="relative rounded-3xl overflow-hidden shadow-2xl border border-slate-200 bg-slate-900 aspect-[16/9] max-h-[560px] group">
+        <div className="relative rounded-3xl overflow-hidden shadow-2xl border border-slate-200 bg-slate-900 aspect-[16/9] max-h-[580px] group">
           {/* Main Slide Image */}
           <div className="relative w-full h-full">
             <Image
               src={current.image}
               alt={current.title}
               fill
+              sizes="(max-width: 1280px) 100vw, 1280px"
               className="object-cover object-center transition-all duration-700 group-hover:scale-105"
               priority
             />
@@ -142,8 +108,8 @@ export default function AutoImageGallery() {
             <div className="absolute inset-0 bg-gradient-to-r from-slate-950/70 via-transparent to-transparent hidden md:block" />
           </div>
 
-          {/* Top Badge */}
-          <div className="absolute top-6 left-6 flex items-center gap-2">
+          {/* Top Badges */}
+          <div className="absolute top-6 left-6 flex items-center gap-2 z-20">
             <span className="px-3.5 py-1 rounded-full bg-white/90 backdrop-blur-md text-slate-900 text-xs font-extrabold shadow-md border border-white">
               {current.category}
             </span>
@@ -152,8 +118,26 @@ export default function AutoImageGallery() {
             </span>
           </div>
 
+          {/* PREVIOUS BUTTON DIRECTLY ON PHOTO (LEFT) */}
+          <button
+            onClick={handlePrev}
+            className="absolute left-3 sm:left-6 top-1/2 -translate-y-1/2 z-30 w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-white/85 hover:bg-white text-slate-900 shadow-xl backdrop-blur-md flex items-center justify-center border border-white/60 transition-all duration-200 hover:scale-110 active:scale-95 focus:outline-none focus:ring-2 focus:ring-sky-400"
+            aria-label="Previous Slide"
+          >
+            <ChevronLeft className="w-6 h-6 stroke-[2.5]" />
+          </button>
+
+          {/* NEXT BUTTON DIRECTLY ON PHOTO (RIGHT) */}
+          <button
+            onClick={handleNext}
+            className="absolute right-3 sm:right-6 top-1/2 -translate-y-1/2 z-30 w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-white/85 hover:bg-white text-slate-900 shadow-xl backdrop-blur-md flex items-center justify-center border border-white/60 transition-all duration-200 hover:scale-110 active:scale-95 focus:outline-none focus:ring-2 focus:ring-sky-400"
+            aria-label="Next Slide"
+          >
+            <ChevronRight className="w-6 h-6 stroke-[2.5]" />
+          </button>
+
           {/* Bottom Content Overlay */}
-          <div className="absolute bottom-6 left-6 right-6 md:right-auto md:max-w-xl text-white">
+          <div className="absolute bottom-6 left-6 right-6 md:right-auto md:max-w-xl text-white z-20">
             <div className="text-sky-400 text-xs font-bold uppercase tracking-wider mb-1 flex items-center gap-1.5">
               <Sparkles className="w-3.5 h-3.5" />
               <span>{current.subtitle}</span>
@@ -200,6 +184,7 @@ export default function AutoImageGallery() {
                   src={slide.image}
                   alt={slide.title}
                   fill
+                  sizes="56px"
                   className="object-cover"
                 />
               </div>
