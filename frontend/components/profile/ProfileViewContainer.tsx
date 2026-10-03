@@ -27,6 +27,7 @@ import {
   Download,
   Settings,
   MapPin,
+  Info,
   Coffee,
   Check,
   Wallet,
@@ -61,6 +62,280 @@ interface ChatMessage {
   text: string;
   time: string;
   roleTag?: string;
+}
+
+/**
+ * Animated Donut Chart & Court Status Monitor for Sovereign Owner
+ */
+function OwnerCourtStatusCard() {
+  const [animated, setAnimated] = useState(false);
+
+  useEffect(() => {
+    // Initial load blossom & sweep animation
+    const timer = setTimeout(() => {
+      setAnimated(true);
+    }, 120);
+    return () => clearTimeout(timer);
+  }, []);
+
+  // Total courts = 12 (Booked: 5 [42%], Available: 6 [50%], Maintenance: 1 [8%])
+  const size = 160;
+  const strokeWidth = 24;
+  const center = size / 2; // 80
+  const radius = 52;
+  const circumference = 2 * Math.PI * radius; // 326.726
+
+  // Segment arc lengths
+  const blueLen = circumference * 0.4167; // ~136.15 (42%)
+  const greenLen = circumference * 0.50; // ~163.36 (50%)
+  const orangeLen = circumference * 0.0833; // ~27.22 (8%)
+
+  return (
+    <div className="flex flex-col h-full justify-between gap-4">
+      {/* Top Header */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-1.5">
+          <h3 className="text-xl font-black text-slate-900 font-[family-name:var(--font-outfit)] leading-none">
+            Court status
+          </h3>
+          <button
+            type="button"
+            title="Real-time court allocation and capacity monitor"
+            className="text-slate-400 hover:text-slate-600 transition-colors p-0.5 rounded-full"
+          >
+            <Info className="w-4 h-4" />
+          </button>
+        </div>
+        <span className="text-[10px] font-black uppercase tracking-wider text-slate-500 bg-slate-100 px-2.5 py-1 rounded-lg">
+          SAMPLE DATA
+        </span>
+      </div>
+
+      {/* Middle: Animated Donut Chart + Legend */}
+      <div className="flex items-center justify-between gap-4 my-auto py-2">
+        {/* SVG Donut Chart */}
+        <div className="relative w-40 h-40 shrink-0 flex items-center justify-center">
+          <svg
+            width="160"
+            height="160"
+            viewBox="0 0 160 160"
+            className="overflow-visible select-none"
+            style={{
+              transform: animated ? "rotate(0deg) scale(1)" : "rotate(-90deg) scale(0.85)",
+              opacity: animated ? 1 : 0.2,
+              transition: "transform 1.2s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.8s ease",
+            }}
+          >
+            <g transform="rotate(-90 80 80)">
+              {/* Blue Arc (Booked: 42%) */}
+              <circle
+                cx={center}
+                cy={center}
+                r={radius}
+                fill="none"
+                stroke="#0070f3"
+                strokeWidth={strokeWidth}
+                strokeDasharray={animated ? `${blueLen} ${circumference}` : `0 ${circumference}`}
+                strokeDashoffset={0}
+                style={{
+                  transition: "stroke-dasharray 1.1s cubic-bezier(0.16, 1, 0.3, 1) 0.1s",
+                }}
+              />
+
+              {/* Green Arc (Available: 50%) */}
+              <circle
+                cx={center}
+                cy={center}
+                r={radius}
+                fill="none"
+                stroke="#10b981"
+                strokeWidth={strokeWidth}
+                strokeDasharray={animated ? `${greenLen} ${circumference}` : `0 ${circumference}`}
+                strokeDashoffset={-blueLen}
+                style={{
+                  transition: "stroke-dasharray 1.1s cubic-bezier(0.16, 1, 0.3, 1) 0.25s",
+                }}
+              />
+
+              {/* Orange Arc (Maintenance: 8%) */}
+              <circle
+                cx={center}
+                cy={center}
+                r={radius}
+                fill="none"
+                stroke="#f97316"
+                strokeWidth={strokeWidth}
+                strokeDasharray={animated ? `${orangeLen} ${circumference}` : `0 ${circumference}`}
+                strokeDashoffset={-(blueLen + greenLen)}
+                style={{
+                  transition: "stroke-dasharray 1.1s cubic-bezier(0.16, 1, 0.3, 1) 0.4s",
+                }}
+              />
+
+              {/* Crisp white radial segment separators */}
+              {animated && (
+                <>
+                  {/* Divider between Orange & Blue (at 0 deg / top) */}
+                  <line x1="80" y1="26" x2="80" y2="2" stroke="white" strokeWidth="2.5" />
+                  {/* Divider between Blue & Green (at 150 deg) */}
+                  <line x1="99" y1="112.9" x2="113" y2="137.2" stroke="white" strokeWidth="2.5" />
+                  {/* Divider between Green & Orange (at 330 deg) */}
+                  <line x1="61" y1="47.1" x2="47" y2="22.8" stroke="white" strokeWidth="2.5" />
+                </>
+              )}
+            </g>
+
+            {/* Percentage Labels Inside the Arcs */}
+            {/* 42% (Blue Arc Midpoint: 75 deg from top) */}
+            <text
+              x="130"
+              y="68"
+              fill="white"
+              fontSize="11"
+              fontWeight="900"
+              textAnchor="middle"
+              dominantBaseline="middle"
+              className="font-sans"
+              style={{
+                opacity: animated ? 1 : 0,
+                transform: animated ? "scale(1)" : "scale(0.5)",
+                transformOrigin: "130px 68px",
+                transition: "opacity 0.6s ease-out 0.7s, transform 0.6s ease-out 0.7s",
+              }}
+            >
+              42%
+            </text>
+
+            {/* 50% (Green Arc Midpoint: 240 deg from top) */}
+            <text
+              x="35"
+              y="107"
+              fill="white"
+              fontSize="11"
+              fontWeight="900"
+              textAnchor="middle"
+              dominantBaseline="middle"
+              className="font-sans"
+              style={{
+                opacity: animated ? 1 : 0,
+                transform: animated ? "scale(1)" : "scale(0.5)",
+                transformOrigin: "35px 107px",
+                transition: "opacity 0.6s ease-out 0.7s, transform 0.6s ease-out 0.7s",
+              }}
+            >
+              50%
+            </text>
+
+            {/* 8% (Orange Arc Midpoint: 345 deg from top) */}
+            <text
+              x="66"
+              y="30"
+              fill="white"
+              fontSize="10"
+              fontWeight="900"
+              textAnchor="middle"
+              dominantBaseline="middle"
+              className="font-sans"
+              style={{
+                opacity: animated ? 1 : 0,
+                transform: animated ? "scale(1)" : "scale(0.5)",
+                transformOrigin: "66px 30px",
+                transition: "opacity 0.6s ease-out 0.7s, transform 0.6s ease-out 0.7s",
+              }}
+            >
+              8%
+            </text>
+          </svg>
+
+          {/* Center Hole Content: 12 courts total */}
+          <div
+            className="absolute inset-0 flex flex-col items-center justify-center text-center pointer-events-none select-none"
+            style={{
+              opacity: animated ? 1 : 0,
+              transform: animated ? "scale(1)" : "scale(0.8)",
+              transition: "opacity 0.6s ease-out 0.4s, transform 0.6s ease-out 0.4s",
+            }}
+          >
+            <span className="text-2xl font-black text-slate-900 leading-none font-[family-name:var(--font-outfit)]">
+              12
+            </span>
+            <span className="text-[10px] text-slate-500 font-bold leading-tight mt-0.5">
+              courts
+            </span>
+            <span className="text-[10px] text-slate-500 font-bold leading-tight">
+              total
+            </span>
+          </div>
+        </div>
+
+        {/* Legend */}
+        <div className="space-y-3.5 pr-1 flex-1 max-w-[140px]">
+          {/* Booked */}
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex items-center gap-2">
+              <span className="w-3.5 h-3.5 rounded-full bg-[#0070f3] shrink-0" />
+              <span className="text-xs font-bold text-slate-700">Booked</span>
+            </div>
+            <span className="text-sm font-black text-slate-900 font-mono">5</span>
+          </div>
+
+          {/* Available */}
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex items-center gap-2">
+              <span className="w-3.5 h-3.5 rounded-full bg-[#10b981] shrink-0" />
+              <span className="text-xs font-bold text-slate-700">Available</span>
+            </div>
+            <span className="text-sm font-black text-slate-900 font-mono">6</span>
+          </div>
+
+          {/* Maintenance */}
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex items-center gap-2">
+              <span className="w-3.5 h-3.5 rounded-full bg-[#f97316] shrink-0" />
+              <span className="text-xs font-bold text-slate-700">Maintenance</span>
+            </div>
+            <span className="text-sm font-black text-slate-900 font-mono">1</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Bottom Rows */}
+      <div className="space-y-2.5 pt-1">
+        {/* Today's bookings */}
+        <div className="pt-2.5 border-t border-slate-100 flex items-center justify-between text-xs">
+          <div className="flex items-center gap-2 text-slate-600 font-semibold">
+            <Calendar className="w-4 h-4 text-slate-400 shrink-0" />
+            <span>Today&apos;s bookings</span>
+          </div>
+          <span className="text-slate-400 font-bold text-sm">&mdash;</span>
+        </div>
+
+        {/* Pending memberships */}
+        <div className="pt-2.5 border-t border-slate-100 flex items-center justify-between text-xs">
+          <div className="flex items-center gap-2 text-slate-600 font-semibold">
+            <svg className="w-4 h-4 text-slate-400 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <rect width="18" height="18" x="3" y="3" rx="4" />
+              <path d="m9 12 2 2 4-4" />
+            </svg>
+            <span>Pending memberships</span>
+          </div>
+          <span className="text-slate-400 font-bold text-sm">&mdash;</span>
+        </div>
+
+        {/* Manage club link */}
+        <div className="pt-2.5 border-t border-slate-100 flex items-center justify-between">
+          <Link
+            href="/dashboard"
+            className="text-xs font-extrabold text-[#0070f3] hover:text-blue-700 flex items-center gap-1.5 transition-colors cursor-pointer group"
+          >
+            <Settings className="w-4 h-4 text-[#0070f3] group-hover:rotate-45 transition-transform" />
+            <span>Manage club</span>
+            <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
+          </Link>
+        </div>
+      </div>
+    </div>
+  );
 }
 
 export interface ProfileViewContainerProps {
@@ -1219,9 +1494,12 @@ export default function ProfileViewContainer({ forcedMode }: ProfileViewContaine
 
                   </div>
 
-                  {/* Right: Next Upcoming Booking Card */}
+                  {/* Right: Owner Court Status Donut Card OR Member Next Upcoming Booking Card */}
                   <div className="lg:col-span-5 p-6 rounded-3xl bg-white border border-slate-200/90 shadow-sm flex flex-col justify-between">
-                    {nextBooking ? (
+                    {isSuperOwner || activeUser.role === "OWNER" || activeUser.role === "ADMIN" || forcedMode === "owner" ? (
+                      // Owner Court Status Donut Card (Matches User Attached Design with Initial Animation)
+                      <OwnerCourtStatusCard />
+                    ) : nextBooking ? (
                       // Confirmed Next Booking State (Matches User Reference Image 2)
                       <div className="flex flex-col h-full justify-between">
                         <div>
