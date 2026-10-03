@@ -27,6 +27,7 @@ def create_user(
     first_name: str,
     last_name: str,
     role: RoleEnum = RoleEnum.MEMBER,
+    department: Optional[str] = None,
     is_active: bool = True,
 ) -> User:
     """Create a new user account."""
@@ -44,6 +45,7 @@ def create_user(
         first_name=first_name.strip(),
         last_name=last_name.strip(),
         role=role,
+        department=department.strip().upper() if department else None,
         is_active=is_active,
     )
     user.set_password(password)
@@ -186,6 +188,30 @@ def list_users(
     return pagination.items, pagination.total
 
 
+def normalize_role_enum(role_str: str) -> RoleEnum:
+    """Safely normalize and map role strings to defined RoleEnum values."""
+    clean = role_str.strip().upper()
+    mapping = {
+        "OWNER": RoleEnum.OWNER,
+        "ADMIN": RoleEnum.ADMIN,
+        "MANAGER": RoleEnum.ADMIN,
+        "FRONT_DESK": RoleEnum.FRONT_DESK,
+        "STAFF": RoleEnum.FRONT_DESK,
+        "SHOP_STAFF": RoleEnum.SHOP_STAFF,
+        "BAR_STAFF": RoleEnum.BAR_STAFF,
+        "COACH": RoleEnum.COACH,
+        "TRAINER": RoleEnum.COACH,
+        "MEMBER": RoleEnum.MEMBER,
+        "GUEST": RoleEnum.MEMBER,
+    }
+    if clean in mapping:
+        return mapping[clean]
+    try:
+        return RoleEnum(clean)
+    except ValueError:
+        raise ConflictException(f"Invalid role '{role_str}'. Allowed: {[r.value for r in RoleEnum]}")
+
+
 def update_user_role(target_user_id: int, new_role_str: str, acting_user: User) -> User:
     """Update role of a target user. Enforces hierarchy checks server-side."""
     target_user = get_user_by_id(target_user_id)
@@ -193,11 +219,7 @@ def update_user_role(target_user_id: int, new_role_str: str, acting_user: User) 
         raise NotFoundException(f"User with ID {target_user_id} not found.")
 
     acting_role = acting_user.role.value if hasattr(acting_user.role, "value") else str(acting_user.role)
-
-    try:
-        new_role = RoleEnum(new_role_str.upper())
-    except ValueError:
-        raise ConflictException(f"Invalid role '{new_role_str}'. Allowed: {[r.value for r in RoleEnum]}")
+    new_role = normalize_role_enum(new_role_str)
 
     # Only OWNER can grant or revoke OWNER role
     if (new_role == RoleEnum.OWNER or target_user.role == RoleEnum.OWNER) and acting_role != RoleEnum.OWNER.value:
@@ -229,5 +251,65 @@ def update_user_status(target_user_id: int, is_active: bool, acting_user: User) 
     target_user.is_active = is_active
     db.session.commit()
     return target_user
+
+
+def update_user_department(target_user_id: int, department: Optional[str], acting_user: User) -> User:
+    """Assign or update an employee's department/sport section."""
+    target_user = get_user_by_id(target_user_id)
+    if not target_user:
+        raise NotFoundException(f"User with ID {target_user_id} not found.")
+
+    target_user.department = department.strip().upper() if department else None
+    db.session.commit()
+    return target_user
+
+
+def assign_custom_access(
+    email: str,
+    role_str: str,
+    department: Optional[str],
+    first_name: Optional[str],
+    last_name: Optional[str],
+    acting_user: User,
+) -> User:
+    """Owner/Admin utility to assign or provision custom role & department by email/Gmail."""
+    import secrets
+
+    normalized_email = email.lower().strip()
+    new_role = normalize_role_enum(role_str)
+
+    acting_role = acting_user.role.value if hasattr(acting_user.role, "value") else str(acting_user.role)
+    if new_role == RoleEnum.OWNER and acting_role != RoleEnum.OWNER.value:
+        raise ForbiddenException("Only the Owner can grant the OWNER role.")
+
+    dept_clean = department.strip().upper() if department else None
+    user = get_user_by_email(normalized_email)
+
+    if user:
+        if (user.role == RoleEnum.OWNER) and acting_role != RoleEnum.OWNER.value:
+            raise ForbiddenException("Cannot modify an Owner account.")
+        user.role = new_role
+        user.department = dept_clean
+        if first_name and first_name.strip():
+            user.first_name = first_name.strip()
+        if last_name and last_name.strip():
+            user.last_name = last_name.strip()
+        user.is_active = True
+        db.session.commit()
+        return user
+    else:
+        fn = first_name.strip() if first_name else normalized_email.split("@")[0].capitalize()
+        ln = last_name.strip() if last_name else "Staff"
+        random_pw = secrets.token_urlsafe(12)
+        return create_user(
+            email=normalized_email,
+            password=random_pw,
+            first_name=fn,
+            last_name=ln,
+            role=new_role,
+            department=dept_clean,
+            is_active=True,
+        )
+
 
 

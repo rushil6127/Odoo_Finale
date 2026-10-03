@@ -289,6 +289,7 @@ def create_staff_or_user(validated_data):
         first_name=validated_data["first_name"],
         last_name=validated_data["last_name"],
         role=validated_data.get("role", RoleEnum.MEMBER),
+        department=validated_data.get("department"),
     )
 
     return success_response(
@@ -296,5 +297,63 @@ def create_staff_or_user(validated_data):
         message="User account created successfully",
         status_code=201,
     )
+
+
+@auth_bp.route("/assign-access", methods=["POST"])
+@roles_required(RoleEnum.OWNER, RoleEnum.ADMIN)
+def assign_custom_access_endpoint():
+    """Owner/Admin endpoint to grant custom role and department access to an employee via Gmail/email."""
+    from flask import request
+    from backend.app.common.errors import BadRequestException
+    from backend.app.auth.services import assign_custom_access
+
+    body = request.get_json(silent=True) or {}
+    email = body.get("email")
+    role = body.get("role", "STAFF")
+    department = body.get("department")
+    first_name = body.get("first_name")
+    last_name = body.get("last_name")
+
+    if not email:
+        raise BadRequestException("Field 'email' (Employee Gmail/Work Email) is required.")
+
+    user = assign_custom_access(
+        email=email,
+        role_str=role,
+        department=department,
+        first_name=first_name,
+        last_name=last_name,
+        acting_user=current_user,
+    )
+
+    return success_response(
+        data={"user": user.to_dict()},
+        message=f"Access granted: {user.email} assigned role '{user.role.value if hasattr(user.role, 'value') else user.role}' in '{user.department or 'General'}' department.",
+        status_code=200,
+    )
+
+
+@auth_bp.route("/users/<int:user_id>/department", methods=["PATCH"])
+@roles_required(RoleEnum.OWNER, RoleEnum.ADMIN)
+def update_user_department_endpoint(user_id: int):
+    """Assign or update employee department/sport section."""
+    from flask import request
+    from backend.app.auth.services import update_user_department
+
+    body = request.get_json(silent=True) or {}
+    department = body.get("department")
+
+    user = update_user_department(
+        target_user_id=user_id,
+        department=department,
+        acting_user=current_user,
+    )
+
+    return success_response(
+        data={"user": user.to_dict()},
+        message=f"Department updated to '{user.department or 'None'}'",
+        status_code=200,
+    )
+
 
 

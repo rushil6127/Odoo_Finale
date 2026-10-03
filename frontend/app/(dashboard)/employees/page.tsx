@@ -4,7 +4,6 @@ import { useEffect, useState, useCallback } from "react";
 import {
   Shield,
   ShieldCheck,
-  ShieldAlert,
   Users,
   UserCheck,
   UserX,
@@ -12,19 +11,18 @@ import {
   Filter,
   CheckCircle2,
   AlertCircle,
-  Clock,
   Key,
   Crown,
   Lock,
-  ChevronRight,
-  Sparkles,
   Loader2,
   RefreshCw,
   Edit2,
   Check,
   X,
-  Info,
-  UserPlus
+  UserPlus,
+  Mail,
+  Building,
+  Briefcase
 } from "lucide-react";
 import { apiClient } from "@/lib/api/client";
 import { getStoredUser, AuthUser } from "@/lib/auth";
@@ -35,6 +33,7 @@ interface UserItem {
   first_name: string;
   last_name: string;
   role: string;
+  department?: string | null;
   is_active: boolean;
   created_at: string;
   updated_at: string;
@@ -45,6 +44,18 @@ interface RoleDetail {
   description: string;
   permissions: string[];
 }
+
+const DEPARTMENTS = [
+  { id: "BADMINTON", name: "Badminton Section", icon: "🏸", desc: "6 Synthetic & Teakwood Courts" },
+  { id: "LAWN_TENNIS", name: "Lawn Tennis Arenas", icon: "🎾", desc: "Wimbledon Grass & French Clay" },
+  { id: "BOX_CRICKET", name: "Box Cricket Arenas", icon: "🏏", desc: "Floodlit Astroturf Pitches" },
+  { id: "TABLE_TENNIS", name: "Table Tennis Pavilion", icon: "🏓", desc: "Olympic Stiga Expert Tables" },
+  { id: "SWIMMING_POOL", name: "Aquatic Pavilion", icon: "🏊‍♂️", desc: "Olympic 50M Heated Pool" },
+  { id: "VOLLEYBALL", name: "Beach Volleyball", icon: "🏐", desc: "Fine Silica Sand Pits" },
+  { id: "PRO_SHOP", name: "Pro Shop & Stringing", icon: "🛍️", desc: "Gear & Racket Services" },
+  { id: "CAFE_BAR", name: "Café & Sports Lounge", icon: "🍽️", desc: "Food, Drinks & Member Tabs" },
+  { id: "GENERAL", name: "General Operations", icon: "🏢", desc: "Facility & Club Wide Access" },
+];
 
 const ROLE_BADGE_STYLES: Record<string, { bg: string; text: string; border: string; icon: string }> = {
   OWNER: {
@@ -65,6 +76,12 @@ const ROLE_BADGE_STYLES: Record<string, { bg: string; text: string; border: stri
     border: "border-blue-500/30",
     icon: "👔",
   },
+  COACH: {
+    bg: "bg-emerald-500/10 text-emerald-400 border-emerald-500/30",
+    text: "text-emerald-400",
+    border: "border-emerald-500/30",
+    icon: "🎾",
+  },
   TRAINER: {
     bg: "bg-emerald-500/10 text-emerald-400 border-emerald-500/30",
     text: "text-emerald-400",
@@ -76,6 +93,24 @@ const ROLE_BADGE_STYLES: Record<string, { bg: string; text: string; border: stri
     text: "text-teal-400",
     border: "border-teal-500/30",
     icon: "🧑‍💼",
+  },
+  FRONT_DESK: {
+    bg: "bg-teal-500/10 text-teal-400 border-teal-500/30",
+    text: "text-teal-400",
+    border: "border-teal-500/30",
+    icon: "🧑‍💼",
+  },
+  SHOP_STAFF: {
+    bg: "bg-cyan-500/10 text-cyan-400 border-cyan-500/30",
+    text: "text-cyan-400",
+    border: "border-cyan-500/30",
+    icon: "🛍️",
+  },
+  BAR_STAFF: {
+    bg: "bg-orange-500/10 text-orange-400 border-orange-500/30",
+    text: "text-orange-400",
+    border: "border-orange-500/30",
+    icon: "🍽️",
   },
   MEMBER: {
     bg: "bg-green-500/10 text-green-400 border-green-500/30",
@@ -101,27 +136,29 @@ export default function EmployeesPage() {
   const [actionLoading, setActionLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [roleFilter, setRoleFilter] = useState<string>("ALL");
+  const [departmentFilter, setDepartmentFilter] = useState<string>("ALL");
   const [statusFilter, setStatusFilter] = useState<string>("ALL");
 
-  // Role Edit Modal
-  const [selectedUserForRole, setSelectedUserForRole] = useState<UserItem | null>(null);
+  // Edit Role & Department Modal
+  const [selectedUserForEdit, setSelectedUserForEdit] = useState<UserItem | null>(null);
   const [newRoleSelection, setNewRoleSelection] = useState<string>("");
+  const [newDeptSelection, setNewDeptSelection] = useState<string>("");
 
-  // New User / Staff Modal
-  const [showAddUserModal, setShowAddUserModal] = useState(false);
-  const [newUserForm, setNewUserForm] = useState({
+  // Assign Custom Access by Gmail Modal
+  const [showAssignAccessModal, setShowAssignAccessModal] = useState(false);
+  const [assignForm, setAssignForm] = useState({
+    email: "",
+    role: "STAFF",
+    department: "BADMINTON",
     first_name: "",
     last_name: "",
-    email: "",
-    password: "",
-    role: "STAFF",
   });
 
   const [notification, setNotification] = useState<{ type: "success" | "error"; message: string } | null>(null);
 
   useEffect(() => {
     const user = getStoredUser();
-    setCurrentUser(user);
+    setCurrentUser(user as any);
   }, []);
 
   const showToast = (type: "success" | "error", message: string) => {
@@ -140,15 +177,19 @@ export default function EmployeesPage() {
 
       const res = await apiClient.get<any>(`/auth/users?${params.toString()}`);
       if (res && res.data && res.data.users) {
-        setUsers(res.data.users);
-        setTotalUsers(res.meta?.total || res.data.users.length);
+        let list: UserItem[] = res.data.users;
+        if (departmentFilter !== "ALL") {
+          list = list.filter((u) => (u.department || "GENERAL") === departmentFilter);
+        }
+        setUsers(list);
+        setTotalUsers(res.meta?.total || list.length);
       }
     } catch (err: any) {
       console.error("Failed to load users:", err);
     } finally {
       setLoading(false);
     }
-  }, [searchQuery, roleFilter, statusFilter]);
+  }, [searchQuery, roleFilter, departmentFilter, statusFilter]);
 
   const fetchRoles = useCallback(async () => {
     try {
@@ -174,22 +215,55 @@ export default function EmployeesPage() {
     fetchUsers();
   }, [fetchRoles, fetchUsers]);
 
-  const handleUpdateRole = async () => {
-    if (!selectedUserForRole || !newRoleSelection) return;
+  const handleAssignCustomAccess = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!assignForm.email.trim()) {
+      showToast("error", "Please provide the employee's Gmail / email address.");
+      return;
+    }
+
     try {
       setActionLoading(true);
-      const res = await apiClient.patch<any>(`/auth/users/${selectedUserForRole.id}/role`, {
-        role: newRoleSelection,
-      });
+      const res = await apiClient.post<any>("/auth/assign-access", assignForm);
       if (res && (res.status === "success" || res.data)) {
-        showToast("success", `Updated ${selectedUserForRole.first_name}'s role to ${newRoleSelection}.`);
-        setSelectedUserForRole(null);
+        showToast("success", res.message || `Custom access granted to ${assignForm.email}.`);
+        setShowAssignAccessModal(false);
+        setAssignForm({
+          email: "",
+          role: "STAFF",
+          department: "BADMINTON",
+          first_name: "",
+          last_name: "",
+        });
         fetchUsers();
       } else {
-        showToast("error", res.message || "Failed to update user role.");
+        showToast("error", res.message || "Failed to grant access.");
       }
     } catch (err: any) {
-      showToast("error", err.message || "Failed to update user role.");
+      showToast("error", err.message || "Failed to grant access.");
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleUpdateRoleAndDept = async () => {
+    if (!selectedUserForEdit) return;
+    try {
+      setActionLoading(true);
+      if (newRoleSelection && newRoleSelection !== selectedUserForEdit.role) {
+        await apiClient.patch<any>(`/auth/users/${selectedUserForEdit.id}/role`, {
+          role: newRoleSelection,
+        });
+      }
+      await apiClient.patch<any>(`/auth/users/${selectedUserForEdit.id}/department`, {
+        department: newDeptSelection,
+      });
+
+      showToast("success", `Updated access & department for ${selectedUserForEdit.first_name}.`);
+      setSelectedUserForEdit(null);
+      fetchUsers();
+    } catch (err: any) {
+      showToast("error", err.message || "Failed to update user access.");
     } finally {
       setActionLoading(false);
     }
@@ -215,37 +289,6 @@ export default function EmployeesPage() {
       }
     } catch (err: any) {
       showToast("error", err.message || "Failed to update account status.");
-    } finally {
-      setActionLoading(false);
-    }
-  };
-
-  const handleCreateUser = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newUserForm.email || !newUserForm.password || !newUserForm.first_name) {
-      showToast("error", "Please fill in all required fields.");
-      return;
-    }
-
-    try {
-      setActionLoading(true);
-      const res = await apiClient.post<any>("/auth/users", newUserForm);
-      if (res && (res.status === "success" || res.data)) {
-        showToast("success", `Account created for ${newUserForm.first_name} (${newUserForm.role}).`);
-        setShowAddUserModal(false);
-        setNewUserForm({
-          first_name: "",
-          last_name: "",
-          email: "",
-          password: "",
-          role: "STAFF",
-        });
-        fetchUsers();
-      } else {
-        showToast("error", res.message || "Failed to create user.");
-      }
-    } catch (err: any) {
-      showToast("error", err.message || "Failed to create user.");
     } finally {
       setActionLoading(false);
     }
@@ -281,30 +324,30 @@ export default function EmployeesPage() {
           <div>
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-semibold uppercase tracking-wider mb-3">
               <ShieldCheck className="w-3.5 h-3.5" />
-              Access Control & Role Governance
+              Owner & Admin Access Control Console
             </div>
             <h1 className="text-3xl font-extrabold text-white tracking-tight">
-              Roles & Staff Management
+              Roles & Staff Department Governance
             </h1>
             <p className="text-sm text-zinc-400 mt-1 max-w-2xl">
-              Assign roles, configure granular permissions, and manage staff operations with strict server-side authorization enforcement.
+              Owner and Admins delegate custom roles and assign staff to specific sports sections (e.g. Badminton, Tennis, Cricket). Employees automatically see their section&apos;s schedule and maintenance.
             </p>
           </div>
 
           <div className="flex items-center gap-3">
             {isAdmin && (
               <button
-                onClick={() => setShowAddUserModal(true)}
-                className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-medium transition-all shadow-lg shadow-emerald-950/50 hover:scale-[1.02] active:scale-[0.98]"
+                onClick={() => setShowAssignAccessModal(true)}
+                className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white text-sm font-semibold transition-all shadow-lg shadow-emerald-950/50 hover:scale-[1.02] active:scale-[0.98]"
               >
                 <UserPlus className="w-4 h-4" />
-                Add Staff / User
+                Assign Access by Gmail
               </button>
             )}
             <button
               onClick={() => fetchUsers()}
               className="inline-flex items-center gap-2 px-3.5 py-2.5 rounded-xl bg-zinc-800 hover:bg-zinc-750 text-zinc-300 hover:text-white border border-zinc-700/60 text-sm transition-all"
-              title="Refresh users"
+              title="Refresh roster"
             >
               <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />
             </button>
@@ -319,12 +362,12 @@ export default function EmployeesPage() {
             <span className="font-mono bg-zinc-800/80 px-2 py-0.5 rounded border border-zinc-700/50 text-amber-200">
               pushplamba104@gmail.com
             </span>
-            <span className="hidden sm:inline text-zinc-400">• Full administrative sovereignty across all roles</span>
+            <span className="hidden sm:inline text-zinc-400">• Full sovereignty over all role & department delegations</span>
           </div>
 
           <div className="flex items-center gap-4 text-zinc-400 font-medium">
-            <span>Total Accounts: <strong className="text-white">{totalUsers}</strong></span>
-            <span>Active Roles: <strong className="text-emerald-400">7 Tiers</strong></span>
+            <span>Total Staff & Users: <strong className="text-white">{totalUsers}</strong></span>
+            <span>Departments: <strong className="text-emerald-400">8 Sections</strong></span>
           </div>
         </div>
       </div>
@@ -340,7 +383,7 @@ export default function EmployeesPage() {
           }`}
         >
           <Users className="w-4 h-4" />
-          Users & Role Delegation
+          Staff Roster & Department Access
           <span className="px-2 py-0.5 rounded-full text-xs bg-zinc-800 text-zinc-300 ml-1">
             {users.length}
           </span>
@@ -355,7 +398,7 @@ export default function EmployeesPage() {
           }`}
         >
           <Key className="w-4 h-4" />
-          Role & Permissions Matrix
+          Role & Department Matrix
         </button>
 
         <button
@@ -367,28 +410,46 @@ export default function EmployeesPage() {
           }`}
         >
           <Crown className="w-4 h-4" />
-          Security Governance & Hierarchy
+          Access Rules & Security Policy
         </button>
       </div>
 
-      {/* TAB 1: USERS & ROLE DELEGATION */}
+      {/* TAB 1: STAFF ROSTER & DEPARTMENT ACCESS */}
       {activeTab === "users" && (
         <div className="space-y-4">
           {/* Filter Bar */}
-          <div className="flex flex-col md:flex-row items-center justify-between gap-4 bg-zinc-900/60 p-4 rounded-xl border border-zinc-800">
-            <div className="relative w-full md:w-80">
+          <div className="flex flex-col lg:flex-row items-center justify-between gap-4 bg-zinc-900/60 p-4 rounded-xl border border-zinc-800">
+            <div className="relative w-full lg:w-80">
               <Search className="w-4 h-4 text-zinc-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
               <input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search by name or email..."
+                placeholder="Search staff by name or Gmail..."
                 className="w-full pl-10 pr-4 py-2 bg-zinc-950/80 border border-zinc-700/60 rounded-lg text-sm text-zinc-200 placeholder-zinc-500 focus:outline-none focus:border-emerald-500 transition-colors"
               />
             </div>
 
-            <div className="flex items-center gap-3 w-full md:w-auto">
-              <div className="flex items-center gap-2 w-full md:w-auto">
+            <div className="flex flex-wrap items-center gap-3 w-full lg:w-auto">
+              {/* Department filter */}
+              <div className="flex items-center gap-2">
+                <Building className="w-4 h-4 text-zinc-400 shrink-0" />
+                <select
+                  value={departmentFilter}
+                  onChange={(e) => setDepartmentFilter(e.target.value)}
+                  className="bg-zinc-950/80 border border-zinc-700/60 rounded-lg px-3 py-2 text-sm text-zinc-200 focus:outline-none focus:border-emerald-500 transition-colors"
+                >
+                  <option value="ALL">All Departments</option>
+                  {DEPARTMENTS.map((dept) => (
+                    <option key={dept.id} value={dept.id}>
+                      {dept.icon} {dept.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Role filter */}
+              <div className="flex items-center gap-2">
                 <Filter className="w-4 h-4 text-zinc-400 shrink-0" />
                 <select
                   value={roleFilter}
@@ -397,24 +458,25 @@ export default function EmployeesPage() {
                 >
                   <option value="ALL">All Roles</option>
                   <option value="OWNER">Owner</option>
-                  <option value="ADMIN">Admin</option>
-                  <option value="MANAGER">Manager</option>
-                  <option value="TRAINER">Trainer</option>
-                  <option value="STAFF">Staff</option>
+                  <option value="ADMIN">Admin / Manager</option>
+                  <option value="COACH">Coach / Trainer</option>
+                  <option value="FRONT_DESK">Staff / Front Desk</option>
+                  <option value="SHOP_STAFF">Shop Staff</option>
+                  <option value="BAR_STAFF">Bar / Café Staff</option>
                   <option value="MEMBER">Member</option>
-                  <option value="GUEST">Guest</option>
-                </select>
-
-                <select
-                  value={statusFilter}
-                  onChange={(e) => setStatusFilter(e.target.value)}
-                  className="bg-zinc-950/80 border border-zinc-700/60 rounded-lg px-3 py-2 text-sm text-zinc-200 focus:outline-none focus:border-emerald-500 transition-colors"
-                >
-                  <option value="ALL">All Statuses</option>
-                  <option value="ACTIVE">Active Only</option>
-                  <option value="DISABLED">Disabled Only</option>
                 </select>
               </div>
+
+              {/* Status filter */}
+              <select
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
+                className="bg-zinc-950/80 border border-zinc-700/60 rounded-lg px-3 py-2 text-sm text-zinc-200 focus:outline-none focus:border-emerald-500 transition-colors"
+              >
+                <option value="ALL">All Statuses</option>
+                <option value="ACTIVE">Active Only</option>
+                <option value="DISABLED">Disabled Only</option>
+              </select>
             </div>
           </div>
 
@@ -423,30 +485,35 @@ export default function EmployeesPage() {
             {loading ? (
               <div className="py-20 flex flex-col items-center justify-center text-zinc-400 space-y-3">
                 <Loader2 className="w-8 h-8 animate-spin text-emerald-400" />
-                <p className="text-sm">Loading system accounts & roles...</p>
+                <p className="text-sm">Loading staff roster & department assignments...</p>
               </div>
             ) : users.length === 0 ? (
               <div className="py-16 text-center text-zinc-400 space-y-2">
                 <Users className="w-10 h-10 text-zinc-600 mx-auto mb-2" />
-                <p className="font-semibold text-zinc-300">No users found</p>
-                <p className="text-xs text-zinc-500">Try adjusting your search query or filter settings.</p>
+                <p className="font-semibold text-zinc-300">No staff records found</p>
+                <p className="text-xs text-zinc-500">Try adjusting your department or role filter.</p>
               </div>
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full text-left border-collapse">
                   <thead>
                     <tr className="border-b border-zinc-800 bg-zinc-950/60 text-xs font-semibold uppercase tracking-wider text-zinc-400">
-                      <th className="py-3.5 px-4">User</th>
-                      <th className="py-3.5 px-4">Current Role</th>
-                      <th className="py-3.5 px-4">Account Status</th>
-                      <th className="py-3.5 px-4">Joined</th>
-                      <th className="py-3.5 px-4 text-right">Actions</th>
+                      <th className="py-3.5 px-4">Staff / User</th>
+                      <th className="py-3.5 px-4">Assigned Department</th>
+                      <th className="py-3.5 px-4">Role Tier</th>
+                      <th className="py-3.5 px-4">Status</th>
+                      <th className="py-3.5 px-4 text-right">Access Actions</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-zinc-800/60 text-sm">
                     {users.map((user) => {
                       const roleConfig = ROLE_BADGE_STYLES[user.role] || ROLE_BADGE_STYLES.MEMBER;
                       const isTargetSuperOwner = user.email.toLowerCase() === "pushplamba104@gmail.com";
+                      const deptConfig = DEPARTMENTS.find((d) => d.id === user.department) || {
+                        icon: "🏢",
+                        name: user.department || "General Operations",
+                      };
+
                       return (
                         <tr key={user.id} className="hover:bg-zinc-800/30 transition-colors">
                           <td className="py-3.5 px-4">
@@ -466,6 +533,15 @@ export default function EmployeesPage() {
                             </div>
                           </td>
 
+                          {/* Assigned Department */}
+                          <td className="py-3.5 px-4">
+                            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold bg-zinc-800 text-zinc-200 border border-zinc-700/60">
+                              <span>{deptConfig.icon}</span>
+                              <span>{deptConfig.name}</span>
+                            </span>
+                          </td>
+
+                          {/* Role Tier */}
                           <td className="py-3.5 px-4">
                             <span
                               className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold border ${roleConfig.bg}`}
@@ -475,6 +551,7 @@ export default function EmployeesPage() {
                             </span>
                           </td>
 
+                          {/* Status */}
                           <td className="py-3.5 px-4">
                             {user.is_active ? (
                               <span className="inline-flex items-center gap-1.5 text-xs text-emerald-400 font-medium">
@@ -489,22 +566,20 @@ export default function EmployeesPage() {
                             )}
                           </td>
 
-                          <td className="py-3.5 px-4 text-xs text-zinc-400">
-                            {user.created_at ? new Date(user.created_at).toLocaleDateString() : "—"}
-                          </td>
-
+                          {/* Actions */}
                           <td className="py-3.5 px-4 text-right">
                             <div className="flex items-center justify-end gap-2">
                               {isAdmin && (
                                 <button
                                   onClick={() => {
-                                    setSelectedUserForRole(user);
+                                    setSelectedUserForEdit(user);
                                     setNewRoleSelection(user.role);
+                                    setNewDeptSelection(user.department || "BADMINTON");
                                   }}
                                   className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-xs font-medium border border-zinc-700/60 transition-all hover:border-emerald-500/50"
                                 >
                                   <Edit2 className="w-3.5 h-3.5 text-emerald-400" />
-                                  Change Role
+                                  Edit Access
                                 </button>
                               )}
 
@@ -535,123 +610,36 @@ export default function EmployeesPage() {
         </div>
       )}
 
-      {/* TAB 2: ROLE & PERMISSIONS MATRIX */}
+      {/* TAB 2: ROLE & DEPARTMENT MATRIX */}
       {activeTab === "matrix" && (
         <div className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {Object.entries(rolesMap).map(([roleKey, details]) => {
-              const style = ROLE_BADGE_STYLES[roleKey] || ROLE_BADGE_STYLES.MEMBER;
-              return (
-                <div
-                  key={roleKey}
-                  className="p-5 rounded-xl border border-zinc-800 bg-zinc-900/50 backdrop-blur-sm flex flex-col justify-between hover:border-zinc-700 transition-all shadow-lg"
-                >
-                  <div>
-                    <div className="flex items-center justify-between gap-2 mb-3">
-                      <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border ${style.bg}`}>
-                        <span>{style.icon}</span>
-                        <span>{roleKey}</span>
-                      </span>
-                      <span className="text-xs text-zinc-500 font-mono">Tier: {roleKey}</span>
-                    </div>
-
-                    <h3 className="text-base font-bold text-white mb-1">{details.title}</h3>
-                    <p className="text-xs text-zinc-400 leading-relaxed mb-4">{details.description}</p>
-
-                    <div className="space-y-2 border-t border-zinc-800/80 pt-3">
-                      <p className="text-[11px] font-semibold text-zinc-300 uppercase tracking-wider">Granted Capabilities</p>
-                      <ul className="space-y-1.5">
-                        {details.permissions.map((perm, idx) => (
-                          <li key={idx} className="flex items-start gap-2 text-xs text-zinc-300">
-                            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0 mt-0.5" />
-                            <span>{perm}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            {DEPARTMENTS.map((dept) => (
+              <div
+                key={dept.id}
+                className="p-5 rounded-xl border border-zinc-800 bg-zinc-900/50 backdrop-blur-sm space-y-3 hover:border-zinc-700 transition-all shadow-lg"
+              >
+                <div className="text-3xl">{dept.icon}</div>
+                <div>
+                  <h3 className="text-base font-bold text-white">{dept.name}</h3>
+                  <p className="text-xs text-zinc-400 mt-0.5">{dept.desc}</p>
                 </div>
-              );
-            })}
-          </div>
-
-          {/* Matrix Overview Table */}
-          <div className="p-6 rounded-xl border border-zinc-800 bg-zinc-900/50 backdrop-blur-sm shadow-xl">
-            <h3 className="text-base font-bold text-white mb-2 flex items-center gap-2">
-              <Shield className="w-4 h-4 text-emerald-400" />
-              Module Access Matrix
-            </h3>
-            <p className="text-xs text-zinc-400 mb-5">
-              Summary of functional modules accessible per role under strict server-side decorators (`@roles_required`).
-            </p>
-
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs border-collapse">
-                <thead>
-                  <tr className="border-b border-zinc-800 bg-zinc-950/80 text-zinc-400 font-semibold uppercase">
-                    <th className="py-3 px-4">Club Module</th>
-                    <th className="py-3 px-3 text-center">Owner</th>
-                    <th className="py-3 px-3 text-center">Admin</th>
-                    <th className="py-3 px-3 text-center">Manager</th>
-                    <th className="py-3 px-3 text-center">Trainer</th>
-                    <th className="py-3 px-3 text-center">Staff</th>
-                    <th className="py-3 px-3 text-center">Member</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-zinc-800/60 text-zinc-300">
-                  <tr className="hover:bg-zinc-800/30">
-                    <td className="py-3 px-4 font-medium text-white">Role Delegation & User Creation</td>
-                    <td className="py-3 px-3 text-center text-emerald-400 font-bold">✓ Full</td>
-                    <td className="py-3 px-3 text-center text-emerald-400 font-bold">✓ Staff/Admin</td>
-                    <td className="py-3 px-3 text-center text-zinc-600">—</td>
-                    <td className="py-3 px-3 text-center text-zinc-600">—</td>
-                    <td className="py-3 px-3 text-center text-zinc-600">—</td>
-                    <td className="py-3 px-3 text-center text-zinc-600">—</td>
-                  </tr>
-                  <tr className="hover:bg-zinc-800/30">
-                    <td className="py-3 px-4 font-medium text-white">Membership Request Review & Approval</td>
-                    <td className="py-3 px-3 text-center text-emerald-400 font-bold">✓ Approve/Reject</td>
-                    <td className="py-3 px-3 text-center text-emerald-400 font-bold">✓ Approve/Reject</td>
-                    <td className="py-3 px-3 text-center text-emerald-400 font-bold">✓ Approve/Reject</td>
-                    <td className="py-3 px-3 text-center text-zinc-600">—</td>
-                    <td className="py-3 px-3 text-center text-zinc-600">—</td>
-                    <td className="py-3 px-3 text-center text-zinc-600">— (Self Submit)</td>
-                  </tr>
-                  <tr className="hover:bg-zinc-800/30">
-                    <td className="py-3 px-4 font-medium text-white">Court Match Bookings</td>
-                    <td className="py-3 px-3 text-center text-emerald-400 font-bold">✓ Full</td>
-                    <td className="py-3 px-3 text-center text-emerald-400 font-bold">✓ Override</td>
-                    <td className="py-3 px-3 text-center text-emerald-400 font-bold">✓ Manage</td>
-                    <td className="py-3 px-3 text-center text-emerald-400 font-bold">✓ Drill Sched</td>
-                    <td className="py-3 px-3 text-center text-emerald-400 font-bold">✓ Check-in</td>
-                    <td className="py-3 px-3 text-center text-emerald-400 font-bold">✓ Member Limit</td>
-                  </tr>
-                  <tr className="hover:bg-zinc-800/30">
-                    <td className="py-3 px-4 font-medium text-white">POS / Pro Shop / Bar Tab Operations</td>
-                    <td className="py-3 px-3 text-center text-emerald-400 font-bold">✓ Full</td>
-                    <td className="py-3 px-3 text-center text-emerald-400 font-bold">✓ Pricing & Setup</td>
-                    <td className="py-3 px-3 text-center text-emerald-400 font-bold">✓ Inventory Sync</td>
-                    <td className="py-3 px-3 text-center text-zinc-600">—</td>
-                    <td className="py-3 px-3 text-center text-emerald-400 font-bold">✓ Checkout Terminal</td>
-                    <td className="py-3 px-3 text-center text-zinc-400">Personal Purchases</td>
-                  </tr>
-                  <tr className="hover:bg-zinc-800/30">
-                    <td className="py-3 px-4 font-medium text-white">Financial Audit & Payment Settings</td>
-                    <td className="py-3 px-3 text-center text-emerald-400 font-bold">✓ Master Control</td>
-                    <td className="py-3 px-3 text-center text-emerald-400 font-bold">✓ Audit Reports</td>
-                    <td className="py-3 px-3 text-center text-emerald-400 font-bold">✓ Daily Shifts</td>
-                    <td className="py-3 px-3 text-center text-zinc-600">—</td>
-                    <td className="py-3 px-3 text-center text-zinc-600">—</td>
-                    <td className="py-3 px-3 text-center text-zinc-600">—</td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
+                <div className="p-2.5 rounded-lg bg-zinc-950/80 border border-zinc-800/80 text-[11px] text-zinc-300 space-y-1">
+                  <div className="font-semibold text-emerald-400 flex items-center gap-1">
+                    <CheckCircle2 className="w-3 h-3" />
+                    Operational Access:
+                  </div>
+                  <p className="text-zinc-400">
+                    Assigned staff monitor court bookings, member check-ins, and log court maintenance notes.
+                  </p>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       )}
 
-      {/* TAB 3: SECURITY GOVERNANCE & HIERARCHY */}
+      {/* TAB 3: GOVERNANCE POLICY */}
       {activeTab === "governance" && (
         <div className="space-y-6">
           <div className="p-6 rounded-2xl bg-gradient-to-br from-zinc-900 to-zinc-950 border border-zinc-800 shadow-xl space-y-6">
@@ -660,8 +648,8 @@ export default function EmployeesPage() {
                 <Crown className="w-6 h-6" />
               </div>
               <div>
-                <h3 className="text-lg font-bold text-white">Super Owner Privileges & Hierarchy Policy</h3>
-                <p className="text-xs text-zinc-400">Security principles governing role delegation across Champions Club.</p>
+                <h3 className="text-lg font-bold text-white">Access Delegation & Department Scope Rules</h3>
+                <p className="text-xs text-zinc-400">Security standards governing staff department assignments across Champions Club.</p>
               </div>
             </div>
 
@@ -669,40 +657,20 @@ export default function EmployeesPage() {
               <div className="p-4 rounded-xl bg-zinc-900/80 border border-zinc-800 space-y-2">
                 <div className="flex items-center gap-2 text-sm font-semibold text-emerald-400">
                   <ShieldCheck className="w-4 h-4" />
-                  Designated Super Owner (`pushplamba104@gmail.com`)
+                  Owner Delegation via Gmail (`pushplamba104@gmail.com`)
                 </div>
                 <p className="text-xs text-zinc-400 leading-relaxed">
-                  Has perpetual <strong className="text-zinc-200">OWNER</strong> role. Any sign-in or token refresh guarantees owner privileges and cannot be demoted or locked out by standard administrators.
+                  The Owner or Admins enter an employee&apos;s Gmail address and grant custom role and department access. The employee signs in with Google and automatically receives their assigned department dashboard.
                 </p>
               </div>
 
               <div className="p-4 rounded-xl bg-zinc-900/80 border border-zinc-800 space-y-2">
                 <div className="flex items-center gap-2 text-sm font-semibold text-purple-400">
                   <Lock className="w-4 h-4" />
-                  Hierarchical Assignment Safeguards
+                  Department Scoped Visibility
                 </div>
                 <p className="text-xs text-zinc-400 leading-relaxed">
-                  Only an existing <strong className="text-zinc-200">OWNER</strong> can appoint or remove another Owner. Admins may delegate roles up to ADMIN, but cannot promote accounts to OWNER.
-                </p>
-              </div>
-
-              <div className="p-4 rounded-xl bg-zinc-900/80 border border-zinc-800 space-y-2">
-                <div className="flex items-center gap-2 text-sm font-semibold text-blue-400">
-                  <Key className="w-4 h-4" />
-                  Server-Side Enforcement
-                </div>
-                <p className="text-xs text-zinc-400 leading-relaxed">
-                  All critical endpoints are protected using Flask JWT claims & database validations. Client-side hiding alone is never trusted for security.
-                </p>
-              </div>
-
-              <div className="p-4 rounded-xl bg-zinc-900/80 border border-zinc-800 space-y-2">
-                <div className="flex items-center gap-2 text-sm font-semibold text-amber-400">
-                  <Sparkles className="w-4 h-4" />
-                  Membership Approval Decoupling
-                </div>
-                <p className="text-xs text-zinc-400 leading-relaxed">
-                  Submitting a UTR payment screenshot creates a <strong className="text-amber-400">PENDING</strong> request. Only manual review by an Admin/Manager/Owner transitions it to <strong className="text-emerald-400">APPROVED</strong>.
+                  Employees in Badminton only view Badminton court bookings and Badminton court maintenance. They do not book courts for themselves; they manage their section&apos;s court operational flow.
                 </p>
               </div>
             </div>
@@ -710,174 +678,108 @@ export default function EmployeesPage() {
         </div>
       )}
 
-      {/* MODAL: ASSIGN / CHANGE USER ROLE */}
-      {selectedUserForRole && (
+      {/* MODAL: ASSIGN CUSTOM ACCESS BY GMAIL */}
+      {showAssignAccessModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in">
-          <div className="bg-zinc-900 border border-zinc-700 rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-5">
-            <div className="flex items-center justify-between border-b border-zinc-800 pb-4">
-              <div className="flex items-center gap-2 text-white font-bold text-base">
-                <Shield className="w-5 h-5 text-emerald-400" />
-                Assign Role to User
-              </div>
-              <button
-                onClick={() => setSelectedUserForRole(null)}
-                className="text-zinc-400 hover:text-white p-1 rounded-lg hover:bg-zinc-800"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            <div className="p-3 bg-zinc-950/80 rounded-xl border border-zinc-800 flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-emerald-600 flex items-center justify-center text-white font-bold text-sm">
-                {selectedUserForRole.first_name?.[0] || selectedUserForRole.email[0].toUpperCase()}
-              </div>
-              <div>
-                <p className="font-semibold text-white text-sm">
-                  {selectedUserForRole.first_name} {selectedUserForRole.last_name}
-                </p>
-                <p className="text-xs text-zinc-400 font-mono">{selectedUserForRole.email}</p>
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <label className="text-xs font-semibold text-zinc-300 uppercase tracking-wider">
-                Select System Role
-              </label>
-              <select
-                value={newRoleSelection}
-                onChange={(e) => setNewRoleSelection(e.target.value)}
-                className="w-full bg-zinc-950 border border-zinc-700 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-emerald-500 transition-colors"
-              >
-                {isOwner && <option value="OWNER">👑 OWNER (Master Sovereignty)</option>}
-                <option value="ADMIN">🛡️ ADMIN (Club Operations & Roles)</option>
-                <option value="MANAGER">👔 MANAGER (Staff & Reviews)</option>
-                <option value="TRAINER">🎾 TRAINER (Coaching & Drills)</option>
-                <option value="STAFF">🧑‍💼 STAFF (POS & Check-ins)</option>
-                <option value="MEMBER">🏅 MEMBER (Club Member)</option>
-                <option value="GUEST">👤 GUEST (Public Visitor)</option>
-              </select>
-            </div>
-
-            {rolesMap[newRoleSelection] && (
-              <div className="p-3 rounded-xl bg-zinc-950/60 border border-zinc-800/80 text-xs space-y-1.5">
-                <span className="font-semibold text-zinc-200">
-                  {rolesMap[newRoleSelection].title}
-                </span>
-                <p className="text-zinc-400 text-[11px] leading-relaxed">
-                  {rolesMap[newRoleSelection].description}
-                </p>
-              </div>
-            )}
-
-            <div className="flex items-center justify-end gap-3 pt-2">
-              <button
-                type="button"
-                onClick={() => setSelectedUserForRole(null)}
-                className="px-4 py-2 rounded-xl text-xs font-medium text-zinc-400 hover:text-white bg-zinc-800 hover:bg-zinc-750 transition-colors"
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                onClick={handleUpdateRole}
-                disabled={actionLoading}
-                className="inline-flex items-center gap-2 px-5 py-2 rounded-xl text-xs font-semibold text-white bg-emerald-600 hover:bg-emerald-500 transition-all shadow-lg shadow-emerald-950/50 disabled:opacity-50"
-              >
-                {actionLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Check className="w-3.5 h-3.5" />}
-                Confirm Role Update
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* MODAL: ADD STAFF / USER */}
-      {showAddUserModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in">
-          <div className="bg-zinc-900 border border-zinc-700 rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-5">
+          <div className="bg-zinc-900 border border-zinc-700 rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-5">
             <div className="flex items-center justify-between border-b border-zinc-800 pb-4">
               <div className="flex items-center gap-2 text-white font-bold text-base">
                 <UserPlus className="w-5 h-5 text-emerald-400" />
-                Provision Staff or User Account
+                Assign Custom Access by Gmail
               </div>
               <button
-                onClick={() => setShowAddUserModal(false)}
+                onClick={() => setShowAssignAccessModal(false)}
                 className="text-zinc-400 hover:text-white p-1 rounded-lg hover:bg-zinc-800"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            <form onSubmit={handleCreateUser} className="space-y-4">
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="text-xs font-semibold text-zinc-300">First Name</label>
-                  <input
-                    type="text"
-                    required
-                    value={newUserForm.first_name}
-                    onChange={(e) => setNewUserForm({ ...newUserForm, first_name: e.target.value })}
-                    className="w-full mt-1 bg-zinc-950 border border-zinc-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-emerald-500"
-                    placeholder="Jane"
-                  />
-                </div>
-                <div>
-                  <label className="text-xs font-semibold text-zinc-300">Last Name</label>
-                  <input
-                    type="text"
-                    required
-                    value={newUserForm.last_name}
-                    onChange={(e) => setNewUserForm({ ...newUserForm, last_name: e.target.value })}
-                    className="w-full mt-1 bg-zinc-950 border border-zinc-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-emerald-500"
-                    placeholder="Doe"
-                  />
-                </div>
-              </div>
-
+            <form onSubmit={handleAssignCustomAccess} className="space-y-4">
               <div>
-                <label className="text-xs font-semibold text-zinc-300">Email Address</label>
+                <label className="text-xs font-semibold text-zinc-300 flex items-center gap-1.5">
+                  <Mail className="w-3.5 h-3.5 text-emerald-400" />
+                  Employee Gmail / Email Address <span className="text-red-400">*</span>
+                </label>
                 <input
                   type="email"
                   required
-                  value={newUserForm.email}
-                  onChange={(e) => setNewUserForm({ ...newUserForm, email: e.target.value })}
-                  className="w-full mt-1 bg-zinc-950 border border-zinc-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-emerald-500"
-                  placeholder="staff@championsclub.in"
+                  value={assignForm.email}
+                  onChange={(e) => setAssignForm({ ...assignForm, email: e.target.value })}
+                  className="w-full mt-1.5 bg-zinc-950 border border-zinc-700 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-emerald-500"
+                  placeholder="employee.badminton@gmail.com"
                 />
+                <p className="text-[11px] text-zinc-500 mt-1">
+                  When this employee logs in with Google, they will instantly receive these permissions.
+                </p>
               </div>
 
-              <div>
-                <label className="text-xs font-semibold text-zinc-300">Initial Password</label>
-                <input
-                  type="password"
-                  required
-                  value={newUserForm.password}
-                  onChange={(e) => setNewUserForm({ ...newUserForm, password: e.target.value })}
-                  className="w-full mt-1 bg-zinc-950 border border-zinc-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-emerald-500"
-                  placeholder="••••••••"
-                />
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-xs font-semibold text-zinc-300 flex items-center gap-1.5">
+                    <Briefcase className="w-3.5 h-3.5 text-zinc-400" />
+                    Role Tier
+                  </label>
+                  <select
+                    value={assignForm.role}
+                    onChange={(e) => setAssignForm({ ...assignForm, role: e.target.value })}
+                    className="w-full mt-1.5 bg-zinc-950 border border-zinc-700 rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-emerald-500"
+                  >
+                    <option value="STAFF">🧑‍💼 Staff / Front Desk</option>
+                    <option value="COACH">🎾 Coach / Trainer</option>
+                    <option value="MANAGER">👔 Manager</option>
+                    <option value="ADMIN">🛡️ Administrator</option>
+                    {isOwner && <option value="OWNER">👑 Owner</option>}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="text-xs font-semibold text-zinc-300 flex items-center gap-1.5">
+                    <Building className="w-3.5 h-3.5 text-zinc-400" />
+                    Assigned Department
+                  </label>
+                  <select
+                    value={assignForm.department}
+                    onChange={(e) => setAssignForm({ ...assignForm, department: e.target.value })}
+                    className="w-full mt-1.5 bg-zinc-950 border border-zinc-700 rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-emerald-500"
+                  >
+                    {DEPARTMENTS.map((dept) => (
+                      <option key={dept.id} value={dept.id}>
+                        {dept.icon} {dept.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
               </div>
 
-              <div>
-                <label className="text-xs font-semibold text-zinc-300">Role</label>
-                <select
-                  value={newUserForm.role}
-                  onChange={(e) => setNewUserForm({ ...newUserForm, role: e.target.value })}
-                  className="w-full mt-1 bg-zinc-950 border border-zinc-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-emerald-500"
-                >
-                  <option value="STAFF">🧑‍💼 Staff (POS & Front Desk)</option>
-                  <option value="TRAINER">🎾 Trainer (Court Coach)</option>
-                  <option value="MANAGER">👔 Manager (Club Operations)</option>
-                  <option value="ADMIN">🛡️ Administrator</option>
-                  <option value="MEMBER">🏅 Member</option>
-                </select>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-xs font-semibold text-zinc-300">First Name (Optional)</label>
+                  <input
+                    type="text"
+                    value={assignForm.first_name}
+                    onChange={(e) => setAssignForm({ ...assignForm, first_name: e.target.value })}
+                    className="w-full mt-1 bg-zinc-950 border border-zinc-700 rounded-xl px-3.5 py-2 text-sm text-white focus:outline-none focus:border-emerald-500"
+                    placeholder="First Name"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs font-semibold text-zinc-300">Last Name (Optional)</label>
+                  <input
+                    type="text"
+                    value={assignForm.last_name}
+                    onChange={(e) => setAssignForm({ ...assignForm, last_name: e.target.value })}
+                    className="w-full mt-1 bg-zinc-950 border border-zinc-700 rounded-xl px-3.5 py-2 text-sm text-white focus:outline-none focus:border-emerald-500"
+                    placeholder="Last Name"
+                  />
+                </div>
               </div>
 
-              <div className="flex items-center justify-end gap-3 pt-3 border-t border-zinc-800">
+              <div className="flex items-center justify-end gap-3 pt-4 border-t border-zinc-800">
                 <button
                   type="button"
-                  onClick={() => setShowAddUserModal(false)}
-                  className="px-4 py-2 rounded-xl text-xs font-medium text-zinc-400 hover:text-white bg-zinc-800 hover:bg-zinc-750"
+                  onClick={() => setShowAssignAccessModal(false)}
+                  className="px-4 py-2 rounded-xl text-xs font-medium text-zinc-400 hover:text-white bg-zinc-800"
                 >
                   Cancel
                 </button>
@@ -886,11 +788,96 @@ export default function EmployeesPage() {
                   disabled={actionLoading}
                   className="inline-flex items-center gap-2 px-5 py-2 rounded-xl text-xs font-semibold text-white bg-emerald-600 hover:bg-emerald-500 shadow-lg shadow-emerald-950/50 disabled:opacity-50"
                 >
-                  {actionLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <UserPlus className="w-3.5 h-3.5" />}
-                  Create Account
+                  {actionLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Check className="w-3.5 h-3.5" />}
+                  Grant Custom Access
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL: EDIT USER ROLE & DEPARTMENT */}
+      {selectedUserForEdit && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in">
+          <div className="bg-zinc-900 border border-zinc-700 rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-5">
+            <div className="flex items-center justify-between border-b border-zinc-800 pb-4">
+              <div className="flex items-center gap-2 text-white font-bold text-base">
+                <Shield className="w-5 h-5 text-emerald-400" />
+                Edit Access & Department
+              </div>
+              <button
+                onClick={() => setSelectedUserForEdit(null)}
+                className="text-zinc-400 hover:text-white p-1 rounded-lg hover:bg-zinc-800"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="p-3 bg-zinc-950/80 rounded-xl border border-zinc-800 flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-emerald-600 flex items-center justify-center text-white font-bold text-sm">
+                {selectedUserForEdit.first_name?.[0] || selectedUserForEdit.email[0].toUpperCase()}
+              </div>
+              <div>
+                <p className="font-semibold text-white text-sm">
+                  {selectedUserForEdit.first_name} {selectedUserForEdit.last_name}
+                </p>
+                <p className="text-xs text-zinc-400 font-mono">{selectedUserForEdit.email}</p>
+              </div>
+            </div>
+
+            <div className="space-y-3">
+              <div>
+                <label className="text-xs font-semibold text-zinc-300">System Role</label>
+                <select
+                  value={newRoleSelection}
+                  onChange={(e) => setNewRoleSelection(e.target.value)}
+                  className="w-full mt-1 bg-zinc-950 border border-zinc-700 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-emerald-500"
+                >
+                  {isOwner && <option value="OWNER">👑 OWNER (Master Sovereignty)</option>}
+                  <option value="ADMIN">🛡️ ADMIN / Manager</option>
+                  <option value="COACH">🎾 COACH / Trainer</option>
+                  <option value="STAFF">🧑‍💼 STAFF / Front Desk</option>
+                  <option value="SHOP_STAFF">🛍️ SHOP STAFF</option>
+                  <option value="BAR_STAFF">🍽️ BAR / CAFÉ STAFF</option>
+                  <option value="MEMBER">🏅 MEMBER</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="text-xs font-semibold text-zinc-300">Assigned Department</label>
+                <select
+                  value={newDeptSelection}
+                  onChange={(e) => setNewDeptSelection(e.target.value)}
+                  className="w-full mt-1 bg-zinc-950 border border-zinc-700 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-emerald-500"
+                >
+                  {DEPARTMENTS.map((dept) => (
+                    <option key={dept.id} value={dept.id}>
+                      {dept.icon} {dept.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-end gap-3 pt-2">
+              <button
+                type="button"
+                onClick={() => setSelectedUserForEdit(null)}
+                className="px-4 py-2 rounded-xl text-xs font-medium text-zinc-400 hover:text-white bg-zinc-800"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleUpdateRoleAndDept}
+                disabled={actionLoading}
+                className="inline-flex items-center gap-2 px-5 py-2 rounded-xl text-xs font-semibold text-white bg-emerald-600 hover:bg-emerald-500 shadow-lg shadow-emerald-950/50 disabled:opacity-50"
+              >
+                {actionLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Check className="w-3.5 h-3.5" />}
+                Save Changes
+              </button>
+            </div>
           </div>
         </div>
       )}
