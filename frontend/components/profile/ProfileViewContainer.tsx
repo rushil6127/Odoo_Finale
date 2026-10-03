@@ -338,6 +338,97 @@ function OwnerCourtStatusCard() {
   );
 }
 
+/**
+ * Club at a Glance Overview Card for Sovereign Owner (Matches User Attached Reference)
+ */
+function OwnerClubGlanceCard() {
+  return (
+    <div className="lg:col-span-7 p-6 rounded-3xl bg-white border border-slate-200/90 shadow-sm flex flex-col justify-between gap-6">
+      {/* Top Header */}
+      <div>
+        <p className="text-[10px] font-black uppercase tracking-[0.12em] text-slate-400 mb-1">
+          CLUB AT A GLANCE
+        </p>
+        <h3 className="text-4xl font-black text-slate-900 font-[family-name:var(--font-outfit)] leading-none mb-2">
+          Club at a Glance
+        </h3>
+        <p className="text-xs text-slate-400 font-medium">
+          Key activity and status for your club
+        </p>
+      </div>
+
+      {/* 3 Metric Columns */}
+      <div className="grid grid-cols-3 gap-4 my-auto py-6">
+        {/* Col 1: Today's bookings */}
+        <div className="flex flex-col items-center text-center">
+          <div className="w-14 h-14 rounded-full bg-sky-50 text-sky-500 flex items-center justify-center mb-3">
+            <svg className="w-6 h-6 text-sky-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M8 2v4" />
+              <path d="M16 2v4" />
+              <rect width="18" height="18" x="3" y="4" rx="2" />
+              <path d="M3 10h18" />
+              <path d="m8 15 2 2 3-3 3 2" />
+            </svg>
+          </div>
+          <p className="text-xs font-black text-slate-900 leading-snug">
+            Today&apos;s bookings
+          </p>
+          <p className="text-lg font-black text-slate-900 mt-2 font-mono">
+            &mdash;
+          </p>
+        </div>
+
+        {/* Col 2: Pending memberships */}
+        <div className="flex flex-col items-center text-center">
+          <div className="w-14 h-14 rounded-full bg-emerald-50 text-emerald-500 flex items-center justify-center mb-3">
+            <svg className="w-6 h-6 text-emerald-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+              <circle cx="9" cy="7" r="4" />
+              <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
+              <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+            </svg>
+          </div>
+          <p className="text-xs font-black text-slate-900 leading-snug">
+            Pending memberships
+          </p>
+          <p className="text-lg font-black text-slate-900 mt-2 font-mono">
+            &mdash;
+          </p>
+        </div>
+
+        {/* Col 3: Court status */}
+        <div className="flex flex-col items-center text-center">
+          <div className="w-14 h-14 rounded-full bg-sky-50 text-sky-500 flex items-center justify-center mb-3">
+            <svg className="w-6 h-6 text-sky-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <rect width="18" height="18" x="3" y="3" rx="2" />
+              <path d="M3 12h18" />
+              <path d="M12 3v18" />
+            </svg>
+          </div>
+          <p className="text-xs font-black text-slate-900 leading-snug">
+            Court status
+          </p>
+          <Link
+            href="/#courts"
+            className="text-xs font-bold text-sky-600 hover:text-sky-700 underline block mt-2"
+          >
+            View availability
+          </Link>
+        </div>
+      </div>
+
+      {/* Manage Club CTA Button */}
+      <Link
+        href="/dashboard"
+        className="w-full inline-flex items-center justify-center gap-2 px-5 py-3 rounded-2xl bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-600 hover:to-blue-700 text-white font-extrabold text-sm shadow-md shadow-sky-500/25 transition-all mt-auto cursor-pointer"
+      >
+        <span>Manage club</span>
+        <ArrowRight className="w-4 h-4" />
+      </Link>
+    </div>
+  );
+}
+
 export interface ProfileViewContainerProps {
   forcedMode?: "owner" | "employee" | "member";
 }
@@ -1423,76 +1514,82 @@ export default function ProfileViewContainer({ forcedMode }: ProfileViewContaine
                 {/* Top Section: Live Arena Utilization & Sovereign Status */}
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
 
-                  {/* Left: Active Club Membership Card */}
-                  <div className="lg:col-span-7 p-6 rounded-3xl bg-white border border-slate-200/90 shadow-sm flex flex-col gap-5">
+                  {/* Left: Owner Club at a Glance Card OR Member Active Club Membership Card */}
+                  {isSuperOwner || activeUser.role === "OWNER" || activeUser.role === "ADMIN" || forcedMode === "owner" ? (
+                    // Owner Club at a Glance Card (Matches Reference Image)
+                    <OwnerClubGlanceCard />
+                  ) : (
+                    // Member Active Club Membership Card
+                    <div className="lg:col-span-7 p-6 rounded-3xl bg-white border border-slate-200/90 shadow-sm flex flex-col gap-5">
 
-                    {/* Tier label + Status badge */}
-                    <div className="flex items-start justify-between">
-                      <div>
-                        <p className="text-[10px] font-black uppercase tracking-[0.12em] text-slate-400 mb-1">
-                          {currentPlan} Membership
+                      {/* Tier label + Status badge */}
+                      <div className="flex items-start justify-between">
+                        <div>
+                          <p className="text-[10px] font-black uppercase tracking-[0.12em] text-slate-400 mb-1">
+                            {currentPlan} Membership
+                          </p>
+                          <h3 className="text-4xl font-black text-slate-900 font-[family-name:var(--font-outfit)] leading-none">
+                            {planDisplayName}
+                          </h3>
+                        </div>
+                        <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 whitespace-nowrap">
+                          <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                          Active · Paid
+                        </span>
+                      </div>
+
+                      {/* Divider */}
+                      <div className="border-t border-slate-100" />
+
+                      {/* Date range + Days left */}
+                      <div className="flex items-center justify-between flex-wrap gap-2">
+                        <div>
+                          <p className="text-lg sm:text-xl font-black text-slate-900 font-[family-name:var(--font-outfit)]">
+                            {formatProfileDate(membershipStartDate)}
+                            <span className="text-slate-400 font-medium mx-2">–</span>
+                            {formatProfileDate(membershipEndDate)}
+                          </p>
+                          <p className="text-xs text-slate-400 mt-0.5">12-month membership</p>
+                        </div>
+                        <p className="text-lg font-black text-emerald-600 whitespace-nowrap">
+                          {getDaysRemaining(membershipEndDate) !== null
+                            ? `${getDaysRemaining(membershipEndDate)} days left`
+                            : "Active"}
                         </p>
-                        <h3 className="text-4xl font-black text-slate-900 font-[family-name:var(--font-outfit)] leading-none">
-                          {planDisplayName}
-                        </h3>
                       </div>
-                      <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 whitespace-nowrap">
-                        <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                        Active · Paid
-                      </span>
-                    </div>
 
-                    {/* Divider */}
-                    <div className="border-t border-slate-100" />
-
-                    {/* Date range + Days left */}
-                    <div className="flex items-center justify-between flex-wrap gap-2">
+                      {/* Benefits chips */}
                       <div>
-                        <p className="text-lg sm:text-xl font-black text-slate-900 font-[family-name:var(--font-outfit)]">
-                          {formatProfileDate(membershipStartDate)}
-                          <span className="text-slate-400 font-medium mx-2">–</span>
-                          {formatProfileDate(membershipEndDate)}
-                        </p>
-                        <p className="text-xs text-slate-400 mt-0.5">12-month membership</p>
+                        <p className="text-[10px] font-black uppercase tracking-[0.12em] text-slate-400 mb-2.5">Your Benefits</p>
+                        <div className="flex flex-wrap gap-2">
+                          {(currentPlan === "GOLD"
+                            ? ["Court access", "20% Pro Shop discount", "4 guest passes / month"]
+                            : currentPlan === "JUNIOR"
+                            ? ["Court access", "15% junior equipment discount", "Youth clinic slots"]
+                            : ["Court access", "10% Pro Shop discount", "Friday benefits"]
+                          ).map((benefit) => (
+                            <span
+                              key={benefit}
+                              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-50 border border-slate-200 text-xs font-semibold text-slate-700"
+                            >
+                              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
+                              {benefit}
+                            </span>
+                          ))}
+                        </div>
                       </div>
-                      <p className="text-lg font-black text-emerald-600 whitespace-nowrap">
-                        {getDaysRemaining(membershipEndDate) !== null
-                          ? `${getDaysRemaining(membershipEndDate)} days left`
-                          : "Active"}
-                      </p>
+
+                      {/* Full-width CTA button */}
+                      <Link
+                        href="/membership"
+                        className="w-full inline-flex items-center justify-center gap-2 px-5 py-3 rounded-2xl bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-600 hover:to-blue-700 text-white font-extrabold text-sm shadow-md shadow-sky-500/25 transition-all mt-auto"
+                      >
+                        <span>Change membership</span>
+                        <ArrowRight className="w-4 h-4" />
+                      </Link>
+
                     </div>
-
-                    {/* Benefits chips */}
-                    <div>
-                      <p className="text-[10px] font-black uppercase tracking-[0.12em] text-slate-400 mb-2.5">Your Benefits</p>
-                      <div className="flex flex-wrap gap-2">
-                        {(currentPlan === "GOLD"
-                          ? ["Court access", "20% Pro Shop discount", "4 guest passes / month"]
-                          : currentPlan === "JUNIOR"
-                          ? ["Court access", "15% junior equipment discount", "Youth clinic slots"]
-                          : ["Court access", "10% Pro Shop discount", "Friday benefits"]
-                        ).map((benefit) => (
-                          <span
-                            key={benefit}
-                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-50 border border-slate-200 text-xs font-semibold text-slate-700"
-                          >
-                            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
-                            {benefit}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-
-                    {/* Full-width CTA button */}
-                    <Link
-                      href="/membership"
-                      className="w-full inline-flex items-center justify-center gap-2 px-5 py-3 rounded-2xl bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-600 hover:to-blue-700 text-white font-extrabold text-sm shadow-md shadow-sky-500/25 transition-all mt-auto"
-                    >
-                      <span>Change membership</span>
-                      <ArrowRight className="w-4 h-4" />
-                    </Link>
-
-                  </div>
+                  )}
 
                   {/* Right: Owner Court Status Donut Card OR Member Next Upcoming Booking Card */}
                   <div className="lg:col-span-5 p-6 rounded-3xl bg-white border border-slate-200/90 shadow-sm flex flex-col justify-between">
