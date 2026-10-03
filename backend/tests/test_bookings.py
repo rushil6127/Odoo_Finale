@@ -589,6 +589,7 @@ def test_simultaneous_concurrent_bookings_race_condition(app, seed_data, gold_me
     gold_uid, gold_mid = gold_user.id, gold_member.id
     silver_uid, silver_mid = silver_user.id, silver_member.id
     start_dt = datetime(2026, 10, 10, 10, 0, 0)
+    db.session.commit()
 
     results = []
 

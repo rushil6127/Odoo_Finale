@@ -763,6 +763,14 @@ def close_tab(tab_id: int, staff_user: Any) -> POSTab:
             tab.table.status = TableStatus.AVAILABLE
 
         db.session.commit()
+
+        try:
+            from backend.app.tasks.dispatcher import safe_enqueue_task
+            from backend.app.tasks.jobs import send_order_notification_task
+            safe_enqueue_task(send_order_notification_task, "POS", tab.id)
+        except Exception:
+            pass
+
         return tab
 
 

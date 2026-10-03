@@ -1,3 +1,4 @@
+import threading
 from datetime import date, datetime, time, timedelta
 from typing import List, Optional, Dict, Any, Tuple
 from flask import current_app
@@ -19,6 +20,9 @@ from backend.app.bookings.models import (
     CourtOccupancy,
     generate_booking_reference,
 )
+
+_booking_lock = threading.Lock()
+
 
 
 # ---------------------------------------------------------
@@ -227,115 +231,123 @@ def create_booking(
     notes: Optional[str] = None,
 ) -> Booking:
     """Create a new court reservation with database-level concurrency protection."""
-    court = db.session.get(Court, court_id)
-    if not court:
-        raise NotFoundException(f"Court with ID {court_id} not found.")
+    with _booking_lock:
+        court = db.session.get(Court, court_id)
+        if not court:
+            raise NotFoundException(f"Court with ID {court_id} not found.")
 
-    # 1. Validate timing, operating hours, interval step
-    config = current_app.config if current_app else {}
-    duration = int(config.get("COURT_SLOT_DURATION_MINUTES", 60))
-    interval = int(config.get("COURT_SLOT_INTERVAL_MINUTES", 30))
+        # 1. Validate timing, operating hours, interval step
+        config = current_app.config if current_app else {}
+        duration = int(config.get("COURT_SLOT_DURATION_MINUTES", 60))
+        interval = int(config.get("COURT_SLOT_INTERVAL_MINUTES", 30))
 
-    end_time = validate_slot_timing(
-        court=court,
-        start_time=start_time,
-        duration_minutes=duration,
-        interval_minutes=interval,
-        is_social_play=is_social_play,
-    )
-
-    booking_date = start_time.date()
-
-    # 2. Validate member & walk-in
-    if not is_walk_in:
-        if not member_id:
-            raise ValidationException(
-                "member_id is required for member bookings. For walk-in bookings, set is_walk_in=true.",
-                code="MEMBER_REQUIRED",
-            )
-        member = db.session.get(Member, member_id)
-        if not member:
-            raise NotFoundException(f"Member with ID {member_id} not found.")
-    else:
-        if not guest_name or not guest_name.strip():
-            raise ValidationException(
-                "Guest name is required for walk-in bookings.",
-                code="GUEST_NAME_REQUIRED",
-            )
-
-    # 3. Check daily booking limit
-    if not is_walk_in and member_id:
-        check_daily_booking_limit(
-            member_id=member_id,
-            booking_date=booking_date,
+        end_time = validate_slot_timing(
+            court=court,
+            start_time=start_time,
+            duration_minutes=duration,
+            interval_minutes=interval,
             is_social_play=is_social_play,
         )
 
-    # 4. Calculate pricing snapshot
-    base_price, discount_amount, final_price, breakdown = calculate_booking_price(
-        court=court,
-        member_id=member_id if not is_walk_in else None,
-        is_walk_in=is_walk_in,
-        is_social_play=is_social_play,
-        target_date=booking_date,
-    )
+        booking_date = start_time.date()
 
-    # 5. Half-slot timestamps for 1-hour session (e.g. start and start+30m)
-    slot1 = start_time
-    slot2 = start_time + timedelta(minutes=interval)
+        # 2. Validate member & walk-in
+        if not is_walk_in:
+            if not member_id:
+                raise ValidationException(
+                    "member_id is required for member bookings. For walk-in bookings, set is_walk_in=true.",
+                    code="MEMBER_REQUIRED",
+                )
+            member = db.session.get(Member, member_id)
+            if not member:
+                raise NotFoundException(f"Member with ID {member_id} not found.")
+        else:
+            if not guest_name or not guest_name.strip():
+                raise ValidationException(
+                    "Guest name is required for walk-in bookings.",
+                    code="GUEST_NAME_REQUIRED",
+                )
 
-    # Pre-check existing occupancy records for clear error reporting
-    conflicting_occupancy = CourtOccupancy.query.filter(
-        CourtOccupancy.court_id == court.id,
-        CourtOccupancy.slot_start.in_([slot1, slot2]),
-    ).first()
+        # 3. Check daily booking limit
+        if not is_walk_in and member_id:
+            check_daily_booking_limit(
+                member_id=member_id,
+                booking_date=booking_date,
+                is_social_play=is_social_play,
+            )
 
-    if conflicting_occupancy:
-        raise ConflictException(
-            f"Court '{court.name}' is already booked for the requested time slot.",
-            code="BOOKING_CONFLICT",
+        # 4. Calculate pricing snapshot
+        base_price, discount_amount, final_price, breakdown = calculate_booking_price(
+            court=court,
+            member_id=member_id if not is_walk_in else None,
+            is_walk_in=is_walk_in,
+            is_social_play=is_social_play,
+            target_date=booking_date,
         )
 
-    # 6. Instantiate Booking
-    booking = Booking(
-        booking_reference=generate_booking_reference(),
-        court_id=court.id,
-        member_id=member_id if not is_walk_in else None,
-        user_id=user_id,
-        booking_date=booking_date,
-        start_time=start_time,
-        end_time=end_time,
-        status=BookingStatus.CONFIRMED,
-        is_walk_in=is_walk_in,
-        is_social_play=is_social_play,
-        guest_name=guest_name.strip() if guest_name else None,
-        guest_phone=guest_phone.strip() if guest_phone else None,
-        guest_email=guest_email.strip() if guest_email else None,
-        base_price=base_price,
-        discount_amount=discount_amount,
-        final_price=final_price,
-        pricing_breakdown=breakdown,
-        notes=notes.strip() if notes else None,
-    )
+        # 5. Half-slot timestamps for 1-hour session (e.g. start and start+30m)
+        slot1 = start_time
+        slot2 = start_time + timedelta(minutes=interval)
 
-    db.session.add(booking)
-    db.session.flush()
+        # Pre-check existing occupancy records for clear error reporting
+        conflicting_occupancy = CourtOccupancy.query.filter(
+            CourtOccupancy.court_id == court.id,
+            CourtOccupancy.slot_start.in_([slot1, slot2]),
+        ).first()
 
-    # 7. Insert CourtOccupancy records
-    occ1 = CourtOccupancy(court_id=court.id, booking_id=booking.id, slot_start=slot1)
-    occ2 = CourtOccupancy(court_id=court.id, booking_id=booking.id, slot_start=slot2)
-    db.session.add_all([occ1, occ2])
+        if conflicting_occupancy:
+            raise ConflictException(
+                f"Court '{court.name}' is already booked for the requested time slot.",
+                code="BOOKING_CONFLICT",
+            )
 
-    try:
-        db.session.commit()
-    except IntegrityError:
-        db.session.rollback()
-        raise ConflictException(
-            f"Court '{court.name}' is no longer available for the requested time due to a scheduling conflict.",
-            code="BOOKING_CONFLICT",
+        # 6. Instantiate Booking
+        booking = Booking(
+            booking_reference=generate_booking_reference(),
+            court_id=court.id,
+            member_id=member_id if not is_walk_in else None,
+            user_id=user_id,
+            booking_date=booking_date,
+            start_time=start_time,
+            end_time=end_time,
+            status=BookingStatus.CONFIRMED,
+            is_walk_in=is_walk_in,
+            is_social_play=is_social_play,
+            guest_name=guest_name.strip() if guest_name else None,
+            guest_phone=guest_phone.strip() if guest_phone else None,
+            guest_email=guest_email.strip() if guest_email else None,
+            base_price=base_price,
+            discount_amount=discount_amount,
+            final_price=final_price,
+            pricing_breakdown=breakdown,
+            notes=notes.strip() if notes else None,
         )
 
-    return booking
+        db.session.add(booking)
+        db.session.flush()
+
+        # 7. Insert CourtOccupancy records
+        occ1 = CourtOccupancy(court_id=court.id, booking_id=booking.id, slot_start=slot1)
+        occ2 = CourtOccupancy(court_id=court.id, booking_id=booking.id, slot_start=slot2)
+        db.session.add_all([occ1, occ2])
+
+        try:
+            db.session.commit()
+        except IntegrityError:
+            db.session.rollback()
+            raise ConflictException(
+                f"Court '{court.name}' is no longer available for the requested time due to a scheduling conflict.",
+                code="BOOKING_CONFLICT",
+            )
+
+        try:
+            from backend.app.tasks.dispatcher import safe_enqueue_task
+            from backend.app.tasks.jobs import send_booking_confirmation_task
+            safe_enqueue_task(send_booking_confirmation_task, booking.id)
+        except Exception:
+            pass
+
+        return booking
 
 
 def cancel_booking(

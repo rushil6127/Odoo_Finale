@@ -43,6 +43,8 @@ from backend.app.crm import (  # noqa: F401
     CRMTrialSession,
     CRMQuote,
 )
+from backend.app.notifications import Notification  # noqa: F401
+import backend.app.tasks.dispatcher  # noqa: F401 Ensure event listeners registered
 
 
 def create_app(config_name: str = None) -> Flask:
@@ -74,6 +76,10 @@ def create_app(config_name: str = None) -> Flask:
         app,
         resources={r"/api/*": {"origins": cors_origins}, r"/health": {"origins": "*"}},
     )
+
+    # Initialize Celery app context binding
+    from backend.app.tasks.celery_app import make_celery
+    make_celery(app)
 
     # Register custom JSON error handlers & JWT callbacks
     register_error_handlers(app, jwt)

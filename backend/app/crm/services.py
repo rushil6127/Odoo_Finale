@@ -103,6 +103,14 @@ def process_public_enquiry(data: Dict[str, Any]) -> Tuple[CRMLead, CRMFollowUp]:
         lead.status = LeadStatus.TRIAL_SCHEDULED
 
     db.session.commit()
+
+    try:
+        from backend.app.tasks.dispatcher import safe_enqueue_task
+        from backend.app.tasks.jobs import send_crm_follow_up_reminders_task
+        safe_enqueue_task(send_crm_follow_up_reminders_task)
+    except Exception:
+        pass
+
     return lead, follow_up
 
 
