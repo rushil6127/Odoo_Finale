@@ -153,7 +153,10 @@ export default function CourtsShowcase() {
 
   const filteredCourts = filterSport === "all"
     ? courtFacilities
-    : courtFacilities.filter(c => c.sport.toLowerCase().includes(filterSport.toLowerCase()));
+    : courtFacilities.filter((c) => {
+      const key = c.sport.toLowerCase().replace(/\s+/g, "-");
+      return key === filterSport;
+    });
 
   return (
     <section id="courts" className="py-20 bg-white relative">
@@ -171,23 +174,23 @@ export default function CourtsShowcase() {
             Select an arena to view real-time open slots and reserve your 60-minute match session.
           </p>
 
-          {/* Minimal Filter Pills */}
-          <div className="flex items-center justify-center gap-2 flex-wrap mt-6">
+          {/* Filter Pills */}
+          <div className="flex items-center justify-center gap-2 sm:gap-2.5 flex-wrap mt-6">
             {[
-              { id: "all", label: "All Arenas (22+)" },
-              { id: "tennis", label: "🎾 Lawn Tennis" },
-              { id: "cricket", label: "🏏 Box Cricket" },
-              { id: "table-tennis", label: "🏓 Table Tennis" },
-              { id: "badminton", label: "🏸 Badminton" },
-              { id: "volleyball", label: "🏐 Volleyball" },
-              { id: "swimming", label: "🏊‍♂️ Swimming Pool" },
+              { id: "all", label: "All Arenas (10+)" },
+              { id: "tennis", label: "Lawn Tennis" },
+              { id: "cricket", label: "Box Cricket" },
+              { id: "table-tennis", label: "Table Tennis" },
+              { id: "badminton", label: "Badminton" },
+              { id: "volleyball", label: "Volleyball" },
+              { id: "swimming", label: "Swimming Pool" },
             ].map((btn) => (
               <button
                 key={btn.id}
                 onClick={() => setFilterSport(btn.id)}
-                className={`px-4 py-2 rounded-full text-xs font-bold transition-all duration-200 ${filterSport === btn.id
-                  ? "bg-slate-900 text-white shadow-md scale-105"
-                  : "bg-slate-100 text-slate-700 hover:bg-slate-200"
+                className={`px-4 py-2 rounded-full text-xs font-bold transition-all duration-200 border ${filterSport === btn.id
+                    ? "bg-slate-950 text-white border-slate-950 shadow-sm"
+                    : "bg-white text-slate-600 border-slate-200 hover:border-slate-300 hover:text-slate-950 hover:bg-slate-50"
                   }`}
               >
                 {btn.label}
@@ -247,10 +250,10 @@ export default function CourtsShowcase() {
                   {/* Clean Spec Pills */}
                   <div className="flex items-center gap-2 flex-wrap mb-5">
                     <span className="text-[11px] font-semibold bg-slate-100 text-slate-700 px-2.5 py-1 rounded-lg">
-                      ⚡ {court.lighting}
+                      {court.lighting}
                     </span>
                     <span className="text-[11px] font-semibold bg-sky-50 text-sky-700 px-2.5 py-1 rounded-lg">
-                      🎾 {court.pace}
+                      {court.pace}
                     </span>
                   </div>
                 </div>
