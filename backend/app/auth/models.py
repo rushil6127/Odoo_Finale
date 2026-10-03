@@ -60,7 +60,7 @@ class User(db.Model):
 
     def to_dict(self) -> dict:
         """Safe dictionary representation without sensitive password hashes."""
-        return {
+        data = {
             "id": self.id,
             "email": self.email,
             "first_name": self.first_name,
@@ -72,6 +72,22 @@ class User(db.Model):
             "created_at": self.created_at.isoformat() if self.created_at else None,
             "updated_at": self.updated_at.isoformat() if self.updated_at else None,
         }
+        try:
+            if hasattr(self, "member_profile") and self.member_profile:
+                active_ms = self.member_profile.get_active_membership()
+                if active_ms and active_ms.plan:
+                    data["membership_plan"] = active_ms.plan.code
+                    data["membership_status"] = (
+                        active_ms.status.value
+                        if hasattr(active_ms.status, "value")
+                        else str(active_ms.status)
+                    )
+                    data["membership_start_date"] = active_ms.start_date.isoformat()
+                    data["membership_end_date"] = active_ms.end_date.isoformat()
+                    data["active_membership"] = active_ms.to_dict(include_plan=True)
+        except Exception:
+            pass
+        return data
 
     def __repr__(self) -> str:
         return f"<User id={self.id} email='{self.email}' role='{self.role}'>"

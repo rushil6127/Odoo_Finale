@@ -9,7 +9,7 @@
 "use client";
 
 import { useEffect, useState, type ReactNode } from "react";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { ShieldAlert, ArrowLeft, Crown } from "lucide-react";
 import Link from "next/link";
 import { useCurrentUser, isStaffOrAdmin } from "@/lib/auth";
@@ -22,12 +22,19 @@ interface DashboardLayoutProps {
 
 export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const router = useRouter();
+  const pathname = usePathname();
   const { user, isAuthenticated, isLoading } = useCurrentUser();
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  useEffect(() => {
+    if (mounted && !isLoading && !isStaffOrAdmin(user) && pathname === "/memberships") {
+      router.replace("/membership");
+    }
+  }, [mounted, isLoading, user, pathname, router]);
 
   if (!mounted || isLoading) {
     return (
@@ -43,6 +50,9 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const hasAccess = isStaffOrAdmin(user);
 
   if (mounted && !hasAccess) {
+    if (pathname === "/memberships") {
+      return null;
+    }
     return (
       <div className="min-h-screen bg-slate-950 text-white flex items-center justify-center p-4">
         <div className="max-w-md w-full bg-slate-900 border border-slate-800 rounded-3xl p-8 shadow-2xl text-center space-y-6 animate-in zoom-in-95">
@@ -57,6 +67,21 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
             <p className="text-xs text-slate-400 leading-relaxed">
               Your account (<span className="font-mono text-sky-400">{user?.email || "Member"}</span>) is registered as a <strong className="text-amber-300">Club Member</strong>. Operational management and POS consoles are reserved for Administrators, Owners, and Assigned Department Staff.
             </p>
+          </div>
+
+          <div className="pt-2 flex flex-col gap-2">
+            <Link
+              href="/membership"
+              className="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-sky-500 to-blue-600 text-white font-extrabold text-xs shadow-md shadow-sky-500/20 text-center"
+            >
+              Browse Club Membership Plans
+            </Link>
+            <Link
+              href="/profile"
+              className="w-full py-2.5 px-4 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-xs text-center border border-slate-700"
+            >
+              Return to My Member Profile
+            </Link>
           </div>
 
           <div className="p-4 rounded-2xl bg-slate-800/60 border border-slate-700/50 text-left space-y-2">

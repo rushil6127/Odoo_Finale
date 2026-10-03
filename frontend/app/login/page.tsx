@@ -6,13 +6,17 @@ import { useRouter } from "next/navigation";
 import { ArrowLeft, Loader2, AlertCircle, Crown, ShieldAlert } from "lucide-react";
 import {
   setStoredUser,
+  setStoredToken,
   getStoredUser,
   loginUser,
   registerUser,
   loginWithGoogle,
   getRoleProfilePath,
+  isStaffOrAdmin,
+  isOwner,
   type AuthUserProfile,
 } from "@/lib/auth";
+import { apiClient } from "@/lib/api/client";
 import "./Login.css";
 
 const GOOGLE_CLIENT_ID = "934545206972-sffuvr8okqbn86bsq0qcuf76344lno9c.apps.googleusercontent.com";
@@ -178,7 +182,7 @@ export default function LoginPage() {
     const lastName = nameParts.slice(1).join(" ") || "User";
 
     try {
-      await registerUser({
+      const regData = await registerUser({
         email: regEmail,
         password: regPassword,
         first_name: firstName,
@@ -186,7 +190,15 @@ export default function LoginPage() {
       });
 
       const currentUser = getStoredUser();
-      router.push(getRoleProfilePath(currentUser));
+
+      // Staff / owner should go to their dashboard directly.
+      // New regular members land on the membership selection page.
+      if (isStaffOrAdmin(currentUser) || isOwner(currentUser)) {
+        router.push(getRoleProfilePath(currentUser));
+      } else {
+        // No membership yet — guide the new member to pick a plan
+        router.push("/membership?welcome=1");
+      }
     } catch (err: any) {
       setRegError(err?.message || "Registration failed. Please check your details.");
     } finally {
