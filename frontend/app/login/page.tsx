@@ -180,8 +180,11 @@ export default function LoginPage() {
 
   const handleLoginSuccess = (user: AuthUserProfile) => {
     setStoredUser(user);
-    // Smooth redirect back to home page where profile logo is shown
-    router.push("/");
+    if (user.role === "ADMIN") {
+      router.push("/dashboard");
+    } else {
+      router.push("/profile");
+    }
   };
 
   return (

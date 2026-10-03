@@ -11,7 +11,6 @@ import {
   ChevronDown
 } from "lucide-react";
 import { useCurrentUser } from "@/lib/auth";
-import UserProfileModal from "./UserProfileModal";
 
 interface NavLink {
   name: string;
@@ -33,9 +32,8 @@ export default function Navbar() {
   const [activeSection, setActiveSection] = useState("Home");
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [profileModalOpen, setProfileModalOpen] = useState(false);
 
-  const { user, isAuthenticated, logout } = useCurrentUser();
+  const { user, isAuthenticated } = useCurrentUser();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -111,11 +109,10 @@ export default function Navbar() {
             {/* Right Action CTA Buttons: Profile or Sign In */}
             <div className="hidden md:flex items-center gap-2.5 shrink-0">
               {isAuthenticated && user ? (
-                <button
-                  type="button"
-                  onClick={() => setProfileModalOpen(true)}
-                  className="inline-flex items-center gap-2 p-1.5 pr-3 rounded-full bg-slate-100/90 hover:bg-sky-50 border border-slate-200 hover:border-sky-300 shadow-sm transition-all group"
-                  title="Open Member Profile, CRM & Orders"
+                <Link
+                  href="/profile"
+                  className="inline-flex items-center gap-2 p-1.5 pr-3.5 rounded-full bg-slate-100/90 hover:bg-sky-50 border border-slate-200 hover:border-sky-300 shadow-sm transition-all group"
+                  title="Open Member Profile & Digital Portal"
                 >
                   <div className="w-7 h-7 rounded-full bg-gradient-to-tr from-sky-500 to-blue-700 text-white font-extrabold text-xs flex items-center justify-center shadow-sm">
                     {user.name.split(" ").map((n) => n[0]).join("")}
@@ -130,7 +127,7 @@ export default function Navbar() {
                     </span>
                   </div>
                   <ChevronDown className="w-3.5 h-3.5 text-slate-400 group-hover:text-sky-600 transition-transform group-hover:translate-y-0.5" />
-                </button>
+                </Link>
               ) : (
                 <Link
                   href="/login"
@@ -188,12 +185,9 @@ export default function Navbar() {
 
               <div className="flex flex-col gap-2 pt-2">
                 {isAuthenticated && user ? (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setMobileMenuOpen(false);
-                      setProfileModalOpen(true);
-                    }}
+                  <Link
+                    href="/profile"
+                    onClick={() => setMobileMenuOpen(false)}
                     className="flex items-center justify-between p-3 rounded-2xl bg-sky-50 border border-sky-200 text-slate-900"
                   >
                     <div className="flex items-center gap-2.5">
@@ -202,11 +196,11 @@ export default function Navbar() {
                       </div>
                       <div className="text-left">
                         <div className="text-xs font-extrabold text-slate-900">{user.name}</div>
-                        <div className="text-[10px] text-sky-700 font-bold">{user.membershipPlan} Member &bull; View Details & CRM</div>
+                        <div className="text-[10px] text-sky-700 font-bold">{user.membershipPlan} Member &bull; Open Full Portal</div>
                       </div>
                     </div>
                     <span className="text-xs font-bold text-sky-600">Open &rarr;</span>
-                  </button>
+                  </Link>
                 ) : (
                   <Link
                     href="/login"
@@ -231,16 +225,6 @@ export default function Navbar() {
           </div>
         )}
       </header>
-
-      {/* Interactive Member Profile & Activity Modal */}
-      {user && (
-        <UserProfileModal
-          isOpen={profileModalOpen}
-          onClose={() => setProfileModalOpen(false)}
-          user={user}
-          onLogout={logout}
-        />
-      )}
     </>
   );
 }
