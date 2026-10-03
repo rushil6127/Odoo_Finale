@@ -69,15 +69,17 @@ export default function ProfileViewContainer({ forcedMode }: ProfileViewContaine
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   // Fallback demo member if unauthenticated or missing sub-arrays
+  const fallbackProfile = forcedMode === "employee" ? DEMO_MEMBERS.coach_david : DEMO_MEMBERS.alex;
   const activeUser: AuthUserProfile = {
-    ...DEMO_MEMBERS.alex,
+    ...fallbackProfile,
     ...(user || {}),
-    name: user?.name || user?.full_name || (user?.first_name ? `${user.first_name} ${user.last_name || ""}`.trim() : DEMO_MEMBERS.alex.name),
-    email: user?.email || DEMO_MEMBERS.alex.email,
-    orders: user?.orders && user.orders.length > 0 ? user.orders : DEMO_MEMBERS.alex.orders,
-    bookings: user?.bookings && user.bookings.length > 0 ? user.bookings : DEMO_MEMBERS.alex.bookings,
-    payments: user?.payments && user.payments.length > 0 ? user.payments : DEMO_MEMBERS.alex.payments,
-    crmInquiries: user?.crmInquiries && user.crmInquiries.length > 0 ? user.crmInquiries : DEMO_MEMBERS.alex.crmInquiries,
+    name: user?.name || user?.full_name || (user?.first_name ? `${user.first_name} ${user.last_name || ""}`.trim() : fallbackProfile.name),
+    email: user?.email || fallbackProfile.email,
+    orders: user?.orders && user.orders.length > 0 ? user.orders : fallbackProfile.orders,
+    bookings: user?.bookings && user.bookings.length > 0 ? user.bookings : fallbackProfile.bookings,
+    payments: user?.payments && user.payments.length > 0 ? user.payments : fallbackProfile.payments,
+    crmInquiries: user?.crmInquiries && user.crmInquiries.length > 0 ? user.crmInquiries : fallbackProfile.crmInquiries,
+    employeeData: user?.employeeData || (forcedMode === "employee" ? DEMO_MEMBERS.coach_david.employeeData : fallbackProfile.employeeData),
   };
 
   const isEmployeeWithData = !!activeUser.employeeData || forcedMode === "employee";
@@ -93,10 +95,10 @@ export default function ProfileViewContainer({ forcedMode }: ProfileViewContaine
 
   // Forced mode role enforcement:
   // - "owner": guarantees owner privileges & sovereignty tools
-  // - "employee": guarantees staff console & employee duty portal
+  // - "employee": strictly employee duty workspace, NO Staff & Admin Console button
   // - "member": strictly standard member features (no owner delegator, no staff console)
-  const isSuperOwner = forcedMode === "member" ? false : (forcedMode === "owner" || isOwner(activeUser));
-  const canAccessConsole = forcedMode === "member" ? false : (forcedMode === "owner" || forcedMode === "employee" || isStaffOrAdmin(activeUser));
+  const isSuperOwner = (forcedMode === "member" || forcedMode === "employee") ? false : (forcedMode === "owner" || isOwner(activeUser));
+  const canAccessConsole = (forcedMode === "member" || forcedMode === "employee") ? false : (forcedMode === "owner" || isStaffOrAdmin(activeUser));
 
 
   // Super Owner Role & Department Access Delegator State

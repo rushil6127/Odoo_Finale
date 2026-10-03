@@ -1336,15 +1336,7 @@ export default function EmployeeProfileView({
           )}
 
           {/* Bottom Footer Control Bar */}
-          <div className="p-4 sm:p-5 bg-slate-50 border-t border-slate-200 flex items-center justify-between gap-3">
-            <Link
-              href="/dashboard"
-              className="text-xs font-extrabold text-slate-700 hover:text-emerald-600 flex items-center gap-1.5 transition-colors"
-            >
-              <span>Open Staff & Admin Dashboard</span>
-              <ExternalLink className="w-3.5 h-3.5" />
-            </Link>
-
+          <div className="p-4 sm:p-5 bg-slate-50 border-t border-slate-200 flex items-center justify-end gap-3">
             <button
               onClick={() => {
                 onLogout();
