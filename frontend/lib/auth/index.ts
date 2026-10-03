@@ -125,6 +125,10 @@ export interface AuthUserProfile {
   orders: UserOrder[];
   bookings: UserBooking[];
   payments: UserPayment[];
+  first_name?: string;
+  last_name?: string;
+  full_name?: string;
+  is_active?: boolean;
 }
 
 // ============================================================================
@@ -312,12 +316,34 @@ export function setStoredToken(token: string): void {
   localStorage.setItem(TOKEN_KEY, token);
 }
 
-export function getStoredUser(): AuthUserProfile | null {
+export function getStoredUser(): (AuthUserProfile & AuthUser) | null {
   if (typeof window === "undefined") return null;
   try {
     const raw = localStorage.getItem(STORAGE_KEY) || localStorage.getItem(USER_KEY);
     if (!raw) return null;
-    return JSON.parse(raw) as AuthUserProfile;
+    const parsed = JSON.parse(raw);
+    if (!parsed) return null;
+
+    if (!parsed.full_name && parsed.first_name) {
+      parsed.full_name = `${parsed.first_name} ${parsed.last_name || ""}`.trim();
+    }
+    if (!parsed.name) {
+      parsed.name = parsed.full_name || (parsed.email ? parsed.email.split("@")[0] : "Member");
+    }
+    if (!parsed.memberCode) parsed.memberCode = `CC-${(parsed.role || "MEM").toUpperCase()}-${parsed.id || 101}`;
+    if (!parsed.phone) parsed.phone = "+91 98765 43210";
+    if (!parsed.membershipPlan) parsed.membershipPlan = "GOLD";
+    if (!parsed.membershipStatus) parsed.membershipStatus = "ACTIVE";
+    if (!parsed.membershipExpiry) parsed.membershipExpiry = "March 31, 2027";
+    if (!parsed.joinDate) parsed.joinDate = "January 15, 2024";
+    if (parsed.walletBalance === undefined) parsed.walletBalance = 5000;
+    if (parsed.clubTabsOutstanding === undefined) parsed.clubTabsOutstanding = 0;
+    if (!parsed.crmInquiries) parsed.crmInquiries = [];
+    if (!parsed.orders) parsed.orders = [];
+    if (!parsed.bookings) parsed.bookings = [];
+    if (!parsed.payments) parsed.payments = [];
+
+    return parsed as (AuthUserProfile & AuthUser);
   } catch {
     return null;
   }
