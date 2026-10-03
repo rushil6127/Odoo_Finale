@@ -16,7 +16,7 @@ class CourtCreateSchema(Schema):
         required=True,
         error_messages={
             "required": "Sport type is required.",
-            "invalid": "Unsupported sport type. Supported sports are TENNIS, PADEL, BADMINTON, BOX_CRICKET.",
+            "invalid": "Unsupported sport type. Supported sports are LAWN_TENNIS, SWIMMING_POOL, BADMINTON, BOX_CRICKET, TABLE_TENNIS, VOLLEYBALL.",
         },
     )
     surface_type = fields.String(required=False, allow_none=True)
@@ -50,7 +50,7 @@ class CourtUpdateSchema(Schema):
         by_value=True,
         required=False,
         error_messages={
-            "invalid": "Unsupported sport type. Supported sports are TENNIS, PADEL, BADMINTON, BOX_CRICKET.",
+            "invalid": "Unsupported sport type. Supported sports are LAWN_TENNIS, SWIMMING_POOL, BADMINTON, BOX_CRICKET, TABLE_TENNIS, VOLLEYBALL.",
         },
     )
     surface_type = fields.String(required=False, allow_none=True)

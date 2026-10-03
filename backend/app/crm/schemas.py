@@ -74,7 +74,7 @@ class AddNoteSchema(Schema):
 class RequestTrialSchema(Schema):
     preferred_date = fields.Date(required=True)
     preferred_time_slot = fields.String(required=True, validate=validate.Length(min=1, max=50))
-    sport = fields.String(load_default="TENNIS", validate=validate.Length(max=50))
+    sport = fields.String(load_default="LAWN_TENNIS", validate=validate.Length(max=50))
 
 
 class ConfirmTrialSchema(Schema):

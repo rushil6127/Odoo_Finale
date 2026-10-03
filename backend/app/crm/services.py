@@ -96,7 +96,7 @@ def process_public_enquiry(data: Dict[str, Any]) -> Tuple[CRMLead, CRMFollowUp]:
             lead_id=lead.id,
             preferred_date=data["preferred_trial_date"],
             preferred_time_slot=data.get("preferred_trial_time") or "Flexible",
-            sport=data.get("preferred_sport") or "TENNIS",
+            sport=data.get("preferred_sport") or "LAWN_TENNIS",
             status=TrialStatus.REQUESTED,
         )
         db.session.add(trial)
@@ -306,7 +306,7 @@ def request_trial_session(
     lead_id: int,
     preferred_date: date,
     preferred_time_slot: str,
-    sport: Optional[str] = "TENNIS",
+    sport: Optional[str] = "LAWN_TENNIS",
 ) -> CRMTrialSession:
     """Record a complimentary trial session request."""
     lead = get_lead(lead_id)
@@ -314,7 +314,7 @@ def request_trial_session(
         lead_id=lead.id,
         preferred_date=preferred_date,
         preferred_time_slot=preferred_time_slot.strip(),
-        sport=sport.strip() if sport else "TENNIS",
+        sport=sport.strip() if sport else "LAWN_TENNIS",
         status=TrialStatus.REQUESTED,
     )
     db.session.add(trial)
@@ -520,11 +520,12 @@ def get_public_club_info() -> Dict[str, Any]:
         "contact_email": "concierge@championsclub.com",
         "operating_hours": "06:00 - 22:00 Daily",
         "facilities": [
-            "14 Clay, Hard & Grass Tennis Courts",
+            "Clay, Hard & Grass Lawn Tennis Courts",
             "Olympic-Size Temperature-Controlled Swimming Pool",
+            "Indoor Badminton Arena & Table Tennis",
+            "Floodlit Box Cricket Arena & Beach Volleyball",
             "The Pro Shop with Tour-Level Gear & 24hr Stringing",
             "Artisan Espresso Bar & Champions Lounge",
-            "High-Performance Fitness Studio & Executive Spa",
         ],
     }
 

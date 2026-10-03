@@ -6,7 +6,7 @@ from backend.app.courts.services import seed_default_courts
 @click.command("seed-courts")
 @with_appcontext
 def seed_courts_command():
-    """Seed initial sports courts for Tennis, Padel, Badminton, and Box Cricket."""
+    """Seed initial sports courts/facilities for Lawn Tennis, Swimming Pool, Badminton, Box Cricket, Table Tennis, and Volleyball."""
     courts = seed_default_courts()
     for court in courts:
         click.echo(
