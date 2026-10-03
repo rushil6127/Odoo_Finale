@@ -808,3 +808,21 @@ export function isOwner(user: AuthUserProfile | AuthUser | null): boolean {
   const role = (user.role || "").toString().toUpperCase();
   return role === "OWNER" || user.email === "pushplamba104@gmail.com";
 }
+
+/**
+ * Returns the exact role profile destination URL:
+ * - Owner -> /profile/owner
+ * - Employee/Staff/Coach/Admin/Manager -> /profile/employee
+ * - Member -> /profile/member
+ */
+export function getRoleProfilePath(user: AuthUserProfile | AuthUser | null | undefined): string {
+  if (!user) return "/profile/member";
+  if (isOwner(user)) {
+    return "/profile/owner";
+  }
+  if (isStaffOrAdmin(user)) {
+    return "/profile/employee";
+  }
+  return "/profile/member";
+}
+
