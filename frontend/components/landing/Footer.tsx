@@ -12,10 +12,15 @@ import {
   ShoppingBag, 
   Coffee,
   Heart,
-  ExternalLink
+  ExternalLink,
+  Crown
 } from "lucide-react";
+import { useCurrentUser, isStaffOrAdmin } from "@/lib/auth";
 
 export default function Footer() {
+  const { user } = useCurrentUser();
+  const canAccessStaff = isStaffOrAdmin(user);
+
   return (
     <footer className="bg-slate-950 text-white pt-16 pb-12 border-t border-slate-800">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -157,18 +162,30 @@ export default function Footer() {
                 </div>
               </Link>
 
-              <Link
-                href="/dashboard"
-                className="block p-3 rounded-xl bg-slate-900 hover:bg-slate-850 border border-slate-800 text-xs text-slate-200 group transition-all"
-              >
-                <div className="font-bold text-white group-hover:text-lime-400 flex items-center justify-between">
-                  <span>Staff & Admin Console</span>
-                  <ExternalLink className="w-3.5 h-3.5" />
+              {canAccessStaff ? (
+                <Link
+                  href="/dashboard"
+                  className="block p-3 rounded-xl bg-slate-900 hover:bg-slate-850 border border-slate-800 text-xs text-slate-200 group transition-all"
+                >
+                  <div className="font-bold text-white group-hover:text-lime-400 flex items-center justify-between">
+                    <span>Staff & Admin Console</span>
+                    <ExternalLink className="w-3.5 h-3.5" />
+                  </div>
+                  <div className="text-[10px] text-slate-400 mt-0.5">
+                    POS, Courts, CRM & Operations
+                  </div>
+                </Link>
+              ) : (
+                <div className="p-3 rounded-xl bg-slate-900/60 border border-slate-800 text-xs text-slate-300 space-y-1">
+                  <div className="font-bold text-sky-300 flex items-center gap-1.5">
+                    <ShieldCheck className="w-3.5 h-3.5 text-sky-400" />
+                    <span>Member Exclusive Access</span>
+                  </div>
+                  <div className="text-[10px] text-slate-400">
+                    Complimentary high-speed WiFi & locker facilities available at Reception.
+                  </div>
                 </div>
-                <div className="text-[10px] text-slate-400 mt-0.5">
-                  POS, Courts, CRM & Owner KPIs
-                </div>
-              </Link>
+              )}
 
               <div className="p-3 rounded-xl bg-sky-950/40 border border-sky-900/60 text-[11px] text-sky-300">
                 <strong>Booking Rule:</strong> 60-minute sessions, max 2 reservations/day per member.

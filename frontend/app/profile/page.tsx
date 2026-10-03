@@ -38,9 +38,12 @@ import {
   CalendarCheck,
   AlertCircle,
   Award,
-  Flame
+  Flame,
+  UserCheck,
+  Building2,
+  Key
 } from "lucide-react";
-import { useCurrentUser, setStoredUser, DEMO_MEMBERS, type AuthUserProfile } from "@/lib/auth";
+import { useCurrentUser, setStoredUser, DEMO_MEMBERS, isStaffOrAdmin, isOwner, type AuthUserProfile } from "@/lib/auth";
 
 type TabType = "overview" | "crm" | "orders" | "bookings" | "payments" | "settings";
 
@@ -70,6 +73,58 @@ export default function ProfilePage() {
     bookings: user?.bookings && user.bookings.length > 0 ? user.bookings : DEMO_MEMBERS.alex.bookings,
     payments: user?.payments && user.payments.length > 0 ? user.payments : DEMO_MEMBERS.alex.payments,
     crmInquiries: user?.crmInquiries && user.crmInquiries.length > 0 ? user.crmInquiries : DEMO_MEMBERS.alex.crmInquiries,
+  };
+
+  const canAccessConsole = isStaffOrAdmin(activeUser);
+  const isSuperOwner = isOwner(activeUser);
+
+  // Super Owner Role & Department Access Delegator State
+  const [showGrantModal, setShowGrantModal] = useState(false);
+  const [grantEmail, setGrantEmail] = useState("");
+  const [grantRole, setGrantRole] = useState("STAFF");
+  const [grantDepartment, setGrantDepartment] = useState("Badminton");
+  const [grantName, setGrantName] = useState("");
+  const [isGranting, setIsGranting] = useState(false);
+  const [grantSuccessMsg, setGrantSuccessMsg] = useState("");
+  const [grantErrorMsg, setGrantErrorMsg] = useState("");
+
+  const handleGrantAccess = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!grantEmail.trim()) return;
+    setIsGranting(true);
+    setGrantSuccessMsg("");
+    setGrantErrorMsg("");
+
+    try {
+      const token = typeof window !== "undefined" ? localStorage.getItem("cc_token") : null;
+      const res = await fetch("http://localhost:5000/api/v1/auth/assign-access", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify({
+          email: grantEmail.trim().toLowerCase(),
+          role: grantRole,
+          department: grantDepartment,
+          first_name: grantName.split(" ")[0] || "Staff",
+          last_name: grantName.split(" ").slice(1).join(" ") || "Member",
+        }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.message || "Failed to grant access");
+      }
+
+      setGrantSuccessMsg(`Master Sovereignty Applied: Granted role '${grantRole}' in '${grantDepartment}' department to ${grantEmail}`);
+      setGrantEmail("");
+      setGrantName("");
+    } catch (err: any) {
+      setGrantErrorMsg(err.message || "Error assigning role");
+    } finally {
+      setIsGranting(false);
+    }
   };
 
   // Calendar State (October 2026)
@@ -363,13 +418,27 @@ export default function ProfilePage() {
                 <span>Back to Club</span>
               </Link>
 
-              <Link
-                href="/dashboard"
-                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-bold bg-lime-100 hover:bg-lime-200 text-lime-900 border border-lime-300 transition-all"
-              >
-                <TrendingUp className="w-3.5 h-3.5 text-lime-700" />
-                <span>Staff & Admin Console</span>
-              </Link>
+              {canAccessConsole && (
+                <Link
+                  href="/dashboard"
+                  className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-bold bg-lime-100 hover:bg-lime-200 text-lime-900 border border-lime-300 transition-all shadow-sm"
+                >
+                  <TrendingUp className="w-3.5 h-3.5 text-lime-700" />
+                  <span>Staff & Admin Console</span>
+                </Link>
+              )}
+
+              {isSuperOwner && (
+                <button
+                  type="button"
+                  onClick={() => setShowGrantModal(true)}
+                  className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-black bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-500 hover:to-amber-600 text-amber-950 border border-amber-300 shadow-md transition-all"
+                  title="Super Owner Access Delegator"
+                >
+                  <Crown className="w-3.5 h-3.5 text-amber-900" />
+                  <span>Owner Access Control</span>
+                </button>
+              )}
 
               <button
                 type="button"
@@ -426,14 +495,30 @@ export default function ProfilePage() {
                   <span>Back to Club Sanctuary</span>
                 </Link>
 
-                <Link
-                  href="/dashboard"
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="flex items-center justify-center gap-2 py-2.5 rounded-xl text-xs font-bold bg-lime-100 text-lime-900 border border-lime-300"
-                >
-                  <TrendingUp className="w-4 h-4" />
-                  <span>Open Staff & Admin Console</span>
-                </Link>
+                {canAccessConsole && (
+                  <Link
+                    href="/dashboard"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="flex items-center justify-center gap-2 py-2.5 rounded-xl text-xs font-bold bg-lime-100 text-lime-900 border border-lime-300"
+                  >
+                    <TrendingUp className="w-4 h-4" />
+                    <span>Open Staff & Admin Console</span>
+                  </Link>
+                )}
+
+                {isSuperOwner && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setMobileMenuOpen(false);
+                      setShowGrantModal(true);
+                    }}
+                    className="flex items-center justify-center gap-2 py-2.5 rounded-xl text-xs font-black bg-amber-400 text-amber-950 border border-amber-300"
+                  >
+                    <Crown className="w-4 h-4" />
+                    <span>Owner Access Delegator</span>
+                  </button>
+                )}
 
                 <button
                   type="button"
@@ -1406,13 +1491,20 @@ export default function ProfilePage() {
           {/* BOTTOM FOOTER CONTROL BAR */}
           {/* ============================================================ */}
           <div className="p-4 sm:p-5 bg-slate-50 border-t border-slate-200 flex items-center justify-between gap-3">
-            <Link
-              href="/dashboard"
-              className="text-xs font-extrabold text-slate-700 hover:text-sky-600 flex items-center gap-1.5 transition-colors"
-            >
-              <span>Open Staff & Admin Dashboard</span>
-              <ExternalLink className="w-3.5 h-3.5" />
-            </Link>
+            {canAccessConsole ? (
+              <Link
+                href="/dashboard"
+                className="text-xs font-extrabold text-slate-700 hover:text-sky-600 flex items-center gap-1.5 transition-colors"
+              >
+                <span>Open Staff & Admin Dashboard</span>
+                <ExternalLink className="w-3.5 h-3.5" />
+              </Link>
+            ) : (
+              <div className="text-xs font-semibold text-slate-500 flex items-center gap-1.5">
+                <ShieldCheck className="w-3.5 h-3.5 text-green-600" />
+                <span>Verified Club Member Digital Account</span>
+              </div>
+            )}
 
             <button
               onClick={() => {
@@ -1556,6 +1648,155 @@ export default function ProfilePage() {
                 </button>
               </div>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* ============================================================ */}
+      {/* MODAL: SUPER OWNER ACCESS DELEGATOR (pushplamba104@gmail.com) */}
+      {/* ============================================================ */}
+      {showGrantModal && isSuperOwner && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-in fade-in">
+          <div className="bg-white rounded-3xl max-w-lg w-full p-6 sm:p-8 shadow-2xl border border-amber-300 space-y-5 animate-in zoom-in-95 relative">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+              <div className="flex items-center gap-2.5">
+                <div className="p-2.5 rounded-2xl bg-amber-500/15 text-amber-900 border border-amber-400/30">
+                  <Crown className="w-6 h-6 text-amber-600 animate-pulse" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-black text-slate-900 font-[family-name:var(--font-outfit)] flex items-center gap-1.5">
+                    Master Access Delegator
+                  </h3>
+                  <p className="text-[11px] text-amber-800 font-bold">
+                    Super Owner Sovereign Portal &bull; pushplamba104@gmail.com
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => {
+                  setShowGrantModal(false);
+                  setGrantSuccessMsg("");
+                  setGrantErrorMsg("");
+                }}
+                className="text-slate-400 hover:text-slate-600 text-sm font-bold p-1 rounded-lg hover:bg-slate-100"
+              >
+                ✕
+              </button>
+            </div>
+
+            <p className="text-xs text-slate-600 leading-relaxed">
+              As the <strong>Super Owner</strong>, you can grant custom access to anyone by entering their Gmail ID. The backend handles database provisioning, role enforcement, and department scoping automatically.
+            </p>
+
+            {grantSuccessMsg && (
+              <div className="p-3.5 rounded-2xl bg-green-50 border border-green-200 text-green-800 text-xs font-bold flex items-start gap-2 animate-in fade-in">
+                <CheckCircle2 className="w-4 h-4 text-green-600 shrink-0 mt-0.5" />
+                <span>{grantSuccessMsg}</span>
+              </div>
+            )}
+
+            {grantErrorMsg && (
+              <div className="p-3.5 rounded-2xl bg-red-50 border border-red-200 text-red-800 text-xs font-bold flex items-start gap-2 animate-in fade-in">
+                <AlertCircle className="w-4 h-4 text-red-600 shrink-0 mt-0.5" />
+                <span>{grantErrorMsg}</span>
+              </div>
+            )}
+
+            <form onSubmit={handleGrantAccess} className="space-y-4">
+              <div>
+                <label className="text-xs font-black text-slate-800 block mb-1">
+                  User / Staff Gmail ID <span className="text-red-500">*</span>
+                </label>
+                <div className="relative">
+                  <Mail className="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5" />
+                  <input
+                    type="email"
+                    placeholder="e.g. employee@gmail.com or name@championsclub.in"
+                    value={grantEmail}
+                    onChange={(e) => setGrantEmail(e.target.value)}
+                    className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-300 font-mono text-xs font-bold text-slate-900 focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 shadow-sm"
+                    required
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="text-xs font-black text-slate-800 block mb-1">
+                  Employee Full Name (Optional)
+                </label>
+                <div className="relative">
+                  <UserCheck className="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5" />
+                  <input
+                    type="text"
+                    placeholder="e.g. Rahul Sharma"
+                    value={grantName}
+                    onChange={(e) => setGrantName(e.target.value)}
+                    className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-300 text-xs font-medium text-slate-900 focus:outline-none focus:border-amber-500 shadow-sm"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="text-xs font-black text-slate-800 block mb-1">
+                    System Role <span className="text-red-500">*</span>
+                  </label>
+                  <select
+                    value={grantRole}
+                    onChange={(e) => setGrantRole(e.target.value)}
+                    className="w-full px-3 py-2.5 rounded-xl border border-slate-300 text-xs font-bold text-slate-800 focus:outline-none focus:border-amber-500 bg-white shadow-sm"
+                  >
+                    <option value="ADMIN">🛡️ Admin (Full Control)</option>
+                    <option value="STAFF">🧑‍💼 Department Staff</option>
+                    <option value="FRONT_DESK">🛎️ Front Desk Reception</option>
+                    <option value="COACH">🎾 Head Coach / Trainer</option>
+                    <option value="SHOP_STAFF">🛍️ Pro Shop Manager</option>
+                    <option value="BAR_STAFF">☕ Café & Lounge Lead</option>
+                    <option value="MAINTENANCE">🔧 Facility & Maintenance</option>
+                    <option value="MEMBER">👤 Club Member (Standard)</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="text-xs font-black text-slate-800 block mb-1">
+                    Assigned Department <span className="text-red-500">*</span>
+                  </label>
+                  <select
+                    value={grantDepartment}
+                    onChange={(e) => setGrantDepartment(e.target.value)}
+                    className="w-full px-3 py-2.5 rounded-xl border border-slate-300 text-xs font-bold text-slate-800 focus:outline-none focus:border-amber-500 bg-white shadow-sm"
+                  >
+                    <option value="Badminton">🏸 Badminton Department</option>
+                    <option value="Tennis">🎾 Tennis & Lawn Courts</option>
+                    <option value="Cricket">🏏 Box Cricket Arena</option>
+                    <option value="Swimming">🏊 Olympic Aquatics</option>
+                    <option value="Table Tennis">🏓 Table Tennis Wing</option>
+                    <option value="Gym">💪 Health Club & Fitness</option>
+                    <option value="Dining">🍽️ Dining & Café Lounge</option>
+                    <option value="Accounts">💰 Accounts & Billing</option>
+                    <option value="Operations">⚙️ Operations General</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="pt-2 flex items-center justify-end gap-2.5">
+                <button
+                  type="button"
+                  onClick={() => setShowGrantModal(false)}
+                  className="px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition-all"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={isGranting}
+                  className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-slate-950 font-black text-xs shadow-md transition-all flex items-center gap-1.5 disabled:opacity-50"
+                >
+                  <Key className="w-4 h-4" />
+                  <span>{isGranting ? "Delegating Access..." : "Grant & Delegate Access"}</span>
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}
