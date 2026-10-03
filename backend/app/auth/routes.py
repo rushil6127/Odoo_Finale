@@ -1,5 +1,6 @@
 from flask import Blueprint
 from flask_jwt_extended import jwt_required, current_user
+from backend.app.extensions import limiter
 from backend.app.common.responses import success_response
 from backend.app.common.validation import validate_schema
 from backend.app.common.permissions import roles_required, RoleEnum
@@ -85,6 +86,7 @@ ROLE_PERMISSIONS = {
 
 
 @auth_bp.route("/login", methods=["POST"])
+@limiter.limit("15 per minute")
 @validate_schema(LoginSchema)
 def login(validated_data):
     """Authenticate a user and return a JWT access token."""
@@ -115,6 +117,7 @@ def get_current_user_profile():
 
 
 @auth_bp.route("/demo-login", methods=["POST"])
+@limiter.limit("20 per minute")
 def demo_login():
     """Issue a valid JWT access token for demo profiles (alex, coach_david, admin)."""
     from flask import request
@@ -193,6 +196,7 @@ def demo_login():
 
 
 @auth_bp.route("/google", methods=["POST"])
+@limiter.limit("15 per minute")
 def google_auth():
     """Authenticate or register user via Google OAuth ID token."""
     from flask import request
@@ -220,6 +224,7 @@ def google_auth():
 
 
 @auth_bp.route("/register", methods=["POST"])
+@limiter.limit("10 per minute")
 @validate_schema(UserRegisterSchema)
 def register_member(validated_data):
     """Public self-service registration endpoint for new club members."""

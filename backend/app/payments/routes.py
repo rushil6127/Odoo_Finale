@@ -1,6 +1,6 @@
 from flask import Blueprint, request, current_app
 from flask_jwt_extended import jwt_required, current_user
-from backend.app.extensions import db
+from backend.app.extensions import db, limiter
 from backend.app.common.responses import success_response
 from backend.app.common.validation import validate_schema
 from backend.app.common.permissions import roles_required, RoleEnum
@@ -36,6 +36,7 @@ payments_bp = Blueprint("payments", __name__, url_prefix="/api/v1/payments")
 
 
 @payments_bp.route("", methods=["POST"])
+@limiter.limit("20 per minute")
 @jwt_required()
 @roles_required(
     RoleEnum.OWNER,
@@ -198,6 +199,7 @@ def confirm_payment_route(payment_id: int):
 
 
 @payments_bp.route("/verify", methods=["POST"])
+@limiter.limit("20 per minute")
 @jwt_required()
 @roles_required(
     RoleEnum.OWNER,

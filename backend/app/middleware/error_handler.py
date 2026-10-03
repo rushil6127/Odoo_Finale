@@ -114,6 +114,30 @@ def register_error_handler_middleware(app: Flask, jwt_manager: Optional[JWTManag
             status_code=500,
         )
 
+    try:
+        from flask_limiter.errors import RateLimitExceeded
+
+        @app.errorhandler(RateLimitExceeded)
+        def handle_rate_limit_exceeded(e: RateLimitExceeded):
+            req_id = getattr(g, "request_id", "-")
+            logger.warning("Rate limit exceeded [request_id=%s]: %s", req_id, str(e.description))
+            return error_response(
+                code="TOO_MANY_REQUESTS",
+                message="Too many requests. Please try again later.",
+                status_code=429,
+                details={"retry_after": getattr(e, "retry_after", None)} if getattr(e, "retry_after", None) else None,
+            )
+    except ImportError:
+        pass
+
+    @app.errorhandler(429)
+    def handle_429(e):
+        return error_response(
+            code="TOO_MANY_REQUESTS",
+            message="Too many requests. Please try again later.",
+            status_code=429,
+        )
+
     @app.errorhandler(HTTPException)
     def handle_http_exception(e: HTTPException):
         code_name = e.name.upper().replace(" ", "_")

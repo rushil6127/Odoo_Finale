@@ -3,6 +3,7 @@ from flask import Blueprint, request
 from flask_jwt_extended import jwt_required, current_user
 from marshmallow import ValidationError
 
+from backend.app.extensions import limiter
 from backend.app.common.permissions import RoleEnum, roles_required
 from backend.app.common.responses import success_response
 from backend.app.common.errors import ValidationException
@@ -53,6 +54,7 @@ CRM_STAFF_ROLES = (
 # ---------------------------------------------------------
 
 @crm_bp.route("/public/enquiries", methods=["POST"])
+@limiter.limit("10 per minute")
 def api_public_enquiry():
     """Submit a public website enquiry.
     

@@ -5,7 +5,7 @@
  * with support for client-side Demo member sessions and reactive hooks.
  */
 
-import { useSyncExternalStore } from "react";
+import { useSyncExternalStore, useMemo } from "react";
 import { apiClient } from "@/lib/api/client";
 import type { UserRole, MembershipPlan, MembershipStatus } from "@/types";
 
@@ -819,16 +819,16 @@ function getServerSnapshot(): string | null {
   return null;
 }
 
-let _cachedUserJson: string | null = null;
-let _cachedUser: (AuthUserProfile & AuthUser) | null = null;
-
 export function useCurrentUser() {
   const userJson = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
-  if (userJson !== _cachedUserJson) {
-    _cachedUserJson = userJson;
-    _cachedUser = userJson ? enrichUserProfile(JSON.parse(userJson)) : null;
-  }
-  const user = _cachedUser;
+  const user = useMemo(() => {
+    if (!userJson) return null;
+    try {
+      return enrichUserProfile(JSON.parse(userJson));
+    } catch {
+      return null;
+    }
+  }, [userJson]);
 
   return {
     user,

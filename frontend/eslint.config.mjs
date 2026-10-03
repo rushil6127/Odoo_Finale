@@ -13,6 +13,7 @@ const eslintConfig = defineConfig([
       "@next/next/no-location-assign-relative-destination": "warn",
       "react-hooks/set-state-in-effect": "off",
       "react-hooks/purity": "off",
+      "react-hooks/globals": "off",
     },
   },
   // Override default ignores of eslint-config-next.

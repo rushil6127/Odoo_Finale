@@ -1,7 +1,7 @@
 import os
 from flask import Flask
 from backend.app.config import config_by_name, DevelopmentConfig
-from backend.app.extensions import db, migrate, jwt, bcrypt, ma, cors
+from backend.app.extensions import db, migrate, jwt, bcrypt, ma, cors, limiter
 from backend.app.middleware import init_middleware
 from backend.app.health.routes import health_bp
 from backend.app.auth import auth_bp, create_owner_command, User  # noqa: F401
@@ -97,6 +97,7 @@ def create_app(config_name: str = None) -> Flask:
     jwt.init_app(app)
     bcrypt.init_app(app)
     ma.init_app(app)
+    limiter.init_app(app)
 
     cors_origins = app.config.get("CORS_ORIGINS", "*")
     cors.init_app(
