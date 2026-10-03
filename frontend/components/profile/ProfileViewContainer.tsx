@@ -171,55 +171,58 @@ function OwnerCourtStatusCard() {
                   transition: "stroke-dasharray 1.1s cubic-bezier(0.16, 1, 0.3, 1) 0.4s",
                 }}
               />
+            </g>
 
-              {/* Crisp white radial segment separators */}
-              {animated && (
-                <>
-                  {/* Divider between Orange & Blue (at 0 deg / top) */}
-                  <line x1="80" y1="26" x2="80" y2="2" stroke="white" strokeWidth="2.5" />
-                  {/* Divider between Blue & Green (at 150 deg) */}
-                  <line x1="99" y1="112.9" x2="113" y2="137.2" stroke="white" strokeWidth="2.5" />
-                  {/* Divider between Green & Orange (at 330 deg) */}
-                  <line x1="61" y1="47.1" x2="47" y2="22.8" stroke="white" strokeWidth="2.5" />
-                </>
-              )}
+            {/* Crisp white radial segment separators in standard coordinate space */}
+            <g
+              style={{
+                opacity: animated ? 1 : 0,
+                transition: "opacity 0.4s ease 0.6s",
+              }}
+            >
+              {/* 1. Divider between Orange & Blue (at 12 o'clock / 0 deg) */}
+              <line x1="80" y1="40" x2="80" y2="16" stroke="white" strokeWidth="2.5" strokeLinecap="round" />
+              {/* 2. Divider between Blue & Green (at 150 deg / ~5 o'clock) */}
+              <line x1="99.5" y1="113.8" x2="112.5" y2="136.3" stroke="white" strokeWidth="2.5" strokeLinecap="round" />
+              {/* 3. Divider between Green & Orange (at 330 deg / ~11 o'clock) */}
+              <line x1="60.5" y1="46.2" x2="47.5" y2="23.7" stroke="white" strokeWidth="2.5" strokeLinecap="round" />
             </g>
 
             {/* Percentage Labels Inside the Arcs */}
             {/* 42% (Blue Arc Midpoint: 75 deg from top) */}
             <text
               x="130"
-              y="68"
+              y="67"
               fill="white"
-              fontSize="11"
+              fontSize="10"
               fontWeight="900"
               textAnchor="middle"
-              dominantBaseline="middle"
-              className="font-sans"
+              dominantBaseline="central"
+              className="font-sans select-none pointer-events-none"
               style={{
                 opacity: animated ? 1 : 0,
                 transform: animated ? "scale(1)" : "scale(0.5)",
-                transformOrigin: "130px 68px",
+                transformOrigin: "130px 67px",
                 transition: "opacity 0.6s ease-out 0.7s, transform 0.6s ease-out 0.7s",
               }}
             >
               42%
             </text>
 
-            {/* 50% (Green Arc Midpoint: 240 deg from top) */}
+            {/* 50% (Green Arc Midpoint: 245 deg from top) */}
             <text
-              x="35"
-              y="107"
+              x="31"
+              y="96"
               fill="white"
-              fontSize="11"
+              fontSize="10"
               fontWeight="900"
               textAnchor="middle"
-              dominantBaseline="middle"
-              className="font-sans"
+              dominantBaseline="central"
+              className="font-sans select-none pointer-events-none"
               style={{
                 opacity: animated ? 1 : 0,
                 transform: animated ? "scale(1)" : "scale(0.5)",
-                transformOrigin: "35px 107px",
+                transformOrigin: "31px 96px",
                 transition: "opacity 0.6s ease-out 0.7s, transform 0.6s ease-out 0.7s",
               }}
             >
@@ -228,18 +231,18 @@ function OwnerCourtStatusCard() {
 
             {/* 8% (Orange Arc Midpoint: 345 deg from top) */}
             <text
-              x="66"
+              x="67"
               y="30"
               fill="white"
-              fontSize="10"
+              fontSize="9"
               fontWeight="900"
               textAnchor="middle"
-              dominantBaseline="middle"
-              className="font-sans"
+              dominantBaseline="central"
+              className="font-sans select-none pointer-events-none"
               style={{
                 opacity: animated ? 1 : 0,
                 transform: animated ? "scale(1)" : "scale(0.5)",
-                transformOrigin: "66px 30px",
+                transformOrigin: "67px 30px",
                 transition: "opacity 0.6s ease-out 0.7s, transform 0.6s ease-out 0.7s",
               }}
             >
