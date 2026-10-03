@@ -808,106 +808,203 @@ export default function ProfileViewContainer({ forcedMode }: ProfileViewContaine
             {activeTab === "overview" && (
               <div className="p-6 sm:p-8 space-y-6 sm:space-y-8 animate-in fade-in duration-200">
 
-                {/* PRIORITY CLUB NOTIFICATION CARD (Inspired by Reference) */}
-                <div className="p-5 sm:p-6 rounded-3xl bg-gradient-to-r from-blue-900 via-indigo-950 to-slate-900 text-white shadow-xl border border-indigo-500/30 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 relative overflow-hidden">
-                  <div className="absolute top-0 right-0 w-64 h-64 bg-sky-500/10 rounded-full blur-2xl pointer-events-none" />
-                  <div className="flex items-start gap-3.5 relative z-10">
-                    <div className="p-3 rounded-2xl bg-white/10 text-amber-300 border border-white/10 shrink-0">
-                      <Bell className="w-5 h-5 animate-bounce" />
-                    </div>
+                {/* Top Section: Live Arena Utilization & Sovereign Status */}
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+                  {/* Left / Donut Chart Card (7 cols) */}
+                  <div className="lg:col-span-7 p-6 rounded-3xl bg-slate-50/70 border border-slate-200/90 shadow-2xs flex flex-col justify-between">
                     <div>
-                      <div className="flex items-center gap-2">
-                        <span className="text-[10px] font-black uppercase tracking-wider bg-amber-400 text-amber-950 px-2 py-0.5 rounded-full">
-                          IMPORTANT CLUB NOTICE
+                      <div className="flex items-center justify-between pb-3 border-b border-slate-200/80">
+                        <div>
+                          <h3 className="text-sm font-black uppercase tracking-wider text-slate-800 font-[family-name:var(--font-outfit)] flex items-center gap-2">
+                            <Clock className="w-4 h-4 text-sky-600" />
+                            Arena Slot Utilization & Live Capacity
+                          </h3>
+                          <p className="text-xs text-slate-500 mt-0.5">Real-time occupancy across 3 active sports complexes today</p>
+                        </div>
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200/70 shrink-0">
+                          <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                          78% Booked
                         </span>
-                        <span className="text-xs text-slate-300">18 Oct 2026 &bull; 04:00 PM</span>
                       </div>
-                      <h3 className="text-base sm:text-lg font-black text-white mt-1">
-                        Gujarat Open State Tennis Championship Registrations Live!
-                      </h3>
-                      <p className="text-xs text-slate-300 mt-0.5 max-w-2xl leading-relaxed">
-                        Exclusive 48-hour priority seeding reserved for Gold Tier members. Centre Court floodlit matches scheduled from Oct 11 onwards.
-                      </p>
+
+                      {/* Chart & Legend Row */}
+                      <div className="py-5 flex flex-col sm:flex-row items-center sm:items-stretch gap-6 sm:gap-8">
+                        {/* Circular Donut Chart */}
+                        <div className="relative w-36 h-36 shrink-0 flex items-center justify-center">
+                          <svg className="w-full h-full -rotate-90 transform" viewBox="0 0 128 128">
+                            {/* Background Track */}
+                            <circle
+                              cx="64"
+                              cy="64"
+                              r="50"
+                              stroke="#e2e8f0"
+                              strokeWidth="12"
+                              fill="none"
+                            />
+                            {/* Segment 1: Grass Tennis (36% -> strokeDasharray 113.1, gap 201) */}
+                            <circle
+                              cx="64"
+                              cy="64"
+                              r="50"
+                              stroke="#10b981"
+                              strokeWidth="12"
+                              strokeDasharray="113.1 314.16"
+                              strokeDashoffset="0"
+                              strokeLinecap="round"
+                              fill="none"
+                              className="transition-all duration-1000"
+                            />
+                            {/* Segment 2: Box Cricket (24% -> strokeDasharray 75.4, gap 238.8, offset -117) */}
+                            <circle
+                              cx="64"
+                              cy="64"
+                              r="50"
+                              stroke="#0ea5e9"
+                              strokeWidth="12"
+                              strokeDasharray="75.4 314.16"
+                              strokeDashoffset="-117"
+                              strokeLinecap="round"
+                              fill="none"
+                              className="transition-all duration-1000"
+                            />
+                            {/* Segment 3: Badminton & Aquatics (18% -> strokeDasharray 56.5, offset -196) */}
+                            <circle
+                              cx="64"
+                              cy="64"
+                              r="50"
+                              stroke="#6366f1"
+                              strokeWidth="12"
+                              strokeDasharray="56.5 314.16"
+                              strokeDashoffset="-196"
+                              strokeLinecap="round"
+                              fill="none"
+                              className="transition-all duration-1000"
+                            />
+                          </svg>
+
+                          {/* Center Text in Donut */}
+                          <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                            <span className="text-2xl font-black text-slate-900 tracking-tight font-[family-name:var(--font-outfit)]">
+                              78%
+                            </span>
+                            <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">
+                              Occupied
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* Breakdown Legend Items */}
+                        <div className="flex-1 w-full space-y-2.5 justify-center flex flex-col text-xs">
+                          {/* Item 1 */}
+                          <div className="flex items-center justify-between p-2 rounded-xl bg-white border border-slate-200/70 shadow-2xs">
+                            <div className="flex items-center gap-2">
+                              <span className="w-2.5 h-2.5 rounded-full bg-emerald-500" />
+                              <span className="font-bold text-slate-700">Centre Lawn Tennis</span>
+                            </div>
+                            <span className="font-mono font-extrabold text-slate-900">12 / 16 slots (75%)</span>
+                          </div>
+
+                          {/* Item 2 */}
+                          <div className="flex items-center justify-between p-2 rounded-xl bg-white border border-slate-200/70 shadow-2xs">
+                            <div className="flex items-center gap-2">
+                              <span className="w-2.5 h-2.5 rounded-full bg-sky-500" />
+                              <span className="font-bold text-slate-700">Box Cricket Turf</span>
+                            </div>
+                            <span className="font-mono font-extrabold text-slate-900">8 / 10 slots (80%)</span>
+                          </div>
+
+                          {/* Item 3 */}
+                          <div className="flex items-center justify-between p-2 rounded-xl bg-white border border-slate-200/70 shadow-2xs">
+                            <div className="flex items-center gap-2">
+                              <span className="w-2.5 h-2.5 rounded-full bg-indigo-500" />
+                              <span className="font-bold text-slate-700">Badminton & Aquatics</span>
+                            </div>
+                            <span className="font-mono font-extrabold text-slate-900">9 / 12 slots (75%)</span>
+                          </div>
+
+                          {/* Available Remaining */}
+                          <div className="flex items-center justify-between px-2 pt-1 text-[11px] text-slate-500">
+                            <span className="flex items-center gap-1.5">
+                              <span className="w-2 h-2 rounded-full bg-slate-300" />
+                              Open match slots remaining:
+                            </span>
+                            <span className="font-bold text-slate-700">9 slots open</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Bottom Status Row */}
+                    <div className="pt-3 border-t border-slate-200/80 flex items-center justify-between text-xs text-slate-600">
+                      <span className="flex items-center gap-1.5 font-medium">
+                        <Flame className="w-3.5 h-3.5 text-amber-500" />
+                        Peak Hours: <strong>05:00 PM – 09:30 PM</strong>
+                      </span>
+                      <button
+                        onClick={() => setActiveTab("calendar")}
+                        className="text-sky-600 hover:text-sky-700 font-extrabold flex items-center gap-1 hover:underline"
+                      >
+                        <span>View Time Slots</span>
+                        <ArrowRight className="w-3.5 h-3.5" />
+                      </button>
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-2.5 shrink-0 self-end md:self-auto relative z-10">
-                    <button
-                      onClick={() => setActiveTab("calendar")}
-                      className="px-4 py-2 rounded-xl bg-amber-400 hover:bg-amber-300 text-amber-950 font-black text-xs shadow-md transition-all whitespace-nowrap"
-                    >
-                      Open Calendar &rarr;
-                    </button>
+                  {/* Right / Executive Status Cards (5 cols) */}
+                  <div className="lg:col-span-5 flex flex-col justify-between gap-4">
+                    {/* Card 1: Executive Authority */}
+                    <div className="p-5 rounded-3xl bg-white border border-slate-200 shadow-2xs flex-1 flex flex-col justify-between">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-[10px] font-black uppercase tracking-wider bg-slate-100 text-slate-700 px-2.5 py-1 rounded-full border border-slate-200 flex items-center gap-1">
+                          <Crown className="w-3 h-3 text-amber-500" />
+                          Master Governance
+                        </span>
+                        <span className="text-xs font-bold text-emerald-600 flex items-center gap-1">
+                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                          All Access
+                        </span>
+                      </div>
+                      <div>
+                        <h4 className="text-base font-black text-slate-900 font-[family-name:var(--font-outfit)]">
+                          Executive Sovereignty
+                        </h4>
+                        <p className="text-xs text-slate-500 mt-1 leading-relaxed">
+                          Unrestricted authority across all 3 arena complexes, VIP member lounges, and operational consoles.
+                        </p>
+                      </div>
+                      <div className="mt-3 pt-2.5 border-t border-slate-100 flex items-center justify-between text-xs text-slate-600">
+                        <span>Tier: <strong>Annual VIP Patron</strong></span>
+                        <span className="font-bold text-slate-800">Member #1</span>
+                      </div>
+                    </div>
+
+                    {/* Card 2: Duty Staffing */}
+                    <div className="p-5 rounded-3xl bg-white border border-slate-200 shadow-2xs flex-1 flex flex-col justify-between">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-[10px] font-black uppercase tracking-wider bg-indigo-50 text-indigo-800 px-2.5 py-1 rounded-full border border-indigo-200 flex items-center gap-1">
+                          <ShieldCheck className="w-3 h-3 text-indigo-600" />
+                          On-Duty Shift
+                        </span>
+                        <span className="text-xs font-bold text-indigo-700">4 Staff Live</span>
+                      </div>
+                      <div>
+                        <h4 className="text-base font-black text-slate-900 font-[family-name:var(--font-outfit)]">
+                          Supervision & Concierge
+                        </h4>
+                        <p className="text-xs text-slate-500 mt-1 leading-relaxed">
+                          Head Coach Rajesh & Floor Marshals active on grass courts. Front Concierge desk responding in &lt;2 min.
+                        </p>
+                      </div>
+                      <div className="mt-3 pt-2.5 border-t border-slate-100 flex items-center justify-between text-xs text-slate-600">
+                        <span>Status: <strong>Standard Ops</strong></span>
+                        <span className="text-emerald-700 font-bold">● Normal Flow</span>
+                      </div>
+                    </div>
                   </div>
+
                 </div>
 
-                  {/* Minimal Executive KPI Cards (3 Clean Cards) */}
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-
-                    {/* 1. Executive Sovereignty */}
-                    <div className="p-5 rounded-2xl bg-sky-50/80 border border-sky-200/90 shadow-sm flex flex-col justify-between">
-                      <div>
-                        <div className="text-[11px] font-extrabold text-sky-800 uppercase tracking-wider mb-2">
-                          Executive Sovereignty
-                        </div>
-                        <div className="text-xl font-black text-slate-900 font-[family-name:var(--font-outfit)]">
-                          Master Owner & Patron
-                        </div>
-                        <p className="text-xs text-sky-700 mt-1 font-medium">
-                          Unrestricted arena & facility authority
-                        </p>
-                      </div>
-                      <div className="mt-4 pt-3 border-t border-sky-200/60 text-xs font-semibold text-slate-600 flex items-center justify-between">
-                        <span>Tier: <strong>Annual VIP</strong></span>
-                        <span className="text-green-700 font-bold flex items-center gap-1">
-                          <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-                          Active
-                        </span>
-                      </div>
-                    </div>
-
-                    {/* 2. Arena Operations & Occupancy */}
-                    <div className="p-5 rounded-2xl bg-lime-50/80 border border-lime-200/90 shadow-sm flex flex-col justify-between">
-                      <div>
-                        <div className="text-[11px] font-extrabold text-lime-900 uppercase tracking-wider mb-2">
-                          Arena Slot Occupancy
-                        </div>
-                        <div className="text-xl font-black text-slate-900 font-[family-name:var(--font-outfit)]">
-                          78% Capacity Live
-                        </div>
-                        <p className="text-xs text-lime-800 mt-1 font-bold flex items-center gap-1.5">
-                          <Clock className="w-3.5 h-3.5 text-lime-700" />
-                          <span>18 Sessions Scheduled Today</span>
-                        </p>
-                      </div>
-                      <div className="mt-4 pt-3 border-t border-lime-200/60 text-xs font-semibold text-slate-600 flex items-center justify-between">
-                        <span>Courts: <strong>3 Active</strong></span>
-                        <button onClick={() => setActiveTab("calendar")} className="text-lime-800 font-bold hover:underline">
-                          View Schedule &rarr;
-                        </button>
-                      </div>
-                    </div>
-
-                    {/* 3. Duty Leadership */}
-                    <div className="p-5 rounded-2xl bg-indigo-50/80 border border-indigo-200/90 shadow-sm flex flex-col justify-between">
-                      <div>
-                        <div className="text-[11px] font-extrabold text-indigo-900 uppercase tracking-wider mb-2">
-                          Supervision on Duty
-                        </div>
-                        <div className="text-xl font-black text-slate-900 font-[family-name:var(--font-outfit)]">
-                          4 Staff on Shift
-                        </div>
-                        <p className="text-xs text-indigo-800 mt-1 font-medium">
-                          Rajesh (Head Coach) & Front Concierge
-                        </p>
-                      </div>
-                      <div className="mt-4 pt-3 border-t border-indigo-200/60 text-xs font-semibold text-slate-600 flex items-center justify-between">
-                        <span>Desk Status: <strong>Open</strong></span>
-                        <span className="text-indigo-700 font-bold">Standard Ops</span>
-                      </div>
-                    </div>
-
-                  </div>
 
                   {/* Minimal Upcoming Schedule Overview */}
                   <div className="p-6 rounded-3xl bg-slate-50/80 border border-slate-200/90 shadow-sm space-y-4">
