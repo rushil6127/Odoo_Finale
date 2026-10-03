@@ -227,7 +227,7 @@ export default function MembershipPlans() {
                 {/* Card Action CTA */}
                 <div>
                   <Link
-                    href="/login"
+                    href="/memberships"
                     className={`w-full py-3.5 px-6 rounded-2xl text-xs font-bold text-center transition-all duration-200 flex items-center justify-center gap-2 shadow-md ${
                       plan.popular
                         ? "bg-gradient-to-r from-sky-500 to-sky-600 hover:from-sky-600 hover:to-blue-700 text-white shadow-sky-500/25"
@@ -238,7 +238,7 @@ export default function MembershipPlans() {
                     <ArrowRight className="w-4 h-4" />
                   </Link>
                   <p className="text-center text-[10px] text-slate-400 mt-2">
-                    Instant activation upon admin verification
+                    Submit UPI QR payment & review request
                   </p>
                 </div>
               </div>
