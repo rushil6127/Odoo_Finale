@@ -187,8 +187,8 @@ export default function EmployeesPage() {
   const handleExportEmployees = async () => {
     try {
       setExporting(true);
-      await triggerExcelDownload("employees", "exl");
-      showToast("success", "Employee directory exported successfully (.exl).");
+      await triggerExcelDownload("employees", "xlsx");
+      showToast("success", "Employee directory exported successfully (.xlsx).");
     } catch (err: any) {
       showToast("error", err?.message || "Failed to export employee roster");
     } finally {
@@ -391,10 +391,10 @@ export default function EmployeesPage() {
               disabled={exporting}
               onClick={handleExportEmployees}
               className="inline-flex items-center gap-2 px-3.5 py-2.5 rounded-xl bg-white hover:bg-slate-50 text-slate-700 hover:text-slate-900 border border-slate-200 text-sm font-bold shadow-2xs transition-all active:scale-95 disabled:opacity-50"
-              title="Export staff & employee directory to .exl Excel spreadsheet"
+              title="Export staff & employee directory to .xlsx Excel spreadsheet"
             >
               <FileSpreadsheet className="w-4 h-4 text-emerald-600" />
-              <span>{exporting ? "Exporting..." : "Export .exl"}</span>
+              <span>{exporting ? "Exporting..." : "Export .xlsx"}</span>
             </button>
             {isAdmin && (
               <button

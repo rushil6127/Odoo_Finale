@@ -348,7 +348,7 @@ def export_excel_download():
         )
 
     start_d, end_d = _parse_date_params()
-    ext = "xlsx" if request.args.get("format", "").lower() == "xlsx" else "exl"
+    ext = "exl" if request.args.get("format", "").lower() == "exl" else "xlsx"
 
     buffer = generate_excel_workbook(section=section, start_d=start_d, end_d=end_d)
     timestamp = datetime.utcnow().strftime("%Y%m%d_%H%M%S")

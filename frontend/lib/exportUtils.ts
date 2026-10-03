@@ -22,7 +22,7 @@ export type ExportSection =
 
 export async function triggerExcelDownload(
   section: ExportSection = "all",
-  format: "exl" | "xlsx" = "exl",
+  format: "xlsx" | "exl" = "xlsx",
   options?: {
     startDate?: string;
     endDate?: string;

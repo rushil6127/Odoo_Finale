@@ -150,7 +150,7 @@ def export_members_excel():
     from datetime import datetime
 
     _authenticate_export_user(allowed_roles=(RoleEnum.OWNER, RoleEnum.ADMIN, RoleEnum.FRONT_DESK))
-    ext = "xlsx" if request.args.get("format", "").lower() == "xlsx" else "exl"
+    ext = "exl" if request.args.get("format", "").lower() == "exl" else "xlsx"
     buffer = generate_excel_workbook(section="members")
     timestamp = datetime.utcnow().strftime("%Y%m%d_%H%M%S")
     filename = f"champions_club_members_{timestamp}.{ext}"

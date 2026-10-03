@@ -94,7 +94,7 @@ export default function ReportsPage() {
     const sec = targetSection || exportSection;
     try {
       setExporting(true);
-      await triggerExcelDownload(sec, "exl");
+      await triggerExcelDownload(sec, "xlsx");
     } catch (err: any) {
       alert(err?.message || "Failed to download export spreadsheet");
     } finally {
@@ -130,14 +130,14 @@ export default function ReportsPage() {
             className="px-3 py-2.5 rounded-xl text-xs bg-slate-50 border border-slate-200 font-bold text-slate-700 hover:bg-slate-100 transition-colors"
             title="Select section to export"
           >
-            <option value="all">📁 All Sections (Master .exl)</option>
-            <option value="revenue">💰 Reconciled All Revenue (.exl)</option>
-            <option value="courts">🎾 Court Bookings Revenue (.exl)</option>
-            <option value="shop">🛍️ Pro Shop Merchandise (.exl)</option>
-            <option value="bar">🍽️ Sports Bar &amp; Café POS (.exl)</option>
-            <option value="memberships">👑 Membership Subscriptions (.exl)</option>
-            <option value="members">👥 Member Directory (.exl)</option>
-            <option value="employees">🛡️ Staff &amp; Employee Roster (.exl)</option>
+            <option value="all">📁 All Sections (Master .xlsx)</option>
+            <option value="revenue">💰 Reconciled All Revenue (.xlsx)</option>
+            <option value="courts">🎾 Court Bookings Revenue (.xlsx)</option>
+            <option value="shop">🛍️ Pro Shop Merchandise (.xlsx)</option>
+            <option value="bar">🍽️ Sports Bar &amp; Café POS (.xlsx)</option>
+            <option value="memberships">👑 Membership Subscriptions (.xlsx)</option>
+            <option value="members">👥 Member Directory (.xlsx)</option>
+            <option value="employees">🛡️ Staff &amp; Employee Roster (.xlsx)</option>
           </select>
 
           <select
@@ -156,10 +156,10 @@ export default function ReportsPage() {
             disabled={exporting}
             onClick={() => handleExport()}
             className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-black bg-slate-900 hover:bg-slate-800 text-white shadow-md transition-all active:scale-95 disabled:opacity-50"
-            title="Download Excel spreadsheet"
+            title="Download Excel spreadsheet (.xlsx)"
           >
             <FileSpreadsheet className={`w-4 h-4 text-emerald-400 ${exporting ? "animate-pulse" : ""}`} />
-            <span>{exporting ? "Generating..." : "Export .exl"}</span>
+            <span>{exporting ? "Generating..." : "Export .xlsx"}</span>
           </button>
         </div>
       </div>
@@ -381,20 +381,20 @@ export default function ReportsPage() {
         </div>
       </div>
 
-      {/* Individual Section Excel (.exl) Data Exports */}
+      {/* Individual Section Excel (.xlsx) Data Exports */}
       <div className="bg-white rounded-3xl border border-slate-200 p-6 sm:p-7 shadow-sm space-y-5">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b border-slate-100 gap-2">
           <div>
             <h3 className="text-base font-black text-slate-900 font-[family-name:var(--font-outfit)] flex items-center gap-2">
               <FileSpreadsheet className="w-4 h-4 text-emerald-600" />
-              <span>Export Individual Section Data Spreadsheets (.exl)</span>
+              <span>Export Individual Section Data Spreadsheets (.xlsx)</span>
             </h3>
             <p className="text-xs text-slate-500 mt-0.5">
-              Download dedicated individual section workbooks or master spreadsheets formatted for Microsoft Excel (.exl)
+              Download dedicated individual section workbooks or master spreadsheets formatted for Microsoft Excel (.xlsx)
             </p>
           </div>
           <span className="text-[11px] font-bold text-slate-500 bg-slate-100 px-2.5 py-1 rounded-lg border border-slate-200 self-start sm:self-auto">
-            OpenXML .exl / .xlsx Compatible
+            Microsoft Excel (.xlsx)
           </span>
         </div>
 
@@ -451,7 +451,7 @@ export default function ReportsPage() {
             },
             {
               section: "all" as ExportSection,
-              title: "Master Multi-Sheet (.exl)",
+              title: "Master Multi-Sheet (.xlsx)",
               desc: "Complete 8-sheet sovereign workbook with Executive Summary",
               icon: <Layers className="w-4 h-4 text-slate-800" />,
               badge: "All-in-One",
@@ -485,7 +485,7 @@ export default function ReportsPage() {
                 className="w-full inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold bg-white hover:bg-slate-900 text-slate-700 hover:text-white border border-slate-200 hover:border-slate-900 shadow-2xs transition-all active:scale-95 disabled:opacity-50"
               >
                 <Download className="w-3.5 h-3.5 text-emerald-500" />
-                <span>Download .exl</span>
+                <span>Download .xlsx</span>
               </button>
             </div>
           ))}
