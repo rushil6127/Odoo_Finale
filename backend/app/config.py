@@ -62,6 +62,13 @@ class BaseConfig:
     RAZORPAY_WEBHOOK_SECRET = os.getenv("RAZORPAY_WEBHOOK_SECRET", None)
     DEFAULT_CURRENCY = os.getenv("DEFAULT_CURRENCY", "INR")
 
+    # Timezone & Tax Configuration
+    CLUB_TIMEZONE = os.getenv("CLUB_TIMEZONE", "Asia/Kolkata")
+    GST_RATE_SERVICES = float(os.getenv("GST_RATE_SERVICES", 0.18))
+    GST_RATE_POS = float(os.getenv("GST_RATE_POS", 0.05))
+    GST_RATE_SHOP = float(os.getenv("GST_RATE_SHOP", 0.18))
+    GST_RATE_INVOICE = float(os.getenv("GST_RATE_INVOICE", 0.18))
+
     # Redis and Celery configuration
     REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379/0")
     CELERY_BROKER_URL = os.getenv("CELERY_BROKER_URL", REDIS_URL)

@@ -44,6 +44,7 @@ from backend.app.crm import (  # noqa: F401
     CRMQuote,
 )
 from backend.app.notifications import Notification  # noqa: F401
+from backend.app.reports import reports_bp
 import backend.app.tasks.dispatcher  # noqa: F401 Ensure event listeners registered
 
 
@@ -97,6 +98,7 @@ def create_app(config_name: str = None) -> Flask:
     app.register_blueprint(shop_bp)
     app.register_blueprint(pos_bp)
     app.register_blueprint(crm_bp)
+    app.register_blueprint(reports_bp)
 
     # Register CLI commands
     app.cli.add_command(create_owner_command)

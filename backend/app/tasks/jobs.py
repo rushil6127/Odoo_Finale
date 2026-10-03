@@ -547,6 +547,48 @@ def export_data_to_excel_task(
                 b.status.value,
                 float(b.final_price),
             ])
+
+    elif export_type_upper == "REVENUE":
+        from backend.app.payments.models import Payment, PaymentStatus
+        from backend.app.reports.services import get_gst_rate, compute_tax_split
+        from decimal import Decimal
+
+        ws.title = "Revenue"
+        headers = [
+            "Payment Reference",
+            "Item Type",
+            "Item ID",
+            "Method",
+            "Status",
+            "Gross (INR)",
+            "Net Revenue (INR)",
+            "GST Amount (INR)",
+            "Paid Date",
+        ]
+        ws.append(headers)
+
+        payments = (
+            Payment.query.filter(Payment.status.in_([PaymentStatus.PAID, PaymentStatus.REFUNDED]))
+            .order_by(Payment.created_at.desc())
+            .limit(1000)
+            .all()
+        )
+        for p in payments:
+            amt = Decimal(str(p.amount)) if p.amount is not None else Decimal("0.00")
+            rate = get_gst_rate(p.item_type) if p.item_type else Decimal("0.18")
+            net, tax = compute_tax_split(amt, rate)
+            paid_str = p.paid_at.strftime("%Y-%m-%d %H:%M") if p.paid_at else (p.created_at.strftime("%Y-%m-%d %H:%M") if p.created_at else "N/A")
+            ws.append([
+                p.payment_reference,
+                p.item_type.value if hasattr(p.item_type, "value") else str(p.item_type),
+                p.item_id,
+                p.payment_method.value if hasattr(p.payment_method, "value") else str(p.payment_method),
+                p.status.value if hasattr(p.status, "value") else str(p.status),
+                float(amt),
+                float(net),
+                float(tax),
+                paid_str,
+            ])
     else:
         ws.title = "Export"
         headers = ["Key", "Value"]
