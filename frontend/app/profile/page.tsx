@@ -347,6 +347,14 @@ export default function ProfilePage() {
             {/* Right Action CTA Buttons */}
             <div className="hidden md:flex items-center gap-2.5 shrink-0">
               <Link
+                href="/"
+                className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full text-xs font-bold bg-sky-50 hover:bg-sky-100 text-sky-700 border border-sky-200 transition-all"
+              >
+                <ChevronLeft className="w-3.5 h-3.5 text-sky-600" />
+                <span>Back to Club</span>
+              </Link>
+
+              <Link
                 href="/dashboard"
                 className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-bold bg-lime-100 hover:bg-lime-200 text-lime-900 border border-lime-300 transition-all"
               >
@@ -400,6 +408,15 @@ export default function ProfilePage() {
               </div>
 
               <div className="flex flex-col gap-2 pt-2">
+                <Link
+                  href="/"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="flex items-center justify-center gap-2 py-2.5 rounded-xl text-xs font-bold bg-sky-50 text-sky-700 border border-sky-200"
+                >
+                  <ChevronLeft className="w-4 h-4 text-sky-600" />
+                  <span>Back to Club Sanctuary</span>
+                </Link>
+
                 <Link
                   href="/dashboard"
                   onClick={() => setMobileMenuOpen(false)}

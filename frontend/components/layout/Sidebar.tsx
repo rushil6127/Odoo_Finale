@@ -118,9 +118,16 @@ export default function Sidebar() {
         ))}
       </nav>
 
-      {/* Footer */}
-      <div className="px-6 py-4 border-t border-white/10">
-        <p className="text-xs text-white/40">Champions Club v0.1</p>
+      {/* Footer & Public Club Link */}
+      <div className="px-4 py-3 border-t border-white/10 space-y-2">
+        <Link
+          href="/"
+          className="flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium text-white/80 hover:text-white hover:bg-white/10 transition-colors"
+        >
+          <span className="text-sm">🌐</span>
+          <span>Back to Club Website</span>
+        </Link>
+        <p className="text-[11px] text-white/40 px-3">Champions Club v0.1</p>
       </div>
     </aside>
   );
