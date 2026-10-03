@@ -7,6 +7,7 @@ import { ArrowLeft, Loader2, AlertCircle, Crown, ShieldAlert } from "lucide-reac
 import {
   DEMO_MEMBERS,
   setStoredUser,
+  setStoredToken,
   getStoredUser,
   loginUser,
   registerUser,
@@ -16,6 +17,7 @@ import {
   isOwner,
   type AuthUserProfile,
 } from "@/lib/auth";
+import { apiClient } from "@/lib/api/client";
 import "./Login.css";
 
 const GOOGLE_CLIENT_ID = "934545206972-sffuvr8okqbn86bsq0qcuf76344lno9c.apps.googleusercontent.com";
@@ -210,7 +212,19 @@ export default function LoginPage() {
     }
   };
 
-  const handleDemoLogin = (user: AuthUserProfile) => {
+  const handleDemoLogin = async (user: AuthUserProfile) => {
+    try {
+      const res = await apiClient.post<{ access_token: string; user: any }>("/auth/demo-login", {
+        email: user.email,
+        role: user.role,
+        full_name: user.name,
+      });
+      if (res?.access_token) {
+        setStoredToken(res.access_token);
+      }
+    } catch {
+      setStoredToken("demo_token_user_" + user.id);
+    }
     setStoredUser(user);
     router.push(getRoleProfilePath(user));
   };

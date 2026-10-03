@@ -114,6 +114,84 @@ def get_current_user_profile():
     )
 
 
+@auth_bp.route("/demo-login", methods=["POST"])
+def demo_login():
+    """Issue a valid JWT access token for demo profiles (alex, coach_david, admin)."""
+    from flask import request
+    from flask_jwt_extended import create_access_token
+    from datetime import date, timedelta
+    from backend.app.extensions import db
+    from backend.app.auth.models import User
+    from backend.app.members.models import Member
+    from backend.app.memberships.models import Membership, MembershipPlan, MembershipStatus
+    from backend.app.common.permissions import RoleEnum
+
+    body = request.get_json(silent=True) or {}
+    demo_id = str(body.get("demo_id") or body.get("role") or "").lower()
+    email = str(body.get("email") or "").lower()
+
+    if "coach" in demo_id or "coach" in email:
+        target_email = "coach.david@championsclub.in"
+        first_name, last_name, role = "David", "Miller", RoleEnum.COACH
+        dept = "BADMINTON"
+    elif "admin" in demo_id or "admin" in email:
+        target_email = "priya.sharma@championsclub.in"
+        first_name, last_name, role = "Priya", "Sharma", RoleEnum.ADMIN
+        dept = "ADMINISTRATION"
+    else:
+        # Default: Alex Morgan (Gold Member)
+        target_email = "alex.morgan@championsclub.in"
+        first_name, last_name, role = "Alex", "Morgan", RoleEnum.MEMBER
+        dept = None
+
+    user = User.query.filter_by(email=target_email).first()
+    if not user:
+        user = User(
+            email=target_email,
+            first_name=first_name,
+            last_name=last_name,
+            role=role,
+            department=dept,
+            is_active=True,
+        )
+        user.set_password("ChampionsDemo2026!")
+        db.session.add(user)
+        db.session.flush()
+
+    if role == RoleEnum.MEMBER:
+        member = Member.query.filter_by(user_id=user.id).first()
+        if not member:
+            member = Member(user_id=user.id, phone="+91 98250 14820")
+            db.session.add(member)
+            db.session.flush()
+
+        gold = MembershipPlan.query.filter_by(code="GOLD").first()
+        if gold:
+            ms = Membership.query.filter_by(member_id=member.id, status=MembershipStatus.ACTIVE).first()
+            if not ms:
+                ms = Membership(
+                    member_id=member.id,
+                    plan_id=gold.id,
+                    start_date=date.today() - timedelta(days=30),
+                    end_date=date.today() + timedelta(days=335),
+                    status=MembershipStatus.ACTIVE,
+                )
+                db.session.add(ms)
+
+    db.session.commit()
+    access_token = create_access_token(identity=str(user.id))
+
+    return success_response(
+        data={
+            "access_token": access_token,
+            "token_type": "Bearer",
+            "user": user.to_dict(),
+        },
+        message="Demo login successful",
+        status_code=200,
+    )
+
+
 @auth_bp.route("/google", methods=["POST"])
 def google_auth():
     """Authenticate or register user via Google OAuth ID token."""
