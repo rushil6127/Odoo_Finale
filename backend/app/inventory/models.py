@@ -133,9 +133,9 @@ class Product(db.Model):
         """Indicates whether product has zero units available."""
         return self.stock_quantity <= 0
 
-    def to_dict(self) -> dict:
+    def to_dict(self, include_cost: bool = True) -> dict:
         """Serialize product to dictionary representation."""
-        return {
+        data = {
             "id": self.id,
             "sku": self.sku,
             "name": self.name,
@@ -144,7 +144,6 @@ class Product(db.Model):
             "category_name": self.category.name if self.category else None,
             "category_slug": self.category.slug if self.category else None,
             "price": float(self.price) if self.price is not None else 0.0,
-            "cost_price": float(self.cost_price) if self.cost_price is not None else None,
             "stock_quantity": self.stock_quantity,
             "low_stock_threshold": self.low_stock_threshold,
             "is_low_stock": self.is_low_stock,
@@ -155,6 +154,9 @@ class Product(db.Model):
             "created_at": self.created_at.isoformat() if self.created_at else None,
             "updated_at": self.updated_at.isoformat() if self.updated_at else None,
         }
+        if include_cost and self.cost_price is not None:
+            data["cost_price"] = float(self.cost_price)
+        return data
 
     def __repr__(self) -> str:
         return f"<Product id={self.id} sku='{self.sku}' name='{self.name}' stock={self.stock_quantity}>"

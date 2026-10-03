@@ -212,3 +212,118 @@ def my_booking_history_route():
 
     history = get_member_booking_history(current_user.member_profile.id)
     return success_response(data=[b.to_dict() for b in history])
+
+
+@bookings_bp.route("/department-schedule", methods=["GET"])
+@jwt_required()
+def get_department_schedule():
+    """Retrieve operational booking schedule and court status filtered for an employee's assigned department."""
+    from backend.app.courts.models import Court, SportType, CourtStatus
+    from backend.app.bookings.models import Booking
+    from backend.app.members.models import Member
+    from backend.app.extensions import db
+
+    requested_sport = request.args.get("sport")
+    dept = current_user.department
+    target_sport_str = requested_sport or dept or "BADMINTON"
+
+    # Match department to SportType
+    sport_enum = None
+    clean_str = target_sport_str.upper().replace(" ", "_")
+    for st in SportType:
+        if st.value == clean_str or clean_str in st.value or st.value in clean_str:
+            sport_enum = st
+            break
+
+    courts_query = Court.query
+    if sport_enum:
+        courts_query = courts_query.filter(Court.sport_type == sport_enum)
+    courts = courts_query.all()
+    court_ids = [c.id for c in courts]
+
+    today_start = datetime.combine(date.today(), datetime.min.time())
+    bookings = []
+    if court_ids:
+        bookings = (
+            Booking.query.filter(
+                Booking.court_id.in_(court_ids),
+                Booking.booking_date >= date.today(),
+            )
+            .order_by(Booking.start_time.asc())
+            .all()
+        )
+
+    booking_list = []
+    for b in bookings:
+        b_dict = b.to_dict()
+        court = next((c for c in courts if c.id == b.court_id), None)
+        b_dict["court_name"] = court.name if court else "Court"
+        b_dict["surface_type"] = court.surface_type if court else "Standard"
+        b_dict["sport_type"] = court.sport_type.value if court and hasattr(court.sport_type, "value") else str(court.sport_type) if court else target_sport_str
+        
+        if b.member_id:
+            m = db.session.get(Member, b.member_id)
+            if m and m.user:
+                b_dict["member_name"] = m.user.full_name
+                b_dict["member_email"] = m.user.email
+                b_dict["member_phone"] = m.phone or "+91 98765 43210"
+        elif b.guest_name:
+            b_dict["member_name"] = f"{b.guest_name} (Guest)"
+            b_dict["member_email"] = b.guest_email or "guest@championsclub.in"
+            b_dict["member_phone"] = b.guest_phone or "+91 98765 00000"
+        else:
+            b_dict["member_name"] = "Club Member"
+            b_dict["member_email"] = "member@championsclub.in"
+            b_dict["member_phone"] = "+91 98765 43210"
+
+        booking_list.append(b_dict)
+
+    return success_response(
+        data={
+            "department": target_sport_str,
+            "assigned_department": current_user.department,
+            "courts": [c.to_dict() for c in courts],
+            "bookings": booking_list,
+            "total_bookings_today": len(booking_list),
+        },
+        status_code=200,
+    )
+
+
+@bookings_bp.route("/courts/<int:court_id>/maintenance", methods=["POST"])
+@jwt_required()
+def update_court_maintenance(court_id: int):
+    """Toggle maintenance status and log maintenance notes for a court."""
+    from backend.app.courts.models import Court, CourtStatus
+    from backend.app.extensions import db
+
+    court = db.session.get(Court, court_id)
+    if not court:
+        raise NotFoundException(f"Court with ID {court_id} not found.")
+
+    body = request.get_json(silent=True) or {}
+    new_status_str = body.get("status")
+    note = body.get("notes") or body.get("description")
+
+    if new_status_str:
+        try:
+            court.status = CourtStatus(new_status_str.upper())
+        except ValueError:
+            court.status = CourtStatus.MAINTENANCE
+    else:
+        court.status = CourtStatus.MAINTENANCE if court.status == CourtStatus.ACTIVE else CourtStatus.ACTIVE
+
+    feats = dict(court.features or {})
+    if note:
+        feats["last_maintenance_note"] = note
+        feats["last_maintained_by"] = current_user.full_name
+        feats["last_maintenance_date"] = datetime.utcnow().strftime("%Y-%m-%d %H:%M")
+    court.features = feats
+
+    db.session.commit()
+    return success_response(
+        data=court.to_dict(),
+        message=f"Court '{court.name}' status updated to {court.status.value}",
+        status_code=200,
+    )
+

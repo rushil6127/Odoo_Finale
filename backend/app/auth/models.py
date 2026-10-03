@@ -19,6 +19,7 @@ class User(db.Model):
         default=RoleEnum.MEMBER,
         index=True,
     )
+    department = db.Column(db.String(100), nullable=True, default=None, index=True)
     is_active = db.Column(db.Boolean, default=True, nullable=False)
     created_at = db.Column(db.DateTime(timezone=True), default=utc_now, nullable=False)
     updated_at = db.Column(
@@ -55,7 +56,7 @@ class User(db.Model):
     def is_staff(self) -> bool:
         """Check if user has any staff/admin role."""
         role_val = self.role.value if hasattr(self.role, "value") else str(self.role)
-        return role_val in ("OWNER", "ADMIN", "FRONT_DESK", "SHOP_STAFF", "BAR_STAFF", "COACH")
+        return role_val in ("OWNER", "ADMIN", "MANAGER", "TRAINER", "STAFF", "FRONT_DESK", "SHOP_STAFF", "BAR_STAFF", "COACH")
 
     def to_dict(self) -> dict:
         """Safe dictionary representation without sensitive password hashes."""
@@ -66,6 +67,7 @@ class User(db.Model):
             "last_name": self.last_name,
             "full_name": self.full_name,
             "role": self.role.value if hasattr(self.role, "value") else str(self.role),
+            "department": self.department,
             "is_active": self.is_active,
             "created_at": self.created_at.isoformat() if self.created_at else None,
             "updated_at": self.updated_at.isoformat() if self.updated_at else None,

@@ -227,13 +227,15 @@ def calculate_reconciled_revenue(
     paid_count = 0
     refunded_count = 0
 
-    # Stream accumulators: {stream: {gross_paid, gross_refunded, count, gst_rate}}
+    # Stream accumulators: {stream: {gross_paid, gross_refunded, count, net_paid, tax_paid, gst_rate}}
     streams_map: Dict[PaymentItemType, Dict[str, Any]] = {
         it: {
             "gross_paid": Decimal("0.00"),
             "gross_refunded": Decimal("0.00"),
             "count": 0,
             "refund_count": 0,
+            "net_paid": Decimal("0.00"),
+            "tax_paid": Decimal("0.00"),
             "gst_rate": get_gst_rate(it),
         }
         for it in PaymentItemType
@@ -278,6 +280,14 @@ def calculate_reconciled_revenue(
                 "tax_amount": Decimal("0.00"),
             }
 
+        # Resolve tax rate: check dynamic invoice rate if this is an invoice payment
+        rate = get_gst_rate(p_item_type) if p_item_type else Decimal("0.18")
+        if p_item_type == PaymentItemType.INVOICE and p.item_id:
+            from backend.app.invoices.models import Invoice
+            inv = db.session.get(Invoice, p.item_id)
+            if inv and inv.tax_rate_value is not None:
+                rate = Decimal(str(inv.tax_rate_value))
+
         if p.status == PaymentStatus.PAID:
             gross_paid += amt
             paid_count += 1
@@ -292,10 +302,12 @@ def calculate_reconciled_revenue(
             daily_map[date_key]["transactions_count"] += 1
 
             # Compute tax contribution for this transaction
-            rate = get_gst_rate(p_item_type) if p_item_type else Decimal("0.18")
             item_net, item_tax = compute_tax_split(amt, rate)
             daily_map[date_key]["net_revenue"] += item_net
             daily_map[date_key]["tax_amount"] += item_tax
+            if p_item_type in streams_map:
+                streams_map[p_item_type]["net_paid"] += item_net
+                streams_map[p_item_type]["tax_paid"] += item_tax
 
         elif p.status == PaymentStatus.REFUNDED:
             gross_refunded += amt
@@ -309,7 +321,6 @@ def calculate_reconciled_revenue(
             daily_map[date_key]["gross_refunded"] += amt
 
             # Deduct tax for refund
-            rate = get_gst_rate(p_item_type) if p_item_type else Decimal("0.18")
             ref_net, ref_tax = compute_tax_split(amt, rate)
             daily_map[date_key]["net_revenue"] = max(
                 Decimal("0.00"), daily_map[date_key]["net_revenue"] - ref_net
@@ -317,6 +328,13 @@ def calculate_reconciled_revenue(
             daily_map[date_key]["tax_amount"] = max(
                 Decimal("0.00"), daily_map[date_key]["tax_amount"] - ref_tax
             )
+            if p_item_type in streams_map:
+                streams_map[p_item_type]["net_paid"] = max(
+                    Decimal("0.00"), streams_map[p_item_type]["net_paid"] - ref_net
+                )
+                streams_map[p_item_type]["tax_paid"] = max(
+                    Decimal("0.00"), streams_map[p_item_type]["tax_paid"] - ref_tax
+                )
 
     # Net gross revenue for the whole selection
     gross_revenue = max(Decimal("0.00"), gross_paid - gross_refunded)
@@ -328,8 +346,14 @@ def calculate_reconciled_revenue(
 
     for s_type, s_data in streams_map.items():
         s_gross = max(Decimal("0.00"), s_data["gross_paid"] - s_data["gross_refunded"])
+        s_net = s_data["net_paid"]
+        s_tax = s_data["tax_paid"]
         s_rate = s_data["gst_rate"]
-        s_net, s_tax = compute_tax_split(s_gross, s_rate)
+
+        # Fallback if no transactions recorded
+        if s_gross > Decimal("0.00") and s_net == Decimal("0.00") and s_tax == Decimal("0.00"):
+            s_net, s_tax = compute_tax_split(s_gross, s_rate)
+
         total_net += s_net
         total_tax += s_tax
 

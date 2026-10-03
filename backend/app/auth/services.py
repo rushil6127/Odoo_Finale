@@ -1,9 +1,57 @@
+import time
+from collections import defaultdict
+from threading import Lock
 from typing import Tuple, Optional
+from flask import has_request_context, request
 from flask_jwt_extended import create_access_token
 from backend.app.extensions import db
 from backend.app.auth.models import User
 from backend.app.common.permissions import RoleEnum
-from backend.app.common.errors import UnauthorizedException, ConflictException, NotFoundException
+from backend.app.common.errors import (
+    UnauthorizedException,
+    ConflictException,
+    NotFoundException,
+    TooManyRequestsException,
+)
+
+_failed_attempts = defaultdict(list)
+_throttle_lock = Lock()
+MAX_FAILED_ATTEMPTS = 5
+LOCKOUT_WINDOW_SECONDS = 300  # 5 minutes
+
+
+def _get_throttle_key(email: str) -> str:
+    ip = "unknown"
+    if has_request_context() and request.remote_addr:
+        ip = request.remote_addr
+    return f"{ip}:{email.lower().strip()}"
+
+
+def _check_rate_limit(key: str) -> None:
+    now = time.time()
+    with _throttle_lock:
+        _failed_attempts[key] = [t for t in _failed_attempts[key] if now - t < LOCKOUT_WINDOW_SECONDS]
+        if len(_failed_attempts[key]) >= MAX_FAILED_ATTEMPTS:
+            raise TooManyRequestsException(
+                "Too many failed login attempts. Please try again after 5 minutes."
+            )
+
+
+def _record_failed_attempt(key: str) -> None:
+    now = time.time()
+    with _throttle_lock:
+        _failed_attempts[key].append(now)
+
+
+def _record_successful_login(key: str) -> None:
+    with _throttle_lock:
+        if key in _failed_attempts:
+            del _failed_attempts[key]
+
+
+def reset_login_throttle() -> None:
+    with _throttle_lock:
+        _failed_attempts.clear()
 
 
 OWNER_EMAILS = {"pushplamba104@gmail.com", "admin@championsclub.in"}
@@ -27,6 +75,7 @@ def create_user(
     first_name: str,
     last_name: str,
     role: RoleEnum = RoleEnum.MEMBER,
+    department: Optional[str] = None,
     is_active: bool = True,
 ) -> User:
     """Create a new user account."""
@@ -44,6 +93,7 @@ def create_user(
         first_name=first_name.strip(),
         last_name=last_name.strip(),
         role=role,
+        department=department.strip().upper() if department else None,
         is_active=is_active,
     )
     user.set_password(password)
@@ -55,20 +105,27 @@ def create_user(
 
 def authenticate_user(email: str, password: str) -> Tuple[User, str]:
     """Authenticate user credentials and issue a JWT access token."""
+    throttle_key = _get_throttle_key(email)
+    _check_rate_limit(throttle_key)
+
     normalized_email = email.lower().strip()
     user = get_user_by_email(normalized_email)
 
     # Use a generic error message for invalid credentials to avoid enumeration
     if user is None or not user.check_password(password):
+        _record_failed_attempt(throttle_key)
         raise UnauthorizedException("Invalid email or password.")
 
     if not user.is_active:
+        _record_failed_attempt(throttle_key)
         raise UnauthorizedException("Account is disabled. Please contact club administration.")
 
     # Ensure designated owners maintain OWNER role
     if normalized_email in OWNER_EMAILS and user.role != RoleEnum.OWNER:
         user.role = RoleEnum.OWNER
         db.session.commit()
+
+    _record_successful_login(throttle_key)
 
     role_val = user.role.value if hasattr(user.role, "value") else str(user.role)
     access_token = create_access_token(
@@ -186,6 +243,30 @@ def list_users(
     return pagination.items, pagination.total
 
 
+def normalize_role_enum(role_str: str) -> RoleEnum:
+    """Safely normalize and map role strings to defined RoleEnum values."""
+    clean = role_str.strip().upper()
+    mapping = {
+        "OWNER": RoleEnum.OWNER,
+        "ADMIN": RoleEnum.ADMIN,
+        "MANAGER": RoleEnum.ADMIN,
+        "FRONT_DESK": RoleEnum.FRONT_DESK,
+        "STAFF": RoleEnum.FRONT_DESK,
+        "SHOP_STAFF": RoleEnum.SHOP_STAFF,
+        "BAR_STAFF": RoleEnum.BAR_STAFF,
+        "COACH": RoleEnum.COACH,
+        "TRAINER": RoleEnum.COACH,
+        "MEMBER": RoleEnum.MEMBER,
+        "GUEST": RoleEnum.MEMBER,
+    }
+    if clean in mapping:
+        return mapping[clean]
+    try:
+        return RoleEnum(clean)
+    except ValueError:
+        raise ConflictException(f"Invalid role '{role_str}'. Allowed: {[r.value for r in RoleEnum]}")
+
+
 def update_user_role(target_user_id: int, new_role_str: str, acting_user: User) -> User:
     """Update role of a target user. Enforces hierarchy checks server-side."""
     target_user = get_user_by_id(target_user_id)
@@ -193,11 +274,7 @@ def update_user_role(target_user_id: int, new_role_str: str, acting_user: User) 
         raise NotFoundException(f"User with ID {target_user_id} not found.")
 
     acting_role = acting_user.role.value if hasattr(acting_user.role, "value") else str(acting_user.role)
-
-    try:
-        new_role = RoleEnum(new_role_str.upper())
-    except ValueError:
-        raise ConflictException(f"Invalid role '{new_role_str}'. Allowed: {[r.value for r in RoleEnum]}")
+    new_role = normalize_role_enum(new_role_str)
 
     # Only OWNER can grant or revoke OWNER role
     if (new_role == RoleEnum.OWNER or target_user.role == RoleEnum.OWNER) and acting_role != RoleEnum.OWNER.value:
@@ -229,5 +306,65 @@ def update_user_status(target_user_id: int, is_active: bool, acting_user: User) 
     target_user.is_active = is_active
     db.session.commit()
     return target_user
+
+
+def update_user_department(target_user_id: int, department: Optional[str], acting_user: User) -> User:
+    """Assign or update an employee's department/sport section."""
+    target_user = get_user_by_id(target_user_id)
+    if not target_user:
+        raise NotFoundException(f"User with ID {target_user_id} not found.")
+
+    target_user.department = department.strip().upper() if department else None
+    db.session.commit()
+    return target_user
+
+
+def assign_custom_access(
+    email: str,
+    role_str: str,
+    department: Optional[str],
+    first_name: Optional[str],
+    last_name: Optional[str],
+    acting_user: User,
+) -> User:
+    """Owner/Admin utility to assign or provision custom role & department by email/Gmail."""
+    import secrets
+
+    normalized_email = email.lower().strip()
+    new_role = normalize_role_enum(role_str)
+
+    acting_role = acting_user.role.value if hasattr(acting_user.role, "value") else str(acting_user.role)
+    if new_role == RoleEnum.OWNER and acting_role != RoleEnum.OWNER.value:
+        raise ForbiddenException("Only the Owner can grant the OWNER role.")
+
+    dept_clean = department.strip().upper() if department else None
+    user = get_user_by_email(normalized_email)
+
+    if user:
+        if (user.role == RoleEnum.OWNER) and acting_role != RoleEnum.OWNER.value:
+            raise ForbiddenException("Cannot modify an Owner account.")
+        user.role = new_role
+        user.department = dept_clean
+        if first_name and first_name.strip():
+            user.first_name = first_name.strip()
+        if last_name and last_name.strip():
+            user.last_name = last_name.strip()
+        user.is_active = True
+        db.session.commit()
+        return user
+    else:
+        fn = first_name.strip() if first_name else normalized_email.split("@")[0].capitalize()
+        ln = last_name.strip() if last_name else "Staff"
+        random_pw = secrets.token_urlsafe(12)
+        return create_user(
+            email=normalized_email,
+            password=random_pw,
+            first_name=fn,
+            last_name=ln,
+            role=new_role,
+            department=dept_clean,
+            is_active=True,
+        )
+
 
 

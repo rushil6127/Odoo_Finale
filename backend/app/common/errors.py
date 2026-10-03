@@ -93,6 +93,12 @@ class ValidationException(AppException):
     status_code = 422
 
 
+class TooManyRequestsException(AppException):
+    code = "TOO_MANY_REQUESTS"
+    message = "Too many requests. Please try again later."
+    status_code = 429
+
+
 # ---------------------------------------------------------
 # JWT Error Handler Registration
 # ---------------------------------------------------------

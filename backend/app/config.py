@@ -36,9 +36,12 @@ class BaseConfig:
 
     # Court Base Hourly Rates by Sport (INR)
     DEFAULT_SPORT_RATES = {
-        "LAWN_TENNIS": float(os.getenv("RATE_LAWN_TENNIS", 800.0)),
-        "BADMINTON": float(os.getenv("RATE_BADMINTON", 400.0)),
-        "BOX_CRICKET": float(os.getenv("RATE_BOX_CRICKET", 1500.0)),
+    "LAWN_TENNIS": float(os.getenv("RATE_LAWN_TENNIS", 800.0)),
+    "SWIMMING_POOL": float(os.getenv("RATE_SWIMMING_POOL", 500.0)),
+    "BADMINTON": float(os.getenv("RATE_BADMINTON", 400.0)),
+    "BOX_CRICKET": float(os.getenv("RATE_BOX_CRICKET", 1500.0)),
+    "TABLE_TENNIS": float(os.getenv("RATE_TABLE_TENNIS", 300.0)),
+    "VOLLEYBALL": float(os.getenv("RATE_VOLLEYBALL", 600.0)),
     }
 
     # Member Discounts by Plan Code (percentage)
