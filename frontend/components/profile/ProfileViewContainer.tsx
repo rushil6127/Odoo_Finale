@@ -16,7 +16,6 @@ import {
   Clock,
   ShieldCheck,
   TrendingUp,
-  Sparkles,
   Phone,
   Mail,
   Receipt,
@@ -907,134 +906,75 @@ export default function ProfileViewContainer({ forcedMode }: ProfileViewContaine
                 {/* Top Section: Live Arena Utilization & Sovereign Status */}
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
 
-                  {/* Left: Active Club Membership & Time-Range Card (Replaces Arena Slot Utilization Chart) */}
-                  <div className="lg:col-span-7 p-6 rounded-3xl bg-slate-50/80 border border-slate-200/90 shadow-2xs flex flex-col justify-between">
+                  {/* Left: Active Club Membership Card */}
+                  <div className="lg:col-span-7 p-6 rounded-3xl bg-white border border-slate-200/90 shadow-sm flex flex-col gap-5">
+
+                    {/* Tier label + Status badge */}
+                    <div className="flex items-start justify-between">
+                      <div>
+                        <p className="text-[10px] font-black uppercase tracking-[0.12em] text-slate-400 mb-1">
+                          {currentPlan} Membership
+                        </p>
+                        <h3 className="text-4xl font-black text-slate-900 font-[family-name:var(--font-outfit)] leading-none">
+                          {planDisplayName}
+                        </h3>
+                      </div>
+                      <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 whitespace-nowrap">
+                        <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                        Active · Paid
+                      </span>
+                    </div>
+
+                    {/* Divider */}
+                    <div className="border-t border-slate-100" />
+
+                    {/* Date range + Days left */}
+                    <div className="flex items-center justify-between flex-wrap gap-2">
+                      <div>
+                        <p className="text-lg sm:text-xl font-black text-slate-900 font-[family-name:var(--font-outfit)]">
+                          {formatProfileDate(membershipStartDate)}
+                          <span className="text-slate-400 font-medium mx-2">–</span>
+                          {formatProfileDate(membershipEndDate)}
+                        </p>
+                        <p className="text-xs text-slate-400 mt-0.5">12-month membership</p>
+                      </div>
+                      <p className="text-lg font-black text-emerald-600 whitespace-nowrap">
+                        {getDaysRemaining(membershipEndDate) !== null
+                          ? `${getDaysRemaining(membershipEndDate)} days left`
+                          : "Active"}
+                      </p>
+                    </div>
+
+                    {/* Benefits chips */}
                     <div>
-                      {/* Header */}
-                      <div className="flex items-center justify-between pb-3 border-b border-slate-200/80">
-                        <div>
-                          <h3 className="text-sm font-black uppercase tracking-wider text-slate-800 font-[family-name:var(--font-outfit)] flex items-center gap-2">
-                            <Crown className="w-4 h-4 text-amber-500" />
-                            Club Membership &amp; Subscription Status
-                          </h3>
-                          <p className="text-xs text-slate-500 mt-0.5">
-                            Verified club subscription with live time-range &amp; tier benefits
-                          </p>
-                        </div>
-                        <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-black uppercase border shadow-2xs bg-gradient-to-r ${getTierColor(currentPlan)}`}>
-                          <Sparkles className="w-3 h-3 text-amber-400" />
-                          {currentPlan} MEMBER
-                        </span>
-                      </div>
-
-                      {/* Main Membership Body */}
-                      <div className="py-4 space-y-4">
-                        <div className="flex items-center justify-between flex-wrap gap-2">
-                          <div>
-                            <div className="text-xs font-bold text-slate-400 uppercase tracking-wider">
-                              Current Plan
-                            </div>
-                            <h4 className="text-xl sm:text-2xl font-black text-slate-900 font-[family-name:var(--font-outfit)]">
-                              {planDisplayName}
-                            </h4>
-                          </div>
-
-                          <div className="flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                            <span>Active &amp; Paid (Database Verified)</span>
-                          </div>
-                        </div>
-
-                        {/* Precise Time-Range Grid (Start Date to End Date) */}
-                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 p-3.5 rounded-2xl bg-white border border-slate-200/90 shadow-2xs">
-                          <div>
-                            <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1">
-                              <Calendar className="w-3 h-3 text-sky-500" />
-                              <span>Start Date</span>
-                            </div>
-                            <div className="text-xs sm:text-sm font-extrabold text-slate-900 mt-0.5 font-mono">
-                              {formatProfileDate(membershipStartDate)}
-                            </div>
-                          </div>
-
-                          <div>
-                            <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1">
-                              <Clock className="w-3 h-3 text-amber-500" />
-                              <span>Expiry Date</span>
-                            </div>
-                            <div className="text-xs sm:text-sm font-extrabold text-amber-600 mt-0.5 font-mono">
-                              {formatProfileDate(membershipEndDate)}
-                            </div>
-                          </div>
-
-                          <div>
-                            <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
-                              Duration
-                            </div>
-                            <div className="text-xs sm:text-sm font-bold text-slate-700 mt-0.5">
-                              12 Months Pass
-                            </div>
-                          </div>
-
-                          <div>
-                            <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
-                              Days Left
-                            </div>
-                            <div className="text-xs sm:text-sm font-black text-emerald-600 mt-0.5">
-                              {getDaysRemaining(membershipEndDate) !== null
-                                ? `${getDaysRemaining(membershipEndDate)} Days`
-                                : "Active"}
-                            </div>
-                          </div>
-                        </div>
-
-                        {/* Plan Privileges Summary */}
-                        <div className="space-y-1.5 pt-1">
-                          <div className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
-                            Active Privileges:
-                          </div>
-                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs text-slate-700">
-                            <div className="flex items-center gap-2 p-2 rounded-xl bg-white border border-slate-200/80">
-                              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-                              <span className="truncate">
-                                {currentPlan === "GOLD"
-                                  ? "Unlimited priority access across all 22+ courts"
-                                  : currentPlan === "JUNIOR"
-                                  ? "Dedicated youth training court allocation"
-                                  : "Access to 14 Hard & Clay courts"}
-                              </span>
-                            </div>
-                            <div className="flex items-center gap-2 p-2 rounded-xl bg-white border border-slate-200/80">
-                              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-                              <span className="truncate">
-                                {currentPlan === "GOLD"
-                                  ? "20% Pro Shop discount + 4 monthly guest passes"
-                                  : currentPlan === "JUNIOR"
-                                  ? "15% discount on junior equipment & clinics"
-                                  : "10% Pro Shop discount + Friday mixer pass"}
-                              </span>
-                            </div>
-                          </div>
-                        </div>
+                      <p className="text-[10px] font-black uppercase tracking-[0.12em] text-slate-400 mb-2.5">Your Benefits</p>
+                      <div className="flex flex-wrap gap-2">
+                        {(currentPlan === "GOLD"
+                          ? ["Court access", "20% Pro Shop discount", "4 guest passes / month"]
+                          : currentPlan === "JUNIOR"
+                          ? ["Court access", "15% junior equipment discount", "Youth clinic slots"]
+                          : ["Court access", "10% Pro Shop discount", "Friday benefits"]
+                        ).map((benefit) => (
+                          <span
+                            key={benefit}
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-50 border border-slate-200 text-xs font-semibold text-slate-700"
+                          >
+                            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
+                            {benefit}
+                          </span>
+                        ))}
                       </div>
                     </div>
 
-                    {/* Bottom Action Strip */}
-                    <div className="pt-3 border-t border-slate-200/80 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs">
-                      <div className="text-slate-500 text-[11px] flex items-center gap-1.5">
-                        <ShieldCheck className="w-3.5 h-3.5 text-sky-600" />
-                        <span>Change between Gold, Silver, or Junior anytime</span>
-                      </div>
+                    {/* Full-width CTA button */}
+                    <Link
+                      href="/membership"
+                      className="w-full inline-flex items-center justify-center gap-2 px-5 py-3 rounded-2xl bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-600 hover:to-blue-700 text-white font-extrabold text-sm shadow-md shadow-sky-500/25 transition-all mt-auto"
+                    >
+                      <span>Change membership</span>
+                      <ArrowRight className="w-4 h-4" />
+                    </Link>
 
-                      <Link
-                        href="/membership"
-                        className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-600 hover:to-blue-700 text-white font-extrabold text-xs shadow-md shadow-sky-500/20 transition-all self-stretch sm:self-auto justify-center"
-                      >
-                        <CreditCard className="w-3.5 h-3.5" />
-                        <span>Upgrade / Change Membership (Razorpay)</span>
-                        <ArrowRight className="w-3.5 h-3.5" />
-                      </Link>
-                    </div>
                   </div>
 
                   {/* Right / Executive Status Cards (5 cols) */}
