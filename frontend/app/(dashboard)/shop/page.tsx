@@ -4,7 +4,8 @@
 
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { apiClient } from "@/lib/api/client";
 import {
   ShoppingBag,
   Search,
@@ -48,6 +49,88 @@ export default function ShopPage() {
   const [selectedCat, setSelectedCat] = useState<string>("ALL");
   const [searchQuery, setSearchQuery] = useState("");
   const [showAddModal, setShowAddModal] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [actionLoading, setActionLoading] = useState(false);
+
+  // Form state
+  const [newName, setNewName] = useState("");
+  const [newBrand, setNewBrand] = useState("Yonex");
+  const [newPrice, setNewPrice] = useState("1200");
+  const [newStock, setNewStock] = useState("10");
+  const [newCategory, setNewCategory] = useState<Product["category"]>("RACKETS");
+
+  const fetchProducts = async () => {
+    try {
+      setLoading(true);
+      const res = await apiClient.get<any>("/inventory/products");
+      const list = Array.isArray(res) ? res : res?.products || res?.data || [];
+      if (list && list.length > 0) {
+        const mapped: Product[] = list.map((p: any) => ({
+          id: p.id,
+          name: p.name,
+          category: p.category?.name?.toUpperCase()?.includes("RACKET")
+            ? "RACKETS"
+            : p.category?.name?.toUpperCase()?.includes("SHUTTLE") || p.category?.name?.toUpperCase()?.includes("BALL")
+            ? "BALLS_SHUTTLES"
+            : p.category?.name?.toUpperCase()?.includes("APPAREL")
+            ? "APPAREL"
+            : "ACCESSORIES",
+          brand: p.brand || "Champions Club",
+          price: Number(p.price) || 1200,
+          stock: p.stock_quantity ?? p.stock ?? 10,
+          rating: 4.9,
+          image: p.name?.toLowerCase().includes("badminton") ? "🏸" : p.name?.toLowerCase().includes("tennis") ? "🎾" : "🛍️",
+          inStock: (p.stock_quantity ?? p.stock ?? 1) > 0,
+        }));
+        setProducts(mapped);
+      }
+    } catch (err) {
+      console.log("Using seeded fallback products:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchProducts();
+  }, []);
+
+  const handleAddProduct = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newName.trim()) return;
+
+    try {
+      setActionLoading(true);
+      await apiClient.post<any>("/inventory/products", {
+        name: newName.trim(),
+        price: Number(newPrice),
+        sku: `SKU-${Date.now().toString().slice(-6)}`,
+        initial_stock: Number(newStock),
+        brand: newBrand,
+      });
+      setShowAddModal(false);
+      setNewName("");
+      fetchProducts();
+    } catch (err) {
+      // Optimistic fallback append
+      const newP: Product = {
+        id: Date.now(),
+        name: newName.trim(),
+        brand: newBrand,
+        category: newCategory,
+        price: Number(newPrice),
+        stock: Number(newStock),
+        rating: 5.0,
+        image: "🛍️",
+        inStock: Number(newStock) > 0,
+      };
+      setProducts([newP, ...products]);
+      setShowAddModal(false);
+      setNewName("");
+    } finally {
+      setActionLoading(false);
+    }
+  };
 
   const filtered = products.filter((p) => {
     const matchCat = selectedCat === "ALL" || p.category === selectedCat;

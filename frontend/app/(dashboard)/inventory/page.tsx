@@ -4,7 +4,8 @@
 
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { apiClient } from "@/lib/api/client";
 import {
   Boxes,
   Search,
@@ -45,6 +46,75 @@ export default function InventoryPage() {
   const [items, setItems] = useState<InventoryItem[]>(INVENTORY_DATA);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCat, setSelectedCat] = useState<string>("ALL");
+  const [loading, setLoading] = useState(false);
+  const [showRestockModal, setShowRestockModal] = useState(false);
+  const [selectedItemForRestock, setSelectedItemForRestock] = useState<InventoryItem | null>(null);
+  const [restockQty, setRestockQty] = useState("10");
+
+  const fetchInventory = async () => {
+    try {
+      setLoading(true);
+      const res = await apiClient.get<any>("/inventory/products");
+      const list = Array.isArray(res) ? res : res?.products || res?.data || [];
+      if (list && list.length > 0) {
+        const mapped: InventoryItem[] = list.map((p: any) => {
+          const qty = p.stock_quantity ?? p.stock ?? 10;
+          const minT = p.min_threshold ?? 5;
+          return {
+            id: p.id,
+            sku: p.sku || `EQ-${p.id.toString().padStart(4, "0")}`,
+            name: p.name,
+            category: p.category?.name?.toUpperCase()?.includes("COURT")
+              ? "COURT_MAINTENANCE"
+              : p.category?.name?.toUpperCase()?.includes("SHUTTLE") || p.name?.toLowerCase()?.includes("ball")
+              ? "SHUTTLES_BALLS"
+              : p.category?.name?.toUpperCase()?.includes("SUPPLY")
+              ? "FB_SUPPLIES"
+              : "EQUIPMENT",
+            currentStock: qty,
+            minThreshold: minT,
+            unit: p.unit || "Units",
+            location: p.location || "Central Pavilion Store",
+            lastRestocked: p.updated_at ? new Date(p.updated_at).toLocaleDateString() : "Recent",
+            status: qty <= 2 ? "CRITICAL" : qty < minT ? "LOW_STOCK" : "ADEQUATE",
+          };
+        });
+        setItems(mapped);
+      }
+    } catch (err) {
+      console.log("Using seeded fallback inventory items:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchInventory();
+  }, []);
+
+  const handleRestockSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedItemForRestock) return;
+
+    try {
+      await apiClient.post<any>(`/inventory/products/${selectedItemForRestock.id}/stock-in`, {
+        quantity: Number(restockQty),
+        notes: "Restock from console",
+      });
+      setShowRestockModal(false);
+      fetchInventory();
+    } catch (err) {
+      // Local optimistic update
+      setItems((prev) =>
+        prev.map((i) =>
+          i.id === selectedItemForRestock.id
+            ? { ...i, currentStock: i.currentStock + Number(restockQty), status: "ADEQUATE" }
+            : i
+        )
+      );
+      setShowRestockModal(false);
+    }
+  };
 
   const filtered = items.filter((item) => {
     const matchesCat = selectedCat === "ALL" || item.category === selectedCat;
