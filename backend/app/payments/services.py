@@ -372,8 +372,22 @@ def verify_online_payment(
         reason="Razorpay payment signature and amount successfully verified",
     )
 
+    _sync_item_after_payment_paid(payment)
+
     db.session.commit()
     return payment
+
+
+def _sync_item_after_payment_paid(payment: Payment) -> None:
+    """Synchronize linked business entity when its payment transitions to PAID."""
+    if payment.item_type == PaymentItemType.SHOP_ORDER:
+        from backend.app.shop.models import ShopOrder, ShopOrderStatus
+        order = db.session.get(ShopOrder, payment.item_id)
+        if order:
+            order.payment_status = "PAID"
+            if order.status == ShopOrderStatus.PENDING:
+                order.status = ShopOrderStatus.CONFIRMED
+
 
 
 def process_webhook_event(
@@ -441,6 +455,8 @@ def process_webhook_event(
                             reason=f"Webhook event '{event_type}' processed",
                             metadata_snapshot={"event_id": event_id},
                         )
+                        _sync_item_after_payment_paid(payment)
+
 
         elif event_type == "payment.failed":
             payment_entity = payload_data.get("payment", {}).get("entity", {})

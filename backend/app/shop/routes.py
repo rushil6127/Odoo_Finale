@@ -14,6 +14,7 @@ from backend.app.shop.schemas import (
     ShopOrderCreateSchema,
     ShopOrderStatusUpdateSchema,
     ShopOrderCancelSchema,
+    ShopOrderQuoteSchema,
 )
 from backend.app.shop.services import (
     create_shop_order,
@@ -21,6 +22,7 @@ from backend.app.shop.services import (
     cancel_shop_order,
     get_shop_order,
     list_shop_orders,
+    calculate_shop_quote,
 )
 
 shop_bp = Blueprint("shop", __name__, url_prefix="/api/v1/shop")
@@ -203,3 +205,16 @@ def cancel_order_endpoint(order_id: int, validated_data):
         message=f"Order '{cancelled.order_reference}' has been cancelled and stock restored.",
         status_code=200,
     )
+
+
+@shop_bp.route("/quote", methods=["POST"])
+@jwt_required(optional=True)
+@validate_schema(ShopOrderQuoteSchema)
+def quote_order_endpoint(validated_data):
+    """Calculate a real-time, read-only price quote with member tier discounts."""
+    quote = calculate_shop_quote(
+        items_data=validated_data["items"],
+        requesting_user=current_user,
+    )
+    return success_response(data={"quote": quote}, status_code=200)
+

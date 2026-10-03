@@ -92,3 +92,15 @@ class ShopOrderCancelSchema(Schema):
         validate=[validate.Length(min=1, max=255)],
         error_messages={"required": "Cancellation reason is required."},
     )
+
+
+class ShopOrderQuoteSchema(Schema):
+    """Schema for calculating a read-only price quote and member discount preview."""
+
+    items = fields.List(
+        fields.Nested(ShopOrderItemCreateSchema),
+        required=True,
+        validate=[validate.Length(min=1)],
+        error_messages={"required": "At least one item is required to calculate a quote."},
+    )
+
