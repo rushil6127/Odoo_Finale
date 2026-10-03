@@ -854,54 +854,54 @@ export default function ProfileViewContainer({ forcedMode }: ProfileViewContaine
                               fill="none"
                             />
 
-                            {/* Segment 1: Grass Tennis (36% -> 110.6 arc, flat butt cap) */}
+                            {/* Segment 1: Grass Tennis (36% -> 113.1 arc, seamless edge) */}
                             <circle
                               cx="64"
                               cy="64"
                               r="50"
                               stroke="#059669"
                               strokeWidth="12"
-                              strokeDasharray="110.6 314.16"
+                              strokeDasharray="113.1 314.16"
                               strokeDashoffset="0"
                               strokeLinecap="butt"
                               fill="none"
                             />
 
-                            {/* Segment 2: Box Cricket (24% -> 72.9 arc, flat butt cap) */}
+                            {/* Segment 2: Box Cricket (24% -> 75.4 arc, seamless edge) */}
                             <circle
                               cx="64"
                               cy="64"
                               r="50"
                               stroke="#0284c7"
                               strokeWidth="12"
-                              strokeDasharray="72.9 314.16"
+                              strokeDasharray="75.4 314.16"
                               strokeDashoffset="-113.1"
                               strokeLinecap="butt"
                               fill="none"
                             />
 
-                            {/* Segment 3: Badminton & Aquatics (18% -> 54.0 arc, flat butt cap) */}
+                            {/* Segment 3: Badminton & Aquatics (18% -> 56.55 arc, seamless edge) */}
                             <circle
                               cx="64"
                               cy="64"
                               r="50"
                               stroke="#4f46e5"
                               strokeWidth="12"
-                              strokeDasharray="54.0 314.16"
+                              strokeDasharray="56.55 314.16"
                               strokeDashoffset="-188.5"
                               strokeLinecap="butt"
                               fill="none"
                             />
 
-                            {/* Segment 4: Available Open Slots (22% -> 66.6 arc, crisp neutral track) */}
+                            {/* Segment 4: Available Open Slots (22% -> 69.11 arc, seamless edge) */}
                             <circle
                               cx="64"
                               cy="64"
                               r="50"
                               stroke="#cbd5e1"
                               strokeWidth="12"
-                              strokeDasharray="66.6 314.16"
-                              strokeDashoffset="-245.0"
+                              strokeDasharray="69.11 314.16"
+                              strokeDashoffset="-245.05"
                               strokeLinecap="butt"
                               fill="none"
                             />
