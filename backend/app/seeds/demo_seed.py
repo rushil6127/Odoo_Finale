@@ -280,6 +280,30 @@ def seed_core_demo() -> Dict[str, Any]:
             "role": RoleEnum.COACH,
             "department": "BADMINTON",
         },
+        {
+            "email": "pushplamba104@gmail.com",
+            "first_name": "Pushp",
+            "last_name": "Lamba",
+            "role": RoleEnum.OWNER,
+            "department": "Executive",
+            "password": "Owner@12345",
+        },
+        {
+            "email": "admin@championsclub.in",
+            "first_name": "Priya",
+            "last_name": "Admin",
+            "role": RoleEnum.ADMIN,
+            "department": "Operations",
+            "password": "Admin@12345",
+        },
+        {
+            "email": "coach@championsclub.in",
+            "first_name": "David",
+            "last_name": "Warner",
+            "role": RoleEnum.COACH,
+            "department": "LAWN_TENNIS",
+            "password": "Coach@12345",
+        },
     ]
 
     staff_users = {}
@@ -288,7 +312,7 @@ def seed_core_demo() -> Dict[str, Any]:
         if not u:
             u = create_user(
                 email=s["email"],
-                password=DEMO_PASSWORD,
+                password=s.get("password", DEMO_PASSWORD),
                 first_name=s["first_name"],
                 last_name=s["last_name"],
                 role=s["role"],
@@ -306,6 +330,21 @@ def seed_core_demo() -> Dict[str, Any]:
     today = date.today()
 
     member_definitions = [
+        # Gold Champion Member (Quick Login Seed)
+        {
+            "email": "gold.member@championsclub.in",
+            "first_name": "Rohan",
+            "last_name": "Bopanna",
+            "phone": "+91 98765 43210",
+            "dob": today - timedelta(days=365 * 34),
+            "gender": "MALE",
+            "address": "101 Palm Grove, Indiranagar, Bengaluru",
+            "plan_code": "GOLD",
+            "start_date": today - timedelta(days=90),
+            "duration_months": 12,
+            "price_paid": 50000.00,
+            "password": "Member@12345",
+        },
         # Gold Champion Member
         {
             "email": "gold.member@championsclub.example.com",
@@ -413,7 +452,7 @@ def seed_core_demo() -> Dict[str, Any]:
         if not u:
             u = create_user(
                 email=m_def["email"],
-                password=DEMO_PASSWORD,
+                password=m_def.get("password", DEMO_PASSWORD),
                 first_name=m_def["first_name"],
                 last_name=m_def["last_name"],
                 role=RoleEnum.MEMBER,
