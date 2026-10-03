@@ -1,5 +1,6 @@
 import Navbar from "@/components/landing/Navbar";
 import HeroSection from "@/components/landing/HeroSection";
+import ClubNameMarquee from "@/components/landing/ClubNameMarquee";
 import AutoImageGallery from "@/components/landing/AutoImageGallery";
 import CourtsShowcase from "@/components/landing/CourtsShowcase";
 import MembershipPlans from "@/components/landing/MembershipPlans";
@@ -15,6 +16,9 @@ export default function HomePage() {
 
       {/* Hero Section with Scroll Animations & Quick Finder */}
       <HeroSection />
+
+      {/* Continuous Infinite Sliding Marquee Ribbon */}
+      <ClubNameMarquee />
 
       {/* Auto-scrolling Visual Photo Gallery */}
       <AutoImageGallery />

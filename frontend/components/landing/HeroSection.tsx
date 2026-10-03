@@ -35,10 +35,11 @@ export default function HeroSection() {
   }, []);
 
   const sports = [
-    { id: "tennis", name: "Lawn Tennis", count: "14 Courts", icon: "🎾" },
+    { id: "tennis", name: "Lawn Tennis", count: "4 Courts", icon: "🎾" },
+    { id: "cricket", name: "Box Cricket", count: "2 Arenas", icon: "🏏" },
+    { id: "table-tennis", name: "Table Tennis", count: "6 Tables", icon: "🏓" },
     { id: "badminton", name: "Badminton", count: "6 Arenas", icon: "🏸" },
     { id: "padel", name: "Padel", count: "4 Courts", icon: "🎾" },
-    { id: "squash", name: "Squash", count: "4 Courts", icon: "🎯" },
     { id: "swimming", name: "Olympic Pool", count: "Heated 50m", icon: "🏊‍♂️" },
   ];
 
@@ -84,8 +85,8 @@ export default function HeroSection() {
             <span>State of the Art Sports Sanctuary</span>
           </div>
 
-          {/* Primary Name of the Club */}
-          <h1 className="text-4xl sm:text-6xl lg:text-7xl font-extrabold tracking-tight text-slate-900 leading-[1.1] mb-6">
+          {/* Primary Name of the Club with Custom Display Font (Outfit) */}
+          <h1 className="text-4xl sm:text-6xl lg:text-7xl font-black tracking-tight text-slate-900 leading-[1.08] mb-6 font-[family-name:var(--font-outfit)]">
             The{" "}
             <span className="bg-gradient-to-r from-sky-600 via-blue-600 to-sky-700 bg-clip-text text-transparent">
               Champions
@@ -130,7 +131,7 @@ export default function HeroSection() {
         >
           {/* Card Title & Tagline */}
           <div className="mb-6">
-            <h3 className="text-lg sm:text-xl font-extrabold text-slate-900 inline-flex items-center justify-center gap-2">
+            <h3 className="text-lg sm:text-xl font-extrabold text-slate-900 inline-flex items-center justify-center gap-2 font-[family-name:var(--font-outfit)]">
               <Activity className="w-5 h-5 text-sky-600" />
               <span>Instant Court Availability & Booking</span>
             </h3>
@@ -177,25 +178,25 @@ export default function HeroSection() {
         {/* Club Highlights Stat Strip */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6 max-w-5xl mx-auto mt-12">
           <div className="bg-white/80 rounded-2xl p-4 border border-slate-200/80 shadow-sm text-center">
-            <div className="text-2xl sm:text-3xl font-extrabold text-sky-600">22+</div>
+            <div className="text-2xl sm:text-3xl font-extrabold text-sky-600 font-[family-name:var(--font-outfit)]">22+</div>
             <div className="text-xs font-semibold text-slate-800 mt-1">Championship Courts</div>
             <div className="text-[11px] text-slate-500">Grass, Clay & Hard Surfaces</div>
           </div>
 
           <div className="bg-white/80 rounded-2xl p-4 border border-slate-200/80 shadow-sm text-center">
-            <div className="text-2xl sm:text-3xl font-extrabold text-green-600">1,400+</div>
+            <div className="text-2xl sm:text-3xl font-extrabold text-green-600 font-[family-name:var(--font-outfit)]">1,400+</div>
             <div className="text-xs font-semibold text-slate-800 mt-1">Active Members</div>
             <div className="text-[11px] text-slate-500">Gold, Silver & Junior Tiers</div>
           </div>
 
           <div className="bg-white/80 rounded-2xl p-4 border border-slate-200/80 shadow-sm text-center">
-            <div className="text-2xl sm:text-3xl font-extrabold text-blue-600">6:00 AM – 11 PM</div>
+            <div className="text-2xl sm:text-3xl font-extrabold text-blue-600 font-[family-name:var(--font-outfit)]">6:00 AM – 11 PM</div>
             <div className="text-xs font-semibold text-slate-800 mt-1">Daily Operating Hours</div>
             <div className="text-[11px] text-slate-500">Tournament-grade Floodlights</div>
           </div>
 
           <div className="bg-white/80 rounded-2xl p-4 border border-slate-200/80 shadow-sm text-center">
-            <div className="text-2xl sm:text-3xl font-extrabold text-lime-600">100%</div>
+            <div className="text-2xl sm:text-3xl font-extrabold text-lime-600 font-[family-name:var(--font-outfit)]">100%</div>
             <div className="text-xs font-semibold text-slate-800 mt-1">Digital Operations</div>
             <div className="text-[11px] text-slate-500">Unified POS, Tab & Bookings</div>
           </div>

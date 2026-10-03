@@ -46,8 +46,8 @@
   --cc-info: #0EA5E9;
 
   /* ---- Typography ---- */
-  --cc-font-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  --cc-font-display: "Outfit", "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
+  --cc-font-sans: var(--font-inter), system-ui, -apple-system, sans-serif;
+  --cc-font-display: var(--font-outfit), var(--font-display), system-ui, sans-serif;
 }
 
 @theme inline {
