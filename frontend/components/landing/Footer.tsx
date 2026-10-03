@@ -112,24 +112,24 @@ export default function Footer() {
             </h4>
             <ul className="space-y-2 text-xs text-slate-400">
               <li className="flex items-center justify-between">
-                <span>Natural Grass Lawns</span>
+                <span>Centre Grass Lawns</span>
                 <span className="text-[10px] text-lime-400 font-bold">4 Courts</span>
               </li>
               <li className="flex items-center justify-between">
-                <span>Roland-Garros Clay</span>
-                <span className="text-[10px] text-amber-400 font-bold">4 Courts</span>
+                <span>Floodlit Box Cricket</span>
+                <span className="text-[10px] text-amber-400 font-bold">2 Arenas</span>
               </li>
               <li className="flex items-center justify-between">
-                <span>DecoTurf Hard Courts</span>
-                <span className="text-[10px] text-sky-400 font-bold">6 Courts</span>
+                <span>Pro Table Tennis</span>
+                <span className="text-[10px] text-sky-400 font-bold">6 Tables</span>
               </li>
               <li className="flex items-center justify-between">
                 <span>Badminton Arenas</span>
                 <span className="text-[10px] text-emerald-400 font-bold">6 Courts</span>
               </li>
               <li className="flex items-center justify-between">
-                <span>Panoramic Glass Padel</span>
-                <span className="text-[10px] text-blue-400 font-bold">4 Courts</span>
+                <span>Volleyball Arena</span>
+                <span className="text-[10px] text-blue-400 font-bold">2 Courts</span>
               </li>
               <li className="flex items-center justify-between">
                 <span>Olympic 50M Pool</span>

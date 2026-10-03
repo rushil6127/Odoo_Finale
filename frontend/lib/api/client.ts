@@ -22,7 +22,7 @@ import type { ApiResponse } from "@/types/api";
    ============================================================ */
 
 const BASE_URL: string =
-  process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5000/api";
+  process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5000/api/v1";
 
 /* ============================================================
    Token Accessor

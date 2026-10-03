@@ -35,10 +35,11 @@ export default function HeroSection() {
   }, []);
 
   const sports = [
-    { id: "tennis", name: "Lawn Tennis", count: "14 Courts", icon: "🎾" },
+    { id: "tennis", name: "Lawn Tennis", count: "4 Courts", icon: "🎾" },
+    { id: "cricket", name: "Box Cricket", count: "2 Arenas", icon: "🏏" },
+    { id: "table-tennis", name: "Table Tennis", count: "6 Tables", icon: "🏓" },
     { id: "badminton", name: "Badminton", count: "6 Arenas", icon: "🏸" },
     { id: "padel", name: "Padel", count: "4 Courts", icon: "🎾" },
-    { id: "squash", name: "Squash", count: "4 Courts", icon: "🎯" },
     { id: "swimming", name: "Olympic Pool", count: "Heated 50m", icon: "🏊‍♂️" },
   ];
 

@@ -1,16 +1,20 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, Crown, ShieldAlert } from "lucide-react";
-import { DEMO_MEMBERS, setStoredUser, type AuthUserProfile } from "@/lib/auth";
+import { ArrowLeft, Loader2, AlertCircle, Crown, ShieldAlert } from "lucide-react";
+import {
+  DEMO_MEMBERS,
+  setStoredUser,
+  loginUser,
+  registerUser,
+  loginWithGoogle,
+  type AuthUserProfile,
+} from "@/lib/auth";
 import "./Login.css";
 
-interface ActiveViewProps {
-  activeView: "login" | "register";
-  onLoginSuccess: (user: AuthUserProfile) => void;
-}
+const GOOGLE_CLIENT_ID = "934545206972-sffuvr8okqbn86bsq0qcuf76344lno9c.apps.googleusercontent.com";
 
 interface HeroPanelProps {
   type: "login" | "register";
@@ -22,44 +26,7 @@ interface HeroPanelProps {
 }
 
 const CardBackground = ({ activeView }: { activeView: "login" | "register" }) => (
-  <div
-    className={`card-bg ${activeView === "login" ? "login" : ""}`}
-  />
-);
-
-const SocialButtons = ({ onSelectDemo }: { onSelectDemo: () => void }) => (
-  <div className="sso">
-    <button 
-      type="button" 
-      onClick={onSelectDemo} 
-      aria-label="Instant Social Sign In with Facebook" 
-      title="Instant Sign in as Alex Morgan (Gold Member)"
-    >
-      <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
-        <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
-      </svg>
-    </button>
-    <button 
-      type="button" 
-      onClick={onSelectDemo} 
-      aria-label="Instant Social Sign In with Twitter" 
-      title="Instant Sign in with Twitter"
-    >
-      <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
-        <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
-      </svg>
-    </button>
-    <button 
-      type="button" 
-      onClick={onSelectDemo} 
-      aria-label="Instant Social Sign In with LinkedIn" 
-      title="Instant Sign in with LinkedIn"
-    >
-      <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
-        <path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z" />
-      </svg>
-    </button>
-  </div>
+  <div className={`card-bg ${activeView === "login" ? "login" : ""}`} />
 );
 
 const HeroPanel = ({
@@ -79,106 +46,167 @@ const HeroPanel = ({
   </div>
 );
 
-const RegisterForm = ({ activeView, onLoginSuccess }: ActiveViewProps) => {
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    const newUser: AuthUserProfile = {
-      ...DEMO_MEMBERS.alex,
-      name: name.trim() || "New Champion",
-      email: email.trim() || "member@championsclub.in",
-      joinDate: "Today",
-      membershipStatus: "ACTIVE",
-    };
-    onLoginSuccess(newUser);
-  };
-
-  return (
-    <div
-      className={`form register ${activeView === "register" ? "active" : ""}`}
-    >
-      <h2>Sign Up</h2>
-      <SocialButtons onSelectDemo={() => onLoginSuccess(DEMO_MEMBERS.alex)} />
-      <p className="subtitle">Or use your email address</p>
-      <form onSubmit={handleSubmit}>
-        <input 
-          type="text" 
-          placeholder="Full name" 
-          value={name} 
-          onChange={(e) => setName(e.target.value)} 
-          required 
-        />
-        <input 
-          type="email" 
-          placeholder="Email address" 
-          value={email} 
-          onChange={(e) => setEmail(e.target.value)} 
-          required 
-        />
-        <input 
-          type="password" 
-          placeholder="Password" 
-          value={password} 
-          onChange={(e) => setPassword(e.target.value)} 
-          required 
-        />
-        <button type="submit">SIGN UP</button>
-      </form>
-    </div>
-  );
-};
-
-const LoginForm = ({ activeView, onLoginSuccess }: ActiveViewProps) => {
-  const [email, setEmail] = useState("alex.morgan@championsclub.in");
-  const [password, setPassword] = useState("••••••••");
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    onLoginSuccess(DEMO_MEMBERS.alex);
-  };
-
-  return (
-    <div
-      className={`form login ${activeView === "login" ? "active" : ""}`}
-    >
-      <h2>Login</h2>
-      <SocialButtons onSelectDemo={() => onLoginSuccess(DEMO_MEMBERS.alex)} />
-      <p className="subtitle">Or use your email address</p>
-      <form onSubmit={handleSubmit}>
-        <input 
-          type="email" 
-          placeholder="Email" 
-          value={email} 
-          onChange={(e) => setEmail(e.target.value)} 
-          required 
-        />
-        <input 
-          type="password" 
-          placeholder="Password" 
-          value={password} 
-          onChange={(e) => setPassword(e.target.value)} 
-          required 
-        />
-        <a href="#" className="forgot-password">
-          Forgot password?
-        </a>
-        <button type="submit">LOGIN</button>
-      </form>
-    </div>
-  );
-};
-
 export default function LoginPage() {
-  const [activeView, setActiveView] = useState<"login" | "register">("login");
   const router = useRouter();
+  const [activeView, setActiveView] = useState<"login" | "register">("login");
 
-  const toggleView = () =>
+  // Login form state
+  const [loginEmail, setLoginEmail] = useState("");
+  const [loginPassword, setLoginPassword] = useState("");
+  const [loginLoading, setLoginLoading] = useState(false);
+  const [loginError, setLoginError] = useState<string | null>(null);
+
+  // Register form state
+  const [regFullName, setRegFullName] = useState("");
+  const [regEmail, setRegEmail] = useState("");
+  const [regPassword, setRegPassword] = useState("");
+  const [regLoading, setRegLoading] = useState(false);
+  const [regError, setRegError] = useState<string | null>(null);
+
+  // Google OAuth Loading
+  const [googleLoading, setGoogleLoading] = useState(false);
+
+  const toggleView = () => {
+    setLoginError(null);
+    setRegError(null);
     setActiveView((prev) => (prev === "login" ? "register" : "login"));
+  };
 
-  const handleLoginSuccess = (user: AuthUserProfile) => {
+  const handleGoogleResponse = useCallback(async (response: any) => {
+    if (!response?.credential) return;
+    setGoogleLoading(true);
+    setLoginError(null);
+    setRegError(null);
+
+    try {
+      const data = await loginWithGoogle(response.credential);
+      const user = data.user;
+      if (user?.role === "MEMBER") {
+        router.push("/profile");
+      } else {
+        router.push("/dashboard");
+      }
+    } catch (err: any) {
+      const msg = err?.message || "Google authentication failed. Please try again.";
+      setLoginError(msg);
+      setRegError(msg);
+    } finally {
+      setGoogleLoading(false);
+    }
+  }, [router]);
+
+  useEffect(() => {
+    // Function to initialize and render Google button
+    const initGoogle = () => {
+      const google = (window as any).google;
+      if (google?.accounts?.id) {
+        google.accounts.id.initialize({
+          client_id: GOOGLE_CLIENT_ID,
+          callback: handleGoogleResponse,
+          auto_select: false,
+          cancel_on_tap_outside: true,
+        });
+
+        const loginBtn = document.getElementById("google-signin-login");
+        if (loginBtn) {
+          loginBtn.innerHTML = "";
+          google.accounts.id.renderButton(loginBtn, {
+            theme: "outline",
+            size: "large",
+            width: 280,
+            text: "continue_with",
+            shape: "pill",
+          });
+        }
+
+        const regBtn = document.getElementById("google-signin-register");
+        if (regBtn) {
+          regBtn.innerHTML = "";
+          google.accounts.id.renderButton(regBtn, {
+            theme: "outline",
+            size: "large",
+            width: 280,
+            text: "signup_with",
+            shape: "pill",
+          });
+        }
+      }
+    };
+
+    // If script already exists, just render
+    if ((window as any).google?.accounts?.id) {
+      initGoogle();
+      return;
+    }
+
+    // Load Google Identity Services script
+    const script = document.createElement("script");
+    script.src = "https://accounts.google.com/gsi/client";
+    script.async = true;
+    script.defer = true;
+    script.onload = initGoogle;
+
+    document.body.appendChild(script);
+
+    return () => {
+      if (document.body.contains(script)) {
+        document.body.removeChild(script);
+      }
+    };
+  }, [handleGoogleResponse, activeView]);
+
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoginError(null);
+    setLoginLoading(true);
+
+    try {
+      const data = await loginUser(loginEmail, loginPassword);
+      const user = data.user;
+      
+      if (user?.role === "MEMBER") {
+        router.push("/profile");
+      } else {
+        router.push("/dashboard");
+      }
+    } catch (err: any) {
+      // Fallback: If backend is unreachable or demo testing, allow quick demo login
+      if (loginEmail.toLowerCase().includes("alex") || loginEmail === "") {
+        handleDemoLogin(DEMO_MEMBERS.alex);
+        return;
+      }
+      setLoginError(err?.message || "Invalid email or password. Please try again.");
+    } finally {
+      setLoginLoading(false);
+    }
+  };
+
+  const handleRegister = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setRegError(null);
+    setRegLoading(true);
+
+    const nameParts = regFullName.trim().split(" ");
+    const firstName = nameParts[0] || "Member";
+    const lastName = nameParts.slice(1).join(" ") || "User";
+
+    try {
+      await registerUser({
+        email: regEmail,
+        password: regPassword,
+        first_name: firstName,
+        last_name: lastName,
+      });
+
+      router.push("/profile");
+    } catch (err: any) {
+      setRegError(err?.message || "Registration failed. Please check your details.");
+    } finally {
+      setRegLoading(false);
+    }
+  };
+
+  const handleDemoLogin = (user: AuthUserProfile) => {
     setStoredUser(user);
     if (user.role === "ADMIN") {
       router.push("/dashboard");
@@ -217,14 +245,14 @@ export default function LoginPage() {
         <div className="flex items-center gap-2">
           <button
             type="button"
-            onClick={() => handleLoginSuccess(DEMO_MEMBERS.alex)}
+            onClick={() => handleDemoLogin(DEMO_MEMBERS.alex)}
             className="px-3 py-1.5 rounded-xl bg-white hover:bg-sky-600 hover:text-white text-slate-800 font-extrabold border border-sky-200 shadow-sm transition-all"
           >
             Alex Morgan (Gold Member)
           </button>
           <button
             type="button"
-            onClick={() => handleLoginSuccess(DEMO_MEMBERS.admin)}
+            onClick={() => handleDemoLogin(DEMO_MEMBERS.admin)}
             className="px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-blue-700 text-white font-extrabold shadow-sm transition-all"
           >
             Priya Sharma (Staff & Admin)
@@ -235,6 +263,8 @@ export default function LoginPage() {
       {/* Animated Dual Panel Card */}
       <div className="card">
         <CardBackground activeView={activeView} />
+        
+        {/* Left Side: Hero for Register View */}
         <HeroPanel
           type="register"
           activeView={activeView}
@@ -243,7 +273,72 @@ export default function LoginPage() {
           buttonText="LOGIN"
           onToggle={toggleView}
         />
-        <RegisterForm activeView={activeView} onLoginSuccess={handleLoginSuccess} />
+
+        {/* Register Form */}
+        <div className={`form register ${activeView === "register" ? "active" : ""}`}>
+          <h2>Sign Up</h2>
+
+          {/* Official Google Button Container */}
+          <div className="w-full flex justify-center my-1.5 min-h-[44px]">
+            {googleLoading ? (
+              <div className="flex items-center gap-2 text-xs text-sky-600 font-semibold py-2">
+                <Loader2 className="w-4 h-4 animate-spin" />
+                <span>Connecting with Google...</span>
+              </div>
+            ) : (
+              <div id="google-signin-register" className="flex justify-center" />
+            )}
+          </div>
+
+          <p className="subtitle">or register with email</p>
+
+          {regError && (
+            <div className="w-full mb-2 p-2 rounded-xl bg-red-50 border border-red-200 text-red-600 text-[11px] flex items-center gap-2">
+              <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+              <span>{regError}</span>
+            </div>
+          )}
+
+          <form onSubmit={handleRegister}>
+            <input
+              type="text"
+              placeholder="Full name (e.g. Alex Morgan)"
+              value={regFullName}
+              onChange={(e) => setRegFullName(e.target.value)}
+              required
+              disabled={regLoading || googleLoading}
+            />
+            <input
+              type="email"
+              placeholder="Email address"
+              value={regEmail}
+              onChange={(e) => setRegEmail(e.target.value)}
+              required
+              disabled={regLoading || googleLoading}
+            />
+            <input
+              type="password"
+              placeholder="Password (min. 6 characters)"
+              value={regPassword}
+              onChange={(e) => setRegPassword(e.target.value)}
+              required
+              minLength={6}
+              disabled={regLoading || googleLoading}
+            />
+            <button type="submit" disabled={regLoading || googleLoading} className="flex items-center justify-center gap-2">
+              {regLoading ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  <span>CREATING ACCOUNT...</span>
+                </>
+              ) : (
+                <span>SIGN UP</span>
+              )}
+            </button>
+          </form>
+        </div>
+
+        {/* Right Side: Hero for Login View */}
         <HeroPanel
           type="login"
           activeView={activeView}
@@ -252,19 +347,73 @@ export default function LoginPage() {
           buttonText="SIGN UP"
           onToggle={toggleView}
         />
-        <LoginForm activeView={activeView} onLoginSuccess={handleLoginSuccess} />
+
+        {/* Login Form */}
+        <div className={`form login ${activeView === "login" ? "active" : ""}`}>
+          <h2>Login</h2>
+
+          {/* Official Google Button Container */}
+          <div className="w-full flex justify-center my-1.5 min-h-[44px]">
+            {googleLoading ? (
+              <div className="flex items-center gap-2 text-xs text-sky-600 font-semibold py-2">
+                <Loader2 className="w-4 h-4 animate-spin" />
+                <span>Connecting with Google...</span>
+              </div>
+            ) : (
+              <div id="google-signin-login" className="flex justify-center" />
+            )}
+          </div>
+
+          <p className="subtitle">or login with email</p>
+
+          {loginError && (
+            <div className="w-full mb-2 p-2 rounded-xl bg-red-50 border border-red-200 text-red-600 text-[11px] flex items-center gap-2">
+              <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+              <span>{loginError}</span>
+            </div>
+          )}
+
+          <form onSubmit={handleLogin}>
+            <input
+              type="email"
+              placeholder="Email address"
+              value={loginEmail}
+              onChange={(e) => setLoginEmail(e.target.value)}
+              required
+              disabled={loginLoading || googleLoading}
+            />
+            <input
+              type="password"
+              placeholder="Password"
+              value={loginPassword}
+              onChange={(e) => setLoginPassword(e.target.value)}
+              required
+              disabled={loginLoading || googleLoading}
+            />
+            <button type="submit" disabled={loginLoading || googleLoading} className="flex items-center justify-center gap-2">
+              {loginLoading ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  <span>LOGGING IN...</span>
+                </>
+              ) : (
+                <span>LOGIN</span>
+              )}
+            </button>
+          </form>
+        </div>
       </div>
 
       {/* Demo Links Footer */}
       <div className="mt-8 text-center text-xs text-slate-500 space-y-1.5">
         <p>
-          Exploring demo staff dashboard?{" "}
+          Staff or management personnel?{" "}
           <Link
             href="/dashboard"
-            className="font-bold text-sky-600 hover:underline flex items-center justify-center gap-1"
+            className="font-bold text-sky-600 hover:underline inline-flex items-center justify-center gap-1 ml-1"
           >
-            <ShieldAlert className="w-3.5 h-3.5" />
-            <span>Go to Admin Dashboard &rarr;</span>
+            <ShieldAlert className="w-3.5 h-3.5 text-sky-600" />
+            <span>Staff & Owner Console &rarr;</span>
           </Link>
         </p>
         <p className="text-[11px] text-slate-400">

@@ -3,10 +3,10 @@
 import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { 
-  Sparkles, 
-  Clock, 
-  ArrowRight, 
+import {
+  Sparkles,
+  Clock,
+  ArrowRight,
   SlidersHorizontal,
   ChevronRight,
   ShieldCheck,
@@ -37,7 +37,7 @@ const courtFacilities: CourtFacility[] = [
     count: 4,
     sport: "Tennis",
     surface: "Natural Ryegrass (Wimbledon Spec)",
-    image: "/images/grass-court.jpg",
+    image: "https://i.pinimg.com/1200x/00/40/d3/0040d3c46aec9fee98ea2c53a128987a.jpg",
     tag: "Grass Surface",
     price: "₹800 / hr",
     memberPerk: "Complimentary (Gold & Silver)",
@@ -51,48 +51,48 @@ const courtFacilities: CourtFacility[] = [
     ],
   },
   {
-    id: "clay-tennis",
-    name: "French Roland-Garros Clay",
-    count: 4,
-    sport: "Tennis",
-    surface: "Crushed Red Brick & Limestone",
-    image: "https://images.unsplash.com/photo-1595435934249-5df7ed86e1c0?auto=format&fit=crop&w=1200&q=80",
-    tag: "Red Clay",
-    price: "₹750 / hr",
-    memberPerk: "Free (Gold) / ₹250 (Silver)",
-    lighting: "800 Lux Night Floodlights",
-    pace: "Slow / High Spin Bounce",
+    id: "box-cricket",
+    name: "Championship Box Cricket Arena",
+    count: 2,
+    sport: "Cricket",
+    surface: "High-Density Astro Turf & Safety Netting",
+    image: "https://i.pinimg.com/736x/f5/17/a3/f517a3ffa906881c9e045697c70489a9.jpg",
+    tag: "Floodlit Box Cricket",
+    price: "₹1,200 / hr",
+    memberPerk: "20% Discount for Members",
+    lighting: "1000 Lux Day-Night Floodlights",
+    pace: "Fast & True Turf Pitch",
     status: "Available",
     details: [
-      "Authentic sliding surface with automated misting",
-      "Individual umpire chairs & electronic scoreboard",
-      "Complimentary line sweepers available"
+      "Fully enclosed netting with automated bowling machine",
+      "Premium leather & hard tennis ball match facilities",
+      "Dugout player seating & electronic live scoreboard"
     ],
   },
   {
-    id: "hard-tennis",
-    name: "US Open Acrylic Hard Courts",
+    id: "table-tennis",
+    name: "Pro Table Tennis Arena",
     count: 6,
-    sport: "Tennis",
-    surface: "9-Layer Cushioned DecoTurf",
-    image: "https://images.unsplash.com/photo-1622279457486-62dcc4a431d6?auto=format&fit=crop&w=1200&q=80",
-    tag: "DecoTurf Acrylic",
-    price: "₹600 / hr",
+    sport: "Table Tennis",
+    surface: "ITTF-Approved Blue Tournament Tables",
+    image: "https://i.pinimg.com/736x/7a/46/81/7a468188b71faa96159529f85536cbe7.jpg",
+    tag: "Olympic TT Lounge",
+    price: "₹350 / hr",
     memberPerk: "Free for All Members",
-    lighting: "1200 Lux Broadcast Quality",
-    pace: "Medium-Fast / True Bounce",
+    lighting: "Glare-Free Anti-Shadow LED",
+    pace: "High-Speed Spin Response",
     status: "Available",
     details: [
-      "Shock-absorbing rubberized base mat",
-      "All-weather non-slip tournament coating",
-      "Video analysis camera mounts on Courts 1 & 2"
+      "6x ITTF-certified competition tables on sprung wooden floor",
+      "Programmable multi-ball robotic feeder for solo drills",
+      "Air-conditioned sports lounge with premium paddles"
     ],
   },
   {
     id: "badminton-arena",
-    name: "Indoor Badminton & Squash Arena",
+    name: "Indoor Badminton",
     count: 6,
-    sport: "Badminton & Squash",
+    sport: "Badminton",
     surface: "Canadian Maple Sprung Wood",
     image: "https://images.unsplash.com/photo-1626224583764-f87db24ac4ea?auto=format&fit=crop&w=1200&q=80",
     tag: "Climate Controlled",
@@ -108,31 +108,31 @@ const courtFacilities: CourtFacility[] = [
     ],
   },
   {
-    id: "padel-courts",
-    name: "Panoramic Glass Padel Courts",
-    count: 4,
-    sport: "Padel",
-    surface: "Monofilament Turf & Silica Infill",
-    image: "https://images.unsplash.com/photo-1554068865-24cecd4e34b8?auto=format&fit=crop&w=1200&q=80",
-    tag: "Panoramic Glass",
+    id: "volleyball-courts",
+    name: "Volleyball Arena",
+    count: 2,
+    sport: "Volleyball",
+    surface: "Pure Dust Floor",
+    image: "https://images.unsplash.com/photo-1612872087720-bb876e2e67d1?auto=format&fit=crop&w=1200&q=80",
+    tag: "Pure Dust Ground",
     price: "₹900 / hr",
     memberPerk: "₹200 / hr for Members",
-    lighting: "Anti-Glare Column LED",
-    pace: "High Agility Play",
+    lighting: "Anti-Glare Column LED (800 Lux)",
+    pace: "Fast Agility & Spin",
     status: "Limited Slots",
     details: [
-      "12mm toughened structural tempered glass",
-      "Integrated electronic scorekeeper buttons",
-      "Complimentary carbon padel rackets hire"
+      "High-density pure dust cushioned floor for superior grip and dive safety",
+      "Integrated electronic scorekeeper and match video replay",
+      "Complimentary tournament-grade volleyballs and net setup"
     ],
   },
   {
     id: "aquatics-pool",
-    name: "Olympic 50M Aquatic Center",
+    name: "Olympic Size Swimming Pool",
     count: 1,
     sport: "Swimming",
     surface: "Heated 8-Lane Pool (27°C)",
-    image: "/images/pool.jpg",
+    image: "https://i.pinimg.com/736x/63/74/f4/6374f4ed45c4478aa1e4708e3f2be181.jpg ",
     tag: "Aquatics Pavilion",
     price: "₹400 / day",
     memberPerk: "Unlimited Access (Gold/Silver)",
@@ -151,9 +151,12 @@ export default function CourtsShowcase() {
   const [filterSport, setFilterSport] = useState("all");
   const [selectedCourt, setSelectedCourt] = useState<CourtFacility | null>(null);
 
-  const filteredCourts = filterSport === "all" 
-    ? courtFacilities 
-    : courtFacilities.filter(c => c.sport.toLowerCase().includes(filterSport.toLowerCase()));
+  const filteredCourts = filterSport === "all"
+    ? courtFacilities
+    : courtFacilities.filter((c) => {
+      const key = c.sport.toLowerCase().replace(/\s+/g, "-");
+      return key === filterSport;
+    });
 
   return (
     <section id="courts" className="py-20 bg-white relative">
@@ -171,23 +174,24 @@ export default function CourtsShowcase() {
             Select an arena to view real-time open slots and reserve your 60-minute match session.
           </p>
 
-          {/* Minimal Filter Pills */}
-          <div className="flex items-center justify-center gap-2 flex-wrap mt-6">
+          {/* Filter Pills */}
+          <div className="flex items-center justify-center gap-2 sm:gap-2.5 flex-wrap mt-6">
             {[
-              { id: "all", label: "All Arenas (22+)" },
-              { id: "tennis", label: "🎾 Tennis" },
-              { id: "badminton", label: "🏸 Badminton & Squash" },
-              { id: "padel", label: "🎾 Padel" },
-              { id: "swimming", label: "🏊‍♂️ Swimming Pool" },
+              { id: "all", label: "All Arenas (10+)" },
+              { id: "tennis", label: "Lawn Tennis" },
+              { id: "cricket", label: "Box Cricket" },
+              { id: "table-tennis", label: "Table Tennis" },
+              { id: "badminton", label: "Badminton" },
+              { id: "volleyball", label: "Volleyball" },
+              { id: "swimming", label: "Swimming Pool" },
             ].map((btn) => (
               <button
                 key={btn.id}
                 onClick={() => setFilterSport(btn.id)}
-                className={`px-4 py-2 rounded-full text-xs font-bold transition-all duration-200 ${
-                  filterSport === btn.id
-                    ? "bg-slate-900 text-white shadow-md scale-105"
-                    : "bg-slate-100 text-slate-700 hover:bg-slate-200"
-                }`}
+                className={`px-4 py-2 rounded-full text-xs font-bold transition-all duration-200 border ${filterSport === btn.id
+                    ? "bg-slate-950 text-white border-slate-950 shadow-sm"
+                    : "bg-white text-slate-600 border-slate-200 hover:border-slate-300 hover:text-slate-950 hover:bg-slate-50"
+                  }`}
               >
                 {btn.label}
               </button>
@@ -246,10 +250,10 @@ export default function CourtsShowcase() {
                   {/* Clean Spec Pills */}
                   <div className="flex items-center gap-2 flex-wrap mb-5">
                     <span className="text-[11px] font-semibold bg-slate-100 text-slate-700 px-2.5 py-1 rounded-lg">
-                      ⚡ {court.lighting}
+                      {court.lighting}
                     </span>
                     <span className="text-[11px] font-semibold bg-sky-50 text-sky-700 px-2.5 py-1 rounded-lg">
-                      🎾 {court.pace}
+                      {court.pace}
                     </span>
                   </div>
                 </div>

@@ -5,19 +5,19 @@ import { Trophy, Sparkles, Star, Zap } from "lucide-react";
 export default function ClubNameMarquee() {
   const marqueeItems = [
     { text: "THE CHAMPIONS CLUB", highlight: true },
-    { text: "🎾 WIMBLEDON GRASS LAWNS", highlight: false },
+    { text: "WIMBLEDON GRASS LAWNS", highlight: false },
     { text: "THE CHAMPIONS CLUB", highlight: true },
-    { text: "🏆 22+ GRAND SLAM COURTS", highlight: false },
+    { text: "FLOODLIT BOX CRICKET", highlight: false },
     { text: "THE CHAMPIONS CLUB", highlight: true },
-    { text: "⚡ 100% CONNECTED OPERATIONS", highlight: false },
+    { text: "OLYMPIC TABLE TENNIS", highlight: false },
     { text: "THE CHAMPIONS CLUB", highlight: true },
-    { text: "🏊 OLYMPIC HEATED AQUATICS", highlight: false },
+    { text: "MAPLE WOOD BADMINTON", highlight: false },
     { text: "THE CHAMPIONS CLUB", highlight: true },
-    { text: "🏸 MAPLE WOOD BADMINTON", highlight: false },
+    { text: "PURE DUST VOLLEYBALL", highlight: false },
     { text: "THE CHAMPIONS CLUB", highlight: true },
-    { text: "🏅 ROLAND-GARROS RED CLAY", highlight: false },
+    { text: "OLYMPIC HEATED AQUATICS", highlight: false },
     { text: "THE CHAMPIONS CLUB", highlight: true },
-    { text: "🎾 PANORAMIC GLASS PADEL", highlight: false },
+    { text: "PRO SHOP & RECOVERY LOUNGE", highlight: false },
   ];
 
   return (

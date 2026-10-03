@@ -32,10 +32,15 @@ export default function Navbar() {
   const [activeSection, setActiveSection] = useState("Home");
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   const { user, isAuthenticated } = useCurrentUser();
 
   useEffect(() => {
+    if (typeof window !== "undefined") {
+      setIsLoggedIn(!!localStorage.getItem("cc_token"));
+    }
+
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 20);
 

@@ -1,5 +1,67 @@
+/**
+ * Champions Club — Authentication & User Session Services
+ *
+ * Connected directly with Flask JWT backend (/api/v1/auth & /api/v1/members)
+ * with support for client-side Demo member sessions and reactive hooks.
+ */
+
 import { useSyncExternalStore } from "react";
+import { apiClient } from "@/lib/api/client";
 import type { UserRole, MembershipPlan, MembershipStatus } from "@/types";
+
+// ============================================================================
+// BACKEND DATA TYPES & INTERFACES
+// ============================================================================
+
+export interface AuthUser {
+  id: number;
+  email: string;
+  first_name: string;
+  last_name: string;
+  full_name: string;
+  role: UserRole;
+  is_active: boolean;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface MemberProfile {
+  id: number;
+  user_id: number;
+  phone?: string | null;
+  date_of_birth?: string | null;
+  gender?: string | null;
+  address?: string | null;
+  emergency_contact_name?: string | null;
+  emergency_contact_phone?: string | null;
+  user?: AuthUser;
+  active_membership?: {
+    id: number;
+    plan_code: string;
+    plan_name: string;
+    status: string;
+    start_date: string;
+    end_date: string;
+  } | null;
+  created_at?: string;
+}
+
+export interface LoginResponseData {
+  access_token: string;
+  token_type: string;
+  user: AuthUser;
+}
+
+export interface RegisterPayload {
+  email: string;
+  password: string;
+  first_name: string;
+  last_name: string;
+}
+
+// ============================================================================
+// RICH CLIENT-SIDE PROFILE & DEMO TYPES
+// ============================================================================
 
 export interface UserCRMInquiry {
   id: string;
@@ -64,6 +126,10 @@ export interface AuthUserProfile {
   bookings: UserBooking[];
   payments: UserPayment[];
 }
+
+// ============================================================================
+// DEMO ACCOUNTS
+// ============================================================================
 
 export const DEMO_MEMBERS: Record<string, AuthUserProfile> = {
   alex: {
@@ -227,16 +293,29 @@ export const DEMO_MEMBERS: Record<string, AuthUserProfile> = {
   },
 };
 
+// ============================================================================
+// STORAGE KEYS & EVENT DISPATCHER
+// ============================================================================
+
+const TOKEN_KEY = "cc_token";
+const USER_KEY = "cc_user";
 const STORAGE_KEY = "champions_club_active_user";
 const AUTH_EVENT_KEY = "cc_auth_state_changed";
 
-/**
- * Get the currently logged-in user from localStorage
- */
+export function getStoredToken(): string | null {
+  if (typeof window === "undefined") return null;
+  return localStorage.getItem(TOKEN_KEY);
+}
+
+export function setStoredToken(token: string): void {
+  if (typeof window === "undefined") return;
+  localStorage.setItem(TOKEN_KEY, token);
+}
+
 export function getStoredUser(): AuthUserProfile | null {
   if (typeof window === "undefined") return null;
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
+    const raw = localStorage.getItem(STORAGE_KEY) || localStorage.getItem(USER_KEY);
     if (!raw) return null;
     return JSON.parse(raw) as AuthUserProfile;
   } catch {
@@ -244,23 +323,106 @@ export function getStoredUser(): AuthUserProfile | null {
   }
 }
 
-/**
- * Save user profile to localStorage & broadcast event
- */
-export function setStoredUser(user: AuthUserProfile): void {
+export function setStoredUser(user: AuthUserProfile | AuthUser): void {
   if (typeof window === "undefined") return;
   localStorage.setItem(STORAGE_KEY, JSON.stringify(user));
+  localStorage.setItem(USER_KEY, JSON.stringify(user));
   window.dispatchEvent(new Event(AUTH_EVENT_KEY));
 }
 
-/**
- * Remove session & broadcast event
- */
-export function clearStoredUser(): void {
+export function clearAuthSession(): void {
   if (typeof window === "undefined") return;
+  localStorage.removeItem(TOKEN_KEY);
+  localStorage.removeItem(USER_KEY);
   localStorage.removeItem(STORAGE_KEY);
   window.dispatchEvent(new Event(AUTH_EVENT_KEY));
 }
+
+export function clearStoredUser(): void {
+  clearAuthSession();
+}
+
+// ============================================================================
+// API AUTH SERVICES (Connected to Flask Backend)
+// ============================================================================
+
+export async function loginUser(email: string, password: string): Promise<LoginResponseData> {
+  const data = await apiClient.post<LoginResponseData>("/auth/login", {
+    email: email.trim(),
+    password,
+  });
+
+  if (data?.access_token) {
+    setStoredToken(data.access_token);
+    if (data.user) {
+      setStoredUser(data.user);
+    }
+  }
+
+  return data;
+}
+
+export async function loginWithGoogle(credential: string): Promise<LoginResponseData> {
+  const data = await apiClient.post<LoginResponseData>("/auth/google", {
+    credential,
+  });
+
+  if (data?.access_token) {
+    setStoredToken(data.access_token);
+    if (data.user) {
+      setStoredUser(data.user);
+    }
+  }
+
+  return data;
+}
+
+export async function registerUser(payload: RegisterPayload): Promise<LoginResponseData> {
+  const data = await apiClient.post<LoginResponseData>("/auth/register", {
+    email: payload.email.trim(),
+    password: payload.password,
+    first_name: payload.first_name.trim(),
+    last_name: payload.last_name.trim(),
+  });
+
+  if (data?.access_token) {
+    setStoredToken(data.access_token);
+    if (data.user) {
+      setStoredUser(data.user);
+    }
+  }
+
+  return data;
+}
+
+export async function fetchCurrentUser(): Promise<AuthUser> {
+  const res = await apiClient.get<{ user: AuthUser }>("/auth/me");
+  if (res?.user) {
+    setStoredUser(res.user);
+  }
+  return res.user;
+}
+
+export async function fetchMemberProfile(): Promise<MemberProfile> {
+  const res = await apiClient.get<{ member: MemberProfile }>("/members/me");
+  return res.member;
+}
+
+export async function updateMemberProfile(memberId: number, data: Partial<MemberProfile>): Promise<MemberProfile> {
+  const res = await apiClient.put<{ member: MemberProfile }>(`/members/${memberId}`, data);
+  return res.member;
+}
+
+export function logout(redirectPath: string = "/login"): void {
+  clearAuthSession();
+  if (typeof window !== "undefined") {
+    window.location.href = redirectPath;
+  }
+}
+
+// ============================================================================
+// REACT EXTERNAL STORE SUBSCRIPTION HOOK
+// ============================================================================
 
 function subscribe(callback: () => void) {
   window.addEventListener(AUTH_EVENT_KEY, callback);
@@ -273,16 +435,13 @@ function subscribe(callback: () => void) {
 
 function getSnapshot(): string | null {
   if (typeof window === "undefined") return null;
-  return localStorage.getItem(STORAGE_KEY);
+  return localStorage.getItem(STORAGE_KEY) || localStorage.getItem(USER_KEY);
 }
 
 function getServerSnapshot(): string | null {
   return null;
 }
 
-/**
- * Custom React Hook to subscribe to user auth changes
- */
 export function useCurrentUser() {
   const userJson = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
   const user: AuthUserProfile | null = userJson ? JSON.parse(userJson) : null;
@@ -296,10 +455,7 @@ export function useCurrentUser() {
   };
 }
 
-/**
- * Check if the user has a permitted role
- */
-export function hasRole(user: AuthUserProfile | null, roles: UserRole[]): boolean {
+export function hasRole(user: AuthUserProfile | AuthUser | null, roles: UserRole[]): boolean {
   if (!user) return false;
   return roles.includes(user.role);
 }
