@@ -4,8 +4,8 @@ import pytest
 from scripts.dump_routes import get_developer_a_routes, get_registered_routes
 
 
-def test_api_contract_covers_all_developer_a_routes(app):
-    """Verify that every registered Developer A route is documented in docs/api-contract.md."""
+def test_api_contract_covers_all_routes(app):
+    """Verify that every registered route is documented in docs/api-contract.md."""
     contract_path = os.path.abspath(
         os.path.join(os.path.dirname(__file__), "..", "..", "docs", "api-contract.md")
     )
@@ -14,7 +14,7 @@ def test_api_contract_covers_all_developer_a_routes(app):
     with open(contract_path, "r", encoding="utf-8") as f:
         contract_content = f.read()
 
-    dev_a_routes = get_developer_a_routes()
+    dev_a_routes = get_registered_routes()
     missing_from_contract = []
 
     for route in dev_a_routes:
