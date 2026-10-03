@@ -32,7 +32,7 @@ import {
   Target
 } from "lucide-react";
 import { apiClient } from "@/lib/api/client";
-import { useCurrentUser, getStoredToken, setStoredToken } from "@/lib/auth";
+import { useCurrentUser, getStoredToken, setStoredToken, isOwner, setStoredUser } from "@/lib/auth";
 
 interface BackendCourt {
   id: number;
@@ -412,6 +412,28 @@ export default function CourtsShowcase() {
           start_time: selectedSlot.start_datetime,
           notes: bookingNotes || undefined,
         });
+
+        // Immediately update client-side user bookings so they appear in profile
+        if (user && selectedFacility) {
+          const chosenCourt = matchingCourts.find((c) => c.id === selectedCourtId);
+          const newBookingItem = {
+            id: `BK-${Date.now()}`,
+            bookingCode: (res as any)?.booking_reference || (res as any)?.data?.booking_reference || `BK-${Math.random().toString(36).substring(2, 8).toUpperCase()}`,
+            courtName: chosenCourt?.name || selectedFacility.name,
+            sport: selectedFacility.sport,
+            surface: chosenCourt?.surface_type || selectedFacility.surface,
+            date: selectedDate,
+            timeSlot: `${selectedSlot.start_time} - ${selectedSlot.end_time}`,
+            status: "CONFIRMED" as const,
+            amount: (res as any)?.final_price ?? (res as any)?.data?.final_price ?? priceBreakdown?.final_price ?? 0,
+          };
+          const updatedUser = {
+            ...user,
+            bookings: [newBookingItem, ...(user.bookings || [])],
+          };
+          setStoredUser(updatedUser);
+        }
+
         setBookingSuccess(res);
         fetchAvailability();
       } else {
@@ -811,12 +833,18 @@ export default function CourtsShowcase() {
                           </div>
                         </div>
 
-                        <div className="mt-4 flex gap-2">
+                        <div className="mt-4 flex gap-2 flex-wrap">
                           <Link
-                            href="/bookings"
+                            href={
+                              isOwner(user)
+                                ? "/bookings"
+                                : isAuthenticated
+                                ? "/profile/member?tab=bookings"
+                                : "/login"
+                            }
                             className="px-4 py-2 rounded-xl bg-emerald-700 text-white font-bold text-xs hover:bg-emerald-800 transition-colors shadow-xs"
                           >
-                            View in Schedule
+                            {isOwner(user) ? "View Master Schedule" : "View My Bookings"}
                           </Link>
                           <button
                             onClick={() => {

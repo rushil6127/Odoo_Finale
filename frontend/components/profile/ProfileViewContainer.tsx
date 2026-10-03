@@ -99,7 +99,17 @@ export default function ProfileViewContainer({ forcedMode }: ProfileViewContaine
   // - "employee": strictly employee duty workspace, NO Staff & Admin Console button
   // - "member": strictly standard member features (no owner delegator, no staff console)
   const isSuperOwner = (forcedMode === "member" || forcedMode === "employee") ? false : (forcedMode === "owner" || isOwner(activeUser));
-  const canAccessConsole = (forcedMode === "member" || forcedMode === "employee") ? false : (forcedMode === "owner" || isStaffOrAdmin(activeUser));
+  const canAccessConsole = (forcedMode === "member" || forcedMode === "employee") ? false : (forcedMode === "owner" || isOwner(activeUser));
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      const tab = params.get("tab") as TabType;
+      if (tab && ["overview", "calendar", "crm", "orders", "bookings", "payments", "settings"].includes(tab)) {
+        setActiveTab(tab);
+      }
+    }
+  }, []);
 
   // Dynamic backend membership data
   const [liveMembershipData, setLiveMembershipData] = useState<any>(null);

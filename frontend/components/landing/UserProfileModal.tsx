@@ -22,7 +22,7 @@ import {
   ExternalLink, 
   Plus
 } from "lucide-react";
-import type { AuthUserProfile } from "@/lib/auth";
+import { isOwner, type AuthUserProfile } from "@/lib/auth";
 
 interface UserProfileModalProps {
   isOpen: boolean;
@@ -279,14 +279,25 @@ export default function UserProfileModal({
                   <ShoppingBag className="w-3.5 h-3.5" />
                   <span>Pro Shop Catalog</span>
                 </Link>
-                <Link
-                  href="/dashboard"
-                  onClick={onClose}
-                  className="px-5 py-2.5 rounded-xl bg-lime-100 hover:bg-lime-200 text-lime-900 border border-lime-300 font-bold text-xs transition-all flex items-center gap-2"
-                >
-                  <TrendingUp className="w-3.5 h-3.5" />
-                  <span>Staff & Club Management Console</span>
-                </Link>
+                {isOwner(user) ? (
+                  <Link
+                    href="/dashboard"
+                    onClick={onClose}
+                    className="px-5 py-2.5 rounded-xl bg-lime-100 hover:bg-lime-200 text-lime-900 border border-lime-300 font-bold text-xs transition-all flex items-center gap-2"
+                  >
+                    <TrendingUp className="w-3.5 h-3.5" />
+                    <span>Owner Console Dashboard</span>
+                  </Link>
+                ) : (
+                  <Link
+                    href="/profile/member?tab=bookings"
+                    onClick={onClose}
+                    className="px-5 py-2.5 rounded-xl bg-sky-100 hover:bg-sky-200 text-sky-900 border border-sky-300 font-bold text-xs transition-all flex items-center gap-2"
+                  >
+                    <Calendar className="w-3.5 h-3.5" />
+                    <span>My Court Bookings</span>
+                  </Link>
+                )}
               </div>
             </div>
           )}
