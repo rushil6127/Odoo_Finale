@@ -32,6 +32,29 @@ class BaseConfig:
     COURT_CLOSE_TIME = os.getenv("COURT_CLOSE_TIME", "22:00")
     COURT_SLOT_DURATION_MINUTES = int(os.getenv("COURT_SLOT_DURATION_MINUTES", 60))
     COURT_SLOT_INTERVAL_MINUTES = int(os.getenv("COURT_SLOT_INTERVAL_MINUTES", 30))
+    MAX_DAILY_BOOKINGS_PER_MEMBER = int(os.getenv("MAX_DAILY_BOOKINGS_PER_MEMBER", 2))
+
+    # Court Base Hourly Rates by Sport (INR)
+    DEFAULT_SPORT_RATES = {
+        "TENNIS": float(os.getenv("RATE_TENNIS", 800.0)),
+        "PADEL": float(os.getenv("RATE_PADEL", 1200.0)),
+        "BADMINTON": float(os.getenv("RATE_BADMINTON", 400.0)),
+        "BOX_CRICKET": float(os.getenv("RATE_BOX_CRICKET", 1500.0)),
+    }
+
+    # Member Discounts by Plan Code (percentage)
+    MEMBER_DISCOUNT_PERCENTAGES = {
+        "GOLD": float(os.getenv("DISCOUNT_GOLD", 100.0)),
+        "SILVER": float(os.getenv("DISCOUNT_SILVER", 50.0)),
+        "JUNIOR": float(os.getenv("DISCOUNT_JUNIOR", 50.0)),
+    }
+
+    # Friday Social Play Settings
+    FRIDAY_SOCIAL_PLAY_ENABLED = os.getenv("FRIDAY_SOCIAL_PLAY_ENABLED", "True").lower() in ("true", "1", "yes")
+    FRIDAY_SOCIAL_PLAY_BASE_RATE = float(os.getenv("FRIDAY_SOCIAL_PLAY_BASE_RATE", 200.0))
+    FRIDAY_SOCIAL_PLAY_START_TIME = os.getenv("FRIDAY_SOCIAL_PLAY_START_TIME", "18:00")
+    FRIDAY_SOCIAL_PLAY_END_TIME = os.getenv("FRIDAY_SOCIAL_PLAY_END_TIME", "21:00")
+    SOCIAL_PLAY_COUNTS_TOWARDS_DAILY_LIMIT = os.getenv("SOCIAL_PLAY_COUNTS_TOWARDS_DAILY_LIMIT", "False").lower() in ("true", "1", "yes")
 
     # Redis and Celery configuration
     REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379/0")
@@ -58,12 +81,19 @@ class DevelopmentConfig(BaseConfig):
     )
 
 
+from sqlalchemy.pool import StaticPool
+
+
 class TestingConfig(BaseConfig):
     """Testing environment configuration."""
 
     DEBUG = True
     TESTING = True
     SQLALCHEMY_DATABASE_URI = os.getenv("TEST_DATABASE_URL", "sqlite:///:memory:")
+    SQLALCHEMY_ENGINE_OPTIONS = {
+        "connect_args": {"check_same_thread": False},
+        "poolclass": StaticPool,
+    }
     JWT_SECRET_KEY = "test-jwt-secret-key-minimum-32-bytes-length-ok"
     SECRET_KEY = "test-secret-key-minimum-32-bytes-length-ok"
     CELERY_TASK_ALWAYS_EAGER = True

@@ -67,10 +67,11 @@ def get_court_availability(
     sport_type: Optional[str] = None,
     court_id: Optional[int] = None,
 ) -> Dict[str, Any]:
-    """Retrieve candidate availability for all bookable (ACTIVE) courts on a date.
-
-    Excludes MAINTENANCE and INACTIVE courts.
+    """Retrieve real-time availability for all bookable (ACTIVE) courts on a date,
+    accurately marking occupied slots.
     """
+    from backend.app.bookings.models import CourtOccupancy
+
     config = current_app.config if current_app else {}
     open_str = config.get("COURT_OPEN_TIME", "06:00")
     close_str = config.get("COURT_CLOSE_TIME", "22:00")
@@ -92,6 +93,28 @@ def get_court_availability(
         query = query.filter(Court.sport_type == enum_sport)
 
     active_courts = query.order_by(Court.sport_type.asc(), Court.name.asc()).all()
+    court_ids = [c.id for c in active_courts]
+
+    # Fetch all occupied half-slots for target date and active courts
+    occupied_set = set()
+    if court_ids:
+        occupancies = (
+            CourtOccupancy.query.filter(
+                CourtOccupancy.court_id.in_(court_ids),
+            ).all()
+        )
+        for occ in occupancies:
+            slot_raw = occ.slot_start
+            if isinstance(slot_raw, str):
+                slot_clean = slot_raw.replace("Z", "").split("+")[0]
+                dt = datetime.fromisoformat(slot_clean)
+            elif isinstance(slot_raw, datetime):
+                dt = slot_raw.replace(tzinfo=None) if slot_raw.tzinfo else slot_raw
+            else:
+                continue
+
+            if dt.date() == target_date:
+                occupied_set.add((occ.court_id, dt.strftime("%Y-%m-%d %H:%M")))
 
     court_availability_list = []
     for court in active_courts:
@@ -103,9 +126,27 @@ def get_court_availability(
             slot_interval_minutes=interval,
         )
 
+        for slot in court_slots:
+            slot_start_dt = datetime.fromisoformat(slot["start_datetime"])
+            if slot_start_dt.tzinfo:
+                slot_start_dt = slot_start_dt.replace(tzinfo=None)
+
+            slot_mid_dt = slot_start_dt + timedelta(minutes=interval)
+
+            key1 = (court.id, slot_start_dt.strftime("%Y-%m-%d %H:%M"))
+            key2 = (court.id, slot_mid_dt.strftime("%Y-%m-%d %H:%M"))
+
+            if key1 in occupied_set or key2 in occupied_set:
+                slot["is_available"] = False
+                slot["reason"] = "OCCUPIED"
+            else:
+                slot["is_available"] = True
+                slot["reason"] = None
+
         court_dict = court.to_dict()
         court_dict["slots"] = court_slots
         court_dict["total_candidate_slots"] = len(court_slots)
+        court_dict["available_slots_count"] = sum(1 for s in court_slots if s["is_available"])
         court_availability_list.append(court_dict)
 
     return {

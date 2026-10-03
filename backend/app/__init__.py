@@ -14,6 +14,7 @@ from backend.app.memberships import (  # noqa: F401
     Membership,
 )
 from backend.app.courts import courts_bp, seed_courts_command, Court  # noqa: F401
+from backend.app.bookings import bookings_bp, Booking, CourtOccupancy  # noqa: F401
 
 
 def create_app(config_name: str = None) -> Flask:
@@ -56,6 +57,7 @@ def create_app(config_name: str = None) -> Flask:
     app.register_blueprint(membership_plans_bp)
     app.register_blueprint(memberships_bp)
     app.register_blueprint(courts_bp)
+    app.register_blueprint(bookings_bp)
 
     # Register CLI commands
     app.cli.add_command(create_owner_command)
