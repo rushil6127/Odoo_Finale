@@ -35,6 +35,14 @@ from backend.app.pos import (  # noqa: F401
     POSOrderItem,
     seed_pos_command,
 )
+from backend.app.crm import (  # noqa: F401
+    crm_bp,
+    CRMLead,
+    CRMFollowUp,
+    CRMNote,
+    CRMTrialSession,
+    CRMQuote,
+)
 
 
 def create_app(config_name: str = None) -> Flask:
@@ -82,6 +90,7 @@ def create_app(config_name: str = None) -> Flask:
     app.register_blueprint(inventory_bp)
     app.register_blueprint(shop_bp)
     app.register_blueprint(pos_bp)
+    app.register_blueprint(crm_bp)
 
     # Register CLI commands
     app.cli.add_command(create_owner_command)
