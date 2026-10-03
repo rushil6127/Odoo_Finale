@@ -52,8 +52,11 @@ const LIVE_COURTS: CourtStat[] = [
 
 export default function DashboardPage() {
   const [currentUser, setCurrentUser] = useState<AuthUser | null>(null);
-  const [userCount, setUserCount] = useState<number>(14);
+  const [userCount, setUserCount] = useState<number>(18);
   const [activeStaffCount, setActiveStaffCount] = useState<number>(6);
+  const [todayRevenue, setTodayRevenue] = useState<number>(84500);
+  const [activeBookingsToday, setActiveBookingsToday] = useState<number>(24);
+  const [courtOccupancyPct, setCourtOccupancyPct] = useState<number>(78);
   const [pendingApprovals, setPendingApprovals] = useState<number>(3);
   const [loading, setLoading] = useState(true);
 
@@ -61,23 +64,40 @@ export default function DashboardPage() {
     const user = getStoredUser();
     setCurrentUser(user);
 
-    // Fetch live counts from backend if available
-    const fetchCounts = async () => {
+    // Fetch live counts and report KPIs from backend
+    const fetchDashboardData = async () => {
       try {
-        const res = await apiClient.get<any>("/auth/users");
-        if (res.data && Array.isArray(res.data)) {
-          setUserCount(res.data.length);
-          const staff = res.data.filter((u: any) => u.role !== "MEMBER");
-          setActiveStaffCount(staff.length || 6);
+        const [usersRes, reportRes, courtsRes] = await Promise.allSettled([
+          apiClient.get<any>("/auth/users"),
+          apiClient.get<any>("/reports/overview?period=today"),
+          apiClient.get<any>("/courts"),
+        ]);
+
+        if (usersRes.status === "fulfilled" && usersRes.value) {
+          const list = usersRes.value?.users || usersRes.value?.data || (Array.isArray(usersRes.value) ? usersRes.value : []);
+          if (list && list.length > 0) {
+            setUserCount(list.length);
+            const staff = list.filter((u: any) => u.role !== "MEMBER");
+            setActiveStaffCount(staff.length || 6);
+          }
+        }
+
+        if (reportRes.status === "fulfilled" && reportRes.value) {
+          const rep = reportRes.value?.executive_kpis || reportRes.value?.data?.executive_kpis || reportRes.value;
+          if (rep) {
+            if (rep.total_revenue) setTodayRevenue(Number(rep.total_revenue));
+            if (rep.active_bookings_today) setActiveBookingsToday(Number(rep.active_bookings_today));
+            if (rep.court_occupancy_pct) setCourtOccupancyPct(Math.round(Number(rep.court_occupancy_pct)));
+          }
         }
       } catch (err) {
-        // Fallback to defaults
+        console.log("Using seeded fallback dashboard KPIs:", err);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchCounts();
+    fetchDashboardData();
   }, []);
 
   const isOwner = currentUser?.role === "OWNER" || currentUser?.email === "pushplamba104@gmail.com";
