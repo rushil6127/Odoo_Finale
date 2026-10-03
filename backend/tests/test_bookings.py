@@ -722,3 +722,144 @@ def test_member_history_for_staff_and_forbidden_for_other_member(client, seed_da
     assert len(res_staff.get_json()["data"]) == 1
 
 
+def test_booking_cancellation_success_12h_refundable(client, seed_data, silver_member_user):
+    """Cancelling a booking >=12 hours before start time marks it CANCELLED and eligible for full refund."""
+    user, member = silver_member_user
+    tennis = seed_data["tennis"]
+    # 24 hours in the future
+    future_start = (datetime.now() + timedelta(days=2)).replace(hour=10, minute=0, second=0, microsecond=0)
+
+    res_book = client.post(
+        "/api/v1/bookings",
+        headers=auth_header(user),
+        json={"court_id": tennis.id, "start_time": future_start.isoformat()},
+    )
+    assert res_book.status_code == 201
+    booking_id = res_book.get_json()["data"]["id"]
+
+    # Cancel the booking
+    res_cancel = client.post(
+        f"/api/v1/bookings/{booking_id}/cancel",
+        headers=auth_header(user),
+        json={"reason": "Rain expected"},
+    )
+    assert res_cancel.status_code == 200
+    body = res_cancel.get_json()
+    assert body["success"] is True
+    assert "Full refund" in body["message"]
+    assert body["data"]["status"] == "CANCELLED"
+    assert body["data"]["is_refundable"] is True
+    assert body["data"]["refund_amount"] == 400.0
+
+
+def test_booking_cancellation_under_12h_non_refundable(client, seed_data, silver_member_user):
+    """Cancelling a booking <12 hours before start time marks it CANCELLED but notes non-refundable fee."""
+    user, member = silver_member_user
+    tennis = seed_data["tennis"]
+    # 6 hours in the future at 08:00 AM (within operating hours 06:00-22:00)
+    near_start = (datetime.now() + timedelta(hours=6)).replace(hour=8, minute=0, second=0, microsecond=0)
+
+    res_book = client.post(
+        "/api/v1/bookings",
+        headers=auth_header(user),
+        json={"court_id": tennis.id, "start_time": near_start.isoformat()},
+    )
+    assert res_book.status_code == 201
+    booking_id = res_book.get_json()["data"]["id"]
+
+    # Cancel the booking
+    res_cancel = client.post(
+        f"/api/v1/bookings/{booking_id}/cancel",
+        headers=auth_header(user),
+        json={"reason": "Last minute conflict"},
+    )
+    assert res_cancel.status_code == 200
+    body = res_cancel.get_json()
+    assert body["success"] is True
+    assert "non-refundable" in body["message"]
+    assert body["data"]["status"] == "CANCELLED"
+    assert body["data"]["is_refundable"] is False
+    assert body["data"]["refund_amount"] == 0.0
+
+
+def test_booking_cancellation_restrictions(client, seed_data, gold_member_user, silver_member_user):
+    """Verify cancellation restrictions: already cancelled, completed, and unauthorized member."""
+    gold_user, gold_member = gold_member_user
+    silver_user, silver_member = silver_member_user
+    tennis = seed_data["tennis"]
+
+    start_dt = (datetime.now() + timedelta(days=3)).replace(hour=11, minute=0, second=0, microsecond=0)
+    booking = create_booking(court_id=tennis.id, start_time=start_dt, user_id=gold_user.id, member_id=gold_member.id)
+
+    # 1. Other member attempting to cancel -> 403 Forbidden
+    res_forbidden = client.post(
+        f"/api/v1/bookings/{booking.id}/cancel",
+        headers=auth_header(silver_user),
+    )
+    assert res_forbidden.status_code == 403
+
+    # 2. Cancel successfully
+    res_cancel = client.post(
+        f"/api/v1/bookings/{booking.id}/cancel",
+        headers=auth_header(gold_user),
+    )
+    assert res_cancel.status_code == 200
+
+    # 3. Trying to cancel already cancelled booking -> 422
+    res_again = client.post(
+        f"/api/v1/bookings/{booking.id}/cancel",
+        headers=auth_header(gold_user),
+    )
+    assert res_again.status_code in (400, 422)
+    assert res_again.get_json()["error"]["code"] == "ALREADY_CANCELLED"
+
+    # 4. Trying to cancel completed booking -> 422
+    booking2 = create_booking(court_id=tennis.id, start_time=(datetime.now() + timedelta(days=4)).replace(hour=9, minute=0, second=0, microsecond=0), user_id=gold_user.id, member_id=gold_member.id)
+    booking2.status = BookingStatus.COMPLETED
+    db.session.commit()
+
+    res_completed = client.post(
+        f"/api/v1/bookings/{booking2.id}/cancel",
+        headers=auth_header(gold_user),
+    )
+    assert res_completed.status_code in (400, 422)
+    assert res_completed.get_json()["error"]["code"] == "CANNOT_CANCEL_COMPLETED"
+
+
+def test_third_daily_booking_rejection_exact_message(client, seed_data, gold_member_user):
+    """Attempting a 3rd booking on the same day is rejected with exact daily limit message."""
+    user, member = gold_member_user
+    tennis = seed_data["tennis"]
+    cricket = seed_data["cricket"]
+    d = (datetime.now() + timedelta(days=6)).replace(minute=0, second=0, microsecond=0)
+
+    # 1st booking
+    r1 = client.post(
+        "/api/v1/bookings",
+        headers=auth_header(user),
+        json={"court_id": tennis.id, "start_time": d.replace(hour=8).isoformat()},
+    )
+    assert r1.status_code == 201
+
+    # 2nd booking
+    r2 = client.post(
+        "/api/v1/bookings",
+        headers=auth_header(user),
+        json={"court_id": tennis.id, "start_time": d.replace(hour=10).isoformat()},
+    )
+    assert r2.status_code == 201
+
+    # 3rd booking on same day
+    r3 = client.post(
+        "/api/v1/bookings",
+        headers=auth_header(user),
+        json={"court_id": cricket.id, "start_time": d.replace(hour=14).isoformat()},
+    )
+    assert r3.status_code == 422
+    body = r3.get_json()
+    assert body["success"] is False
+    assert body["error"]["code"] == "DAILY_LIMIT_EXCEEDED"
+    assert body["error"]["message"] == "Daily booking limit reached. You can book a maximum of 2 slots per day."
+
+
+

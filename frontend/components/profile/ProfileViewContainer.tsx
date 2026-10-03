@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
@@ -38,11 +38,14 @@ import {
   Send,
   CalendarCheck,
   AlertCircle,
+  AlertTriangle,
   Award,
   Flame,
   UserCheck,
   Building2,
-  Key
+  Key,
+  Loader2,
+  Trash2
 } from "lucide-react";
 import { useCurrentUser, setStoredUser, isStaffOrAdmin, isOwner, type AuthUserProfile } from "@/lib/auth";
 import { apiClient } from "@/lib/api/client";
@@ -76,71 +79,85 @@ export default function ProfileViewContainer({ forcedMode }: ProfileViewContaine
   const [memberProfileData, setMemberProfileData] = useState<any>(null);
   const [profileLoading, setProfileLoading] = useState(false);
 
-  useEffect(() => {
-    const fetchLiveMemberData = async () => {
-      try {
-        setProfileLoading(true);
-        const [meRes, bookingsRes, ordersRes] = await Promise.allSettled([
-          apiClient.get<any>("/members/me"),
-          apiClient.get<any>("/bookings/my-history"),
-          apiClient.get<any>("/shop/orders/my-orders"),
-        ]);
+  // Cancellation State
+  const [cancellingBooking, setCancellingBooking] = useState<any | null>(null);
+  const [cancelReason, setCancelReason] = useState<string>("");
+  const [cancelSubmitting, setCancelSubmitting] = useState<boolean>(false);
+  const [cancelFeedback, setCancelFeedback] = useState<{ type: "success" | "error"; message: string } | null>(null);
 
-        if (meRes.status === "fulfilled" && meRes.value) {
-          const mem = meRes.value?.member || meRes.value?.data || meRes.value;
-          setMemberProfileData(mem);
-        }
+  const fetchLiveMemberData = useCallback(async () => {
+    try {
+      setProfileLoading(true);
+      const [meRes, bookingsRes, ordersRes] = await Promise.allSettled([
+        apiClient.get<any>("/members/me"),
+        apiClient.get<any>("/bookings/my-history"),
+        apiClient.get<any>("/shop/orders/my-orders"),
+      ]);
 
-        if (bookingsRes.status === "fulfilled" && bookingsRes.value) {
-          const bList = Array.isArray(bookingsRes.value)
-            ? bookingsRes.value
-            : bookingsRes.value?.bookings || bookingsRes.value?.data || [];
-          setMemberBookings(
-            bList.map((b: any) => ({
-              id: b.booking_reference || `BK-${b.id}`,
-              courtName: b.court?.name || `Court #${b.court_id}`,
-              sport: b.court?.sport_type || "Tennis",
-              date: b.start_time ? new Date(b.start_time).toLocaleDateString() : "Today",
-              timeSlot: b.start_time
-                ? `${new Date(b.start_time).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })} – ${new Date(b.end_time).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`
-                : "05:00 PM – 06:00 PM",
-              status: b.status || "CONFIRMED",
-              participants: b.guest_name ? [b.guest_name] : ["Club Member"],
-              fee: b.price ? Number(b.price) : 0,
-            }))
-          );
-        }
-
-        if (ordersRes.status === "fulfilled" && ordersRes.value) {
-          const oList = Array.isArray(ordersRes.value)
-            ? ordersRes.value
-            : ordersRes.value?.orders || ordersRes.value?.data || [];
-          setMemberOrders(
-            oList.map((o: any) => ({
-              id: o.order_number || `ORD-${o.id}`,
-              orderNumber: o.order_number || `#CC-${o.id}`,
-              type: o.order_type === "CAFE" ? "CAFE" : "PRO_SHOP",
-              items: (o.items || []).map((i: any) => ({
-                name: i.product?.name || i.menu_item?.name || i.name || "Club Item",
-                quantity: i.quantity || 1,
-                price: Number(i.unit_price || i.price || 0),
-              })),
-              totalAmount: Number(o.total_amount || 0),
-              status: o.status || "COMPLETED",
-              date: o.created_at ? new Date(o.created_at).toLocaleDateString() : "Today",
-              paymentMethod: o.payment_method || "Online",
-            }))
-          );
-        }
-      } catch (err) {
-        console.error("Failed to load live member profile data:", err);
-      } finally {
-        setProfileLoading(false);
+      if (meRes.status === "fulfilled" && meRes.value) {
+        const mem = meRes.value?.member || meRes.value?.data || meRes.value;
+        setMemberProfileData(mem);
       }
-    };
 
+      if (bookingsRes.status === "fulfilled" && bookingsRes.value) {
+        const bList = Array.isArray(bookingsRes.value)
+          ? bookingsRes.value
+          : bookingsRes.value?.bookings || bookingsRes.value?.data || [];
+        setMemberBookings(
+          bList.map((b: any) => ({
+            id: b.id,
+            numericId: b.id,
+            bookingId: b.id,
+            bookingCode: b.booking_reference || `BK-${b.id}`,
+            courtName: b.court?.name || `Court #${b.court_id}`,
+            sport: b.court?.sport_type || "Tennis",
+            surface: b.court?.surface_type || "Standard Surface",
+            date: b.start_time ? new Date(b.start_time).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" }) : "Today",
+            startTime: b.start_time,
+            endTime: b.end_time,
+            timeSlot: b.start_time
+              ? `${new Date(b.start_time).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })} – ${new Date(b.end_time).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`
+              : "05:00 PM – 06:00 PM",
+            status: b.status || "CONFIRMED",
+            participants: b.guest_name ? [b.guest_name] : ["Club Member"],
+            amount: b.final_price !== undefined ? Number(b.final_price) : (b.price ? Number(b.price) : 0),
+            cancellationReason: b.cancellation_reason,
+            cancelledAt: b.cancelled_at,
+          }))
+        );
+      }
+
+      if (ordersRes.status === "fulfilled" && ordersRes.value) {
+        const oList = Array.isArray(ordersRes.value)
+          ? ordersRes.value
+          : ordersRes.value?.orders || ordersRes.value?.data || [];
+        setMemberOrders(
+          oList.map((o: any) => ({
+            id: o.order_number || `ORD-${o.id}`,
+            orderNumber: o.order_number || `#CC-${o.id}`,
+            type: o.order_type === "CAFE" ? "CAFE" : "PRO_SHOP",
+            items: (o.items || []).map((i: any) => ({
+              name: i.product?.name || i.menu_item?.name || i.name || "Club Item",
+              quantity: i.quantity || 1,
+              price: Number(i.unit_price || i.price || 0),
+            })),
+            totalAmount: Number(o.total_amount || 0),
+            status: o.status || "COMPLETED",
+            date: o.created_at ? new Date(o.created_at).toLocaleDateString() : "Today",
+            paymentMethod: o.payment_method || "Online",
+          }))
+        );
+      }
+    } catch (err) {
+      console.error("Failed to load live member profile data:", err);
+    } finally {
+      setProfileLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
     fetchLiveMemberData();
-  }, [user?.id]);
+  }, [fetchLiveMemberData, user?.id]);
 
   const activeUser: AuthUserProfile = {
     id: user?.id || 1,
@@ -363,7 +380,51 @@ export default function ProfileViewContainer({ forcedMode }: ProfileViewContaine
 
   // Filter states
   const [orderFilter, setOrderFilter] = useState<"ALL" | "PRO_SHOP" | "CAFE" | "STRINGING">("ALL");
-  const [bookingFilter, setBookingFilter] = useState<"ALL" | "CONFIRMED" | "COMPLETED">("ALL");
+  const [bookingFilter, setBookingFilter] = useState<"ALL" | "CONFIRMED" | "COMPLETED" | "CANCELLED">("ALL");
+
+  const isEligibleForRefund = (startTime?: string) => {
+    if (!startTime) return false;
+    const slotDate = new Date(startTime).getTime();
+    const now = new Date().getTime();
+    const hoursDiff = (slotDate - now) / (1000 * 60 * 60);
+    return hoursDiff >= 12;
+  };
+
+  const handleCancelBooking = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    if (!cancellingBooking) return;
+    const bookingId =
+      cancellingBooking.bookingId ||
+      cancellingBooking.numericId ||
+      (typeof cancellingBooking.id === "number"
+        ? cancellingBooking.id
+        : parseInt(String(cancellingBooking.id).replace(/\D/g, ""), 10));
+
+    if (!bookingId) {
+      setCancelFeedback({ type: "error", message: "Invalid booking identifier for cancellation." });
+      return;
+    }
+
+    setCancelSubmitting(true);
+    setCancelFeedback(null);
+    try {
+      const res = await apiClient.post<any>(`/bookings/${bookingId}/cancel`, {
+        reason: cancelReason.trim() || "Customer requested cancellation",
+      });
+      const msg = (res as any)?.message || "Booking cancelled successfully.";
+      setCancelFeedback({ type: "success", message: msg });
+      setCancellingBooking(null);
+      setCancelReason("");
+      await fetchLiveMemberData();
+    } catch (err: any) {
+      setCancelFeedback({
+        type: "error",
+        message: err?.message || "Failed to cancel booking.",
+      });
+    } finally {
+      setCancelSubmitting(false);
+    }
+  };
 
   const handleSendMessage = (e: React.FormEvent) => {
     e.preventDefault();
@@ -1595,6 +1656,33 @@ export default function ProfileViewContainer({ forcedMode }: ProfileViewContaine
             {activeTab === "bookings" && (
               <div className="p-6 sm:p-8 space-y-5 animate-in fade-in duration-200">
 
+                {/* Cancel Feedback Banner */}
+                {cancelFeedback && (
+                  <div
+                    className={`p-4 rounded-2xl border flex items-center justify-between gap-3 text-xs font-bold transition-all ${
+                      cancelFeedback.type === "success"
+                        ? "bg-emerald-50 border-emerald-300 text-emerald-900"
+                        : "bg-red-50 border-red-300 text-red-900"
+                    }`}
+                  >
+                    <div className="flex items-center gap-2">
+                      {cancelFeedback.type === "success" ? (
+                        <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                      ) : (
+                        <AlertCircle className="w-4 h-4 text-red-600 shrink-0" />
+                      )}
+                      <span>{cancelFeedback.message}</span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setCancelFeedback(null)}
+                      className="p-1 rounded-lg hover:bg-black/5 text-slate-500 hover:text-slate-800"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                )}
+
                 <div className="flex items-center justify-between flex-wrap gap-3">
                   <h4 className="text-xs font-extrabold uppercase tracking-wider text-slate-500">
                     Court Reservations & Practice Sessions ({filteredBookings.length})
@@ -1602,12 +1690,12 @@ export default function ProfileViewContainer({ forcedMode }: ProfileViewContaine
 
                   <div className="flex items-center gap-3">
                     <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-xl text-xs font-bold">
-                      {(["ALL", "CONFIRMED", "COMPLETED"] as const).map((filter) => (
+                      {(["ALL", "CONFIRMED", "COMPLETED", "CANCELLED"] as const).map((filter) => (
                         <button
                           key={filter}
                           onClick={() => setBookingFilter(filter)}
                           className={`px-3 py-1 rounded-lg transition-all ${bookingFilter === filter
-                            ? "bg-white text-slate-900 shadow-sm"
+                            ? "bg-white text-slate-900 shadow-sm font-extrabold"
                             : "text-slate-600 hover:text-slate-900"
                             }`}
                         >
@@ -1625,58 +1713,245 @@ export default function ProfileViewContainer({ forcedMode }: ProfileViewContaine
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {filteredBookings.map((booking, idx) => (
-                    <div
-                      key={`${booking.id || "booking"}-${idx}`}
-                      className="p-5 rounded-2xl bg-white border border-slate-200 shadow-sm flex flex-col justify-between space-y-4"
+                {filteredBookings.length === 0 ? (
+                  <div className="p-12 text-center bg-slate-50 rounded-3xl border border-slate-200/80 space-y-3">
+                    <CalendarCheck className="w-8 h-8 text-slate-400 mx-auto" />
+                    <div className="text-sm font-bold text-slate-700">No {bookingFilter === "ALL" ? "" : bookingFilter.toLowerCase()} bookings found.</div>
+                    <Link
+                      href="/#courts"
+                      className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-sky-600 text-white text-xs font-bold shadow-sm hover:bg-sky-700 transition-colors"
                     >
-                      <div className="space-y-2">
-                        <div className="flex items-center justify-between">
-                          <span className="font-mono text-xs font-bold text-sky-700 bg-sky-50 px-2 py-0.5 rounded border border-sky-200">
-                            {booking.bookingCode}
+                      <span>Explore Arenas & Book a Slot</span> &rarr;
+                    </Link>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {filteredBookings.map((booking, idx) => {
+                      const isUpcoming = booking.status === "CONFIRMED";
+
+                      return (
+                        <div
+                          key={`${booking.id || "booking"}-${idx}`}
+                          className="p-5 rounded-2xl bg-white border border-slate-200 shadow-sm flex flex-col justify-between space-y-4 hover:border-slate-300 transition-all"
+                        >
+                          <div className="space-y-2">
+                            <div className="flex items-center justify-between">
+                              <span className="font-mono text-xs font-bold text-sky-700 bg-sky-50 px-2 py-0.5 rounded border border-sky-200">
+                                {booking.bookingCode}
+                              </span>
+                              <span
+                                className={`px-2.5 py-0.5 rounded-full text-[10px] font-extrabold ${
+                                  booking.status === "CONFIRMED"
+                                    ? "bg-green-100 text-green-800 border border-green-300"
+                                    : booking.status === "CANCELLED"
+                                    ? "bg-red-100 text-red-800 border border-red-300"
+                                    : "bg-slate-100 text-slate-700 border border-slate-200"
+                                }`}
+                              >
+                                {booking.status}
+                              </span>
+                            </div>
+
+                            <div className="text-[11px] font-bold text-slate-500 uppercase">
+                              {booking.sport} &bull; {booking.surface}
+                            </div>
+
+                            <h4 className="text-sm font-black text-slate-900 leading-snug">
+                              {booking.courtName}
+                            </h4>
+
+                            <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-100 text-xs text-slate-700 space-y-1">
+                              <div className="flex items-center gap-1.5 font-bold text-sky-800">
+                                <Clock className="w-3.5 h-3.5" /> {booking.timeSlot}
+                              </div>
+                              <div className="text-slate-500 font-medium">
+                                {booking.date}
+                              </div>
+                              {booking.status === "CANCELLED" && booking.cancellationReason && (
+                                <div className="text-[11px] text-red-600 font-medium pt-1 border-t border-slate-200/60">
+                                  Reason: {booking.cancellationReason}
+                                </div>
+                              )}
+                            </div>
+                          </div>
+
+                          <div className="pt-3 border-t border-slate-100 flex items-center justify-between gap-2 text-xs flex-wrap">
+                            <span className="font-extrabold text-slate-900">
+                              ₹{booking.amount} {booking.status === "CANCELLED" ? "Snapshot" : "Paid"}
+                            </span>
+
+                            <div className="flex items-center gap-2">
+                              {/* Cancel Booking Action - Only for upcoming CONFIRMED bookings */}
+                              {isUpcoming ? (
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setCancellingBooking(booking);
+                                    setCancelReason("");
+                                    setCancelFeedback(null);
+                                  }}
+                                  className="px-3 py-1.5 rounded-xl border border-red-200 text-red-700 bg-red-50 hover:bg-red-100 font-bold text-xs transition-all flex items-center gap-1.5"
+                                  title="Cancel this upcoming booking"
+                                >
+                                  <X className="w-3.5 h-3.5 text-red-600" />
+                                  <span>Cancel Booking</span>
+                                </button>
+                              ) : (
+                                <button
+                                  type="button"
+                                  onClick={() => alert(`Court entry QR & Directions sent to ${activeUser.phone}`)}
+                                  className="text-sky-600 font-bold hover:underline"
+                                >
+                                  Digital Pass &rarr;
+                                </button>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+
+                {/* Cancel Booking Confirmation Modal Dialog */}
+                {cancellingBooking && (
+                  <div className="fixed inset-0 z-[120] flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-sm animate-in fade-in duration-200">
+                    <div
+                      className="relative w-full max-w-lg bg-white rounded-3xl shadow-2xl border border-slate-200 overflow-hidden animate-in zoom-in-95 duration-200 p-6 sm:p-7 space-y-5"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      {/* Modal Header */}
+                      <div className="flex items-start justify-between gap-4 border-b border-slate-100 pb-4">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-2xl bg-red-50 border border-red-200 flex items-center justify-center text-red-600 shrink-0">
+                            <AlertTriangle className="w-5 h-5" />
+                          </div>
+                          <div>
+                            <h3 className="text-base font-black text-slate-900 font-[family-name:var(--font-outfit)]">
+                              Confirm Booking Cancellation
+                            </h3>
+                            <p className="text-xs text-slate-500">
+                              Review refund eligibility and confirm cancellation
+                            </p>
+                          </div>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => setCancellingBooking(null)}
+                          disabled={cancelSubmitting}
+                          className="p-1.5 rounded-xl hover:bg-slate-100 text-slate-400 hover:text-slate-700 transition-colors"
+                        >
+                          <X className="w-4 h-4" />
+                        </button>
+                      </div>
+
+                      {/* Booking Details Card */}
+                      <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 space-y-2">
+                        <div className="flex items-center justify-between text-xs">
+                          <span className="font-mono font-bold text-sky-700 bg-sky-50 px-2 py-0.5 rounded border border-sky-200">
+                            {cancellingBooking.bookingCode}
                           </span>
-                          <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-extrabold ${booking.status === "CONFIRMED"
-                            ? "bg-green-100 text-green-800 border border-green-300"
-                            : "bg-slate-100 text-slate-700"
-                            }`}>
-                            {booking.status}
+                          <span className="font-extrabold text-slate-900">
+                            ₹{cancellingBooking.amount} Paid
                           </span>
                         </div>
-
-                        <div className="text-[11px] font-bold text-slate-500 uppercase">
-                          {booking.sport} &bull; {booking.surface}
+                        <div className="text-sm font-bold text-slate-900">
+                          {cancellingBooking.courtName} ({cancellingBooking.sport})
                         </div>
-
-                        <h4 className="text-sm font-black text-slate-900 leading-snug">
-                          {booking.courtName}
-                        </h4>
-
-                        <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-100 text-xs text-slate-700 space-y-1">
-                          <div className="flex items-center gap-1.5 font-bold text-sky-800">
-                            <Clock className="w-3.5 h-3.5" /> {booking.timeSlot}
-                          </div>
-                          <div className="text-slate-500 font-medium">
-                            {booking.date}
-                          </div>
+                        <div className="text-xs text-slate-600 flex items-center gap-2">
+                          <Clock className="w-3.5 h-3.5 text-sky-600" />
+                          <span>{cancellingBooking.date} &bull; {cancellingBooking.timeSlot}</span>
                         </div>
                       </div>
 
-                      <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-xs">
-                        <span className="font-extrabold text-slate-900">
-                          ₹{booking.amount} Paid
-                        </span>
+                      {/* Refund Rule Notification */}
+                      {isEligibleForRefund(cancellingBooking.startTime) ? (
+                        <div className="p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-xs text-emerald-900 space-y-1">
+                          <div className="font-bold flex items-center gap-1.5 text-emerald-800">
+                            <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                            <span>Full Refund Eligible (100%)</span>
+                          </div>
+                          <p className="text-emerald-700 leading-relaxed text-[11px]">
+                            This slot is scheduled for 12+ hours from now. Cancelling will credit a full refund of{" "}
+                            <strong>₹{cancellingBooking.amount}</strong> to your original payment method / club wallet.
+                          </p>
+                        </div>
+                      ) : (
+                        <div className="p-4 rounded-2xl bg-amber-50 border border-amber-200 text-xs text-amber-900 space-y-1">
+                          <div className="font-bold flex items-center gap-1.5 text-amber-800">
+                            <AlertCircle className="w-4 h-4 text-amber-600 shrink-0" />
+                            <span>Non-Refundable Cancellation Notice</span>
+                          </div>
+                          <p className="text-amber-700 leading-relaxed text-[11px]">
+                            Cancellation is within 12 hours of the slot start time. According to club reservation rules, the booking fee of{" "}
+                            <strong>₹{cancellingBooking.amount}</strong> is non-refundable. The court slot will be released for other members.
+                          </p>
+                        </div>
+                      )}
+
+                      {/* Cancellation Reason Selector & Input */}
+                      <div className="space-y-2">
+                        <label className="text-xs font-bold text-slate-700 block">
+                          Reason for Cancellation (Optional)
+                        </label>
+                        <div className="flex flex-wrap gap-1.5">
+                          {["Schedule Conflict", "Injury / Illness", "Personal / Travel", "Weather Conditions"].map((r) => (
+                            <button
+                              key={r}
+                              type="button"
+                              onClick={() => setCancelReason(r)}
+                              className={`px-2.5 py-1 rounded-lg text-[11px] font-semibold border transition-all ${
+                                cancelReason === r
+                                  ? "bg-slate-900 text-white border-slate-900"
+                                  : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50"
+                              }`}
+                            >
+                              {r}
+                            </button>
+                          ))}
+                        </div>
+                        <input
+                          type="text"
+                          placeholder="Or specify custom reason..."
+                          value={cancelReason}
+                          onChange={(e) => setCancelReason(e.target.value)}
+                          className="w-full text-xs px-3.5 py-2 rounded-xl border border-slate-200 bg-white font-medium text-slate-800 focus:outline-none focus:border-sky-500"
+                        />
+                      </div>
+
+                      {/* Action Buttons */}
+                      <div className="flex gap-3 pt-2">
                         <button
                           type="button"
-                          onClick={() => alert(`Court entry QR & Directions sent to ${activeUser.phone}`)}
-                          className="text-sky-600 font-bold hover:underline"
+                          onClick={() => handleCancelBooking()}
+                          disabled={cancelSubmitting}
+                          className="flex-1 py-3 px-4 rounded-xl bg-red-600 hover:bg-red-700 text-white font-bold text-xs shadow-md shadow-red-500/20 transition-all flex items-center justify-center gap-2 disabled:opacity-50"
                         >
-                          Digital Entry QR &rarr;
+                          {cancelSubmitting ? (
+                            <>
+                              <Loader2 className="w-4 h-4 animate-spin" />
+                              <span>Processing Cancellation...</span>
+                            </>
+                          ) : (
+                            <>
+                              <Trash2 className="w-4 h-4" />
+                              <span>Confirm Cancellation</span>
+                            </>
+                          )}
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => setCancellingBooking(null)}
+                          disabled={cancelSubmitting}
+                          className="py-3 px-4 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition-colors"
+                        >
+                          Keep Booking
                         </button>
                       </div>
                     </div>
-                  ))}
-                </div>
+                  </div>
+                )}
 
               </div>
             )}
