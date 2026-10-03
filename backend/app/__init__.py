@@ -129,10 +129,12 @@ def create_app(config_name: str = None) -> Flask:
     app.register_blueprint(employees_bp)
 
     # Register CLI commands
+    from backend.app.seeds import seed_cli
     app.cli.add_command(create_owner_command)
     app.cli.add_command(seed_plans_command)
     app.cli.add_command(seed_courts_command)
     app.cli.add_command(seed_inventory_command)
     app.cli.add_command(seed_pos_command)
+    app.cli.add_command(seed_cli)
 
     return app
