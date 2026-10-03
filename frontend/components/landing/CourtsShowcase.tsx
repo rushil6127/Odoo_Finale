@@ -189,8 +189,8 @@ export default function CourtsShowcase() {
                 key={btn.id}
                 onClick={() => setFilterSport(btn.id)}
                 className={`px-4 py-2 rounded-full text-xs font-bold transition-all duration-200 border ${filterSport === btn.id
-                    ? "bg-slate-950 text-white border-slate-950 shadow-sm"
-                    : "bg-white text-slate-600 border-slate-200 hover:border-slate-300 hover:text-slate-950 hover:bg-slate-50"
+                  ? "bg-slate-950 text-white border-slate-950 shadow-sm"
+                  : "bg-white text-slate-600 border-slate-200 hover:border-slate-300 hover:text-slate-950 hover:bg-slate-50"
                   }`}
               >
                 {btn.label}

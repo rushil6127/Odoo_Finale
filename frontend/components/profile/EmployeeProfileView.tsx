@@ -327,9 +327,9 @@ export default function EmployeeProfileView({
             </div>
             <button 
               onClick={() => setActionSuccessMsg(null)}
-              className="text-emerald-200 hover:text-white text-xs font-black"
+              className="text-emerald-200 hover:text-white"
             >
-              ✕
+              <X className="w-4 h-4" />
             </button>
           </div>
         )}
@@ -372,8 +372,9 @@ export default function EmployeeProfileView({
                       <ShieldCheck className="w-3.5 h-3.5 text-sky-400" />
                       {empData.employeeId}
                     </span>
-                    <span className="flex items-center gap-1 text-slate-300 font-semibold bg-white/10 px-2 py-0.5 rounded border border-white/10">
-                      🎾 Primary Sport: <strong>{empData.primarySport}</strong>
+                    <span className="flex items-center gap-1.5 text-slate-300 font-semibold bg-white/10 px-2 py-0.5 rounded border border-white/10">
+                      <Activity className="w-3.5 h-3.5 text-sky-400" />
+                      <span>Primary Sport: <strong>{empData.primarySport}</strong></span>
                     </span>
                     <span className="flex items-center gap-1 text-slate-300">
                       <Mail className="w-3.5 h-3.5 text-slate-400" />
@@ -442,7 +443,7 @@ export default function EmployeeProfileView({
                 <span className="text-slate-400 font-medium">Allotted Arenas & Courts:</span>
                 {empData.assignedCourts.map((court, i) => (
                   <span key={i} className="px-2.5 py-0.5 rounded-md bg-white/10 border border-white/15 text-slate-200 font-bold text-[11px]">
-                    🏟️ {court}
+                    {court}
                   </span>
                 ))}
               </div>
@@ -533,7 +534,7 @@ export default function EmployeeProfileView({
                     <AlertCircle className="w-4 h-4 text-amber-900" />
                     <span>Report Court Issue</span>
                   </span>
-                  <span>⚠️</span>
+                  <ArrowRight className="w-3.5 h-3.5 text-amber-900 group-hover:translate-x-0.5 transition-transform" />
                 </button>
 
 
@@ -875,7 +876,7 @@ export default function EmployeeProfileView({
                     onChange={(e) => setCourtFilter(e.target.value)}
                     className="px-3 py-1.5 rounded-xl border border-slate-300 text-xs font-bold text-slate-700 bg-white focus:outline-none focus:border-emerald-500"
                   >
-                    <option value="ALL">🏟️ All Allotted Courts</option>
+                    <option value="ALL">All Allotted Courts</option>
                     <option value="Centre Grass">Grass Court #1</option>
                     <option value="Clay">Clay Arena #3</option>
                     <option value="Synthetic">Synthetic #2</option>
@@ -887,7 +888,7 @@ export default function EmployeeProfileView({
                     onChange={(e) => setSlotTypeFilter(e.target.value)}
                     className="px-3 py-1.5 rounded-xl border border-slate-300 text-xs font-bold text-slate-700 bg-white focus:outline-none focus:border-emerald-500"
                   >
-                    <option value="ALL">🎯 All Session Types</option>
+                    <option value="ALL">All Session Types</option>
                     <option value="MEMBER_BOOKING">Member Bookings</option>
                     <option value="COACHING_SESSION">1-on-1 Coaching</option>
                     <option value="TOURNAMENT_MATCH">Tournament Matches</option>
@@ -996,14 +997,14 @@ export default function EmployeeProfileView({
                                 </div>
 
                                 <div className="text-xs font-bold text-slate-600 flex items-center gap-2 flex-wrap">
-                                  <span className="text-emerald-800">🏟️ {slot.courtName}</span>
+                                  <span className="text-emerald-800">{slot.courtName}</span>
                                   <span>&bull;</span>
                                   <span className="text-slate-500 font-mono text-[11px]">ID: {slot.id}</span>
                                 </div>
 
                                 {slot.specialRequests && (
                                   <p className="text-xs text-slate-600 bg-slate-50 p-2 rounded-lg border border-slate-100 mt-1 max-w-2xl">
-                                    💡 <em>Notes: {slot.specialRequests}</em>
+                                    <em>Notes: {slot.specialRequests}</em>
                                   </p>
                                 )}
 
@@ -1207,8 +1208,9 @@ export default function EmployeeProfileView({
                       </div>
                     </div>
 
-                    <span className="text-xs font-bold text-emerald-700 shrink-0">
-                      ✓ Inspected
+                    <span className="flex items-center gap-1.5 text-xs font-bold text-emerald-700 shrink-0">
+                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                      <span>Inspected</span>
                     </span>
                   </div>
                 ))}
@@ -1319,7 +1321,7 @@ export default function EmployeeProfileView({
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
                   <div className="p-3 rounded-xl bg-white border border-slate-200">
                     <span className="text-slate-400 block text-[10px]">PRIMARY SPORT</span>
-                    <strong className="text-slate-900 text-sm">🎾 {empData.primarySport}</strong>
+                    <strong className="text-slate-900 text-sm">{empData.primarySport}</strong>
                   </div>
                   <div className="p-3 rounded-xl bg-white border border-slate-200">
                     <span className="text-slate-400 block text-[10px]">EXPERIENCE</span>
@@ -1327,7 +1329,7 @@ export default function EmployeeProfileView({
                   </div>
                   <div className="p-3 rounded-xl bg-white border border-slate-200">
                     <span className="text-slate-400 block text-[10px]">RATING</span>
-                    <strong className="text-slate-900 text-sm">{empData.rating} ★ (428 Sessions)</strong>
+                    <strong className="text-slate-900 text-sm">{empData.rating} / 5.0 (428 Sessions)</strong>
                   </div>
                 </div>
               </div>
@@ -1369,9 +1371,9 @@ export default function EmployeeProfileView({
               </div>
               <button
                 onClick={() => setSelectedTraineeForNote(null)}
-                className="text-slate-400 hover:text-slate-600 text-sm font-bold"
+                className="text-slate-400 hover:text-slate-600"
               >
-                ✕
+                <X className="w-4 h-4" />
               </button>
             </div>
 
@@ -1380,8 +1382,9 @@ export default function EmployeeProfileView({
             </p>
 
             {noteSuccess ? (
-              <div className="p-4 rounded-2xl bg-emerald-50 text-emerald-800 text-center font-bold text-xs">
-                ✓ Training note recorded in student record!
+              <div className="p-4 rounded-2xl bg-emerald-50 text-emerald-800 text-center font-bold text-xs flex items-center justify-center gap-2">
+                <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                <span>Training note recorded in student record!</span>
               </div>
             ) : (
               <form onSubmit={handleSaveTraineeNote} className="space-y-4">
@@ -1437,15 +1440,16 @@ export default function EmployeeProfileView({
               </div>
               <button
                 onClick={() => setShowReportIssueModal(false)}
-                className="text-slate-400 hover:text-slate-600 text-sm font-bold"
+                className="text-slate-400 hover:text-slate-600"
               >
-                ✕
+                <X className="w-4 h-4" />
               </button>
             </div>
 
             {issueSuccess ? (
-              <div className="p-4 rounded-2xl bg-emerald-50 text-emerald-800 text-center font-bold text-xs">
-                ✓ Issue reported! Dispatched to ground staff Ramesh & Manoj.
+              <div className="p-4 rounded-2xl bg-emerald-50 text-emerald-800 text-center font-bold text-xs flex items-center justify-center gap-2">
+                <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                <span>Issue reported! Dispatched to ground staff Ramesh & Manoj.</span>
               </div>
             ) : (
               <form onSubmit={handleReportIssue} className="space-y-4">
@@ -1528,9 +1532,9 @@ export default function EmployeeProfileView({
               </h3>
               <button
                 onClick={() => setSelectedSlotDetail(null)}
-                className="text-slate-400 hover:text-slate-600 text-sm font-bold"
+                className="text-slate-400 hover:text-slate-600"
               >
-                ✕
+                <X className="w-4 h-4" />
               </button>
             </div>
 

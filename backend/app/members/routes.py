@@ -138,3 +138,26 @@ def update_member_endpoint(member_id: int, validated_data):
         message="Member profile updated successfully",
         status_code=200,
     )
+
+
+@members_bp.route("/export", methods=["GET"])
+@members_bp.route("/export/excel", methods=["GET"])
+def export_members_excel():
+    """Export member directory data as an Excel (.exl / .xlsx) spreadsheet."""
+    from backend.app.reports.routes import _authenticate_export_user
+    from backend.app.reports.exports import generate_excel_workbook
+    from flask import send_file
+    from datetime import datetime
+
+    _authenticate_export_user(allowed_roles=(RoleEnum.OWNER, RoleEnum.ADMIN, RoleEnum.FRONT_DESK))
+    ext = "exl" if request.args.get("format", "").lower() == "exl" else "xlsx"
+    buffer = generate_excel_workbook(section="members")
+    timestamp = datetime.utcnow().strftime("%Y%m%d_%H%M%S")
+    filename = f"champions_club_members_{timestamp}.{ext}"
+
+    return send_file(
+        buffer,
+        mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        as_attachment=True,
+        download_name=filename,
+    )

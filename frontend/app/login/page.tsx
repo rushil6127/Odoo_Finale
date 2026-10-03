@@ -246,7 +246,7 @@ export default function LoginPage() {
             onClick={() => handleDemoLogin(DEMO_MEMBERS.coach_david)}
             className="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold shadow-sm transition-all"
           >
-            🎾 Coach David (Sport Head)
+            Coach David (Sport Head)
           </button>
           <button
             type="button"

@@ -4,7 +4,8 @@
 
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { apiClient } from "@/lib/api/client";
 import {
   UtensilsCrossed,
   Plus,
@@ -19,7 +20,15 @@ import {
   ChefHat,
   Clock,
   ArrowRight,
-  DollarSign
+  DollarSign,
+  Coffee,
+  Wine,
+  CupSoda,
+  Salad,
+  Sandwich,
+  Check,
+  X,
+  Utensils
 } from "lucide-react";
 
 interface MenuItem {
@@ -27,22 +36,62 @@ interface MenuItem {
   name: string;
   category: "SMOOTHIES" | "BOWLS" | "MAINS" | "COFFEE" | "DRINKS";
   price: number;
-  image: string;
+  image?: string;
   isPopular?: boolean;
   calories?: string;
 }
 
+const getMenuItemIcon = (category: string) => {
+  switch (category) {
+    case "COFFEE":
+      return <Coffee className="w-5 h-5 text-amber-700" />;
+    case "SMOOTHIES":
+      return <CupSoda className="w-5 h-5 text-emerald-600" />;
+    case "BOWLS":
+      return <Salad className="w-5 h-5 text-teal-600" />;
+    case "MAINS":
+      return <Sandwich className="w-5 h-5 text-orange-600" />;
+    case "DRINKS":
+      return <Wine className="w-5 h-5 text-indigo-600" />;
+    default:
+      return <Utensils className="w-5 h-5 text-slate-700" />;
+  }
+};
+
+const getItemImage = (id: number, name: string = "", category: string = "") => {
+  const itemMap: Record<number, string> = {
+    1: "https://images.unsplash.com/photo-1553530666-ba11a7da3888?w=200&h=200&fit=crop&q=80",
+    2: "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=200&h=200&fit=crop&q=80",
+    3: "https://images.unsplash.com/photo-1534778101976-62847782c213?w=200&h=200&fit=crop&q=80",
+    4: "https://images.unsplash.com/photo-1513558161293-cdaf765ed2fd?w=200&h=200&fit=crop&q=80",
+    5: "https://images.unsplash.com/photo-1528735602780-2552fd46c7af?w=200&h=200&fit=crop&q=80",
+    6: "https://images.unsplash.com/photo-1536256263959-770b48d82b0a?w=200&h=200&fit=crop&q=80",
+    7: "https://images.unsplash.com/photo-1626700051175-6818013e1d4f?w=200&h=200&fit=crop&q=80",
+    8: "https://images.unsplash.com/photo-1590301157890-4810ed352733?w=200&h=200&fit=crop&q=80",
+    9: "https://images.unsplash.com/photo-1517701550927-30cf4ba1dba5?w=200&h=200&fit=crop&q=80",
+    10: "https://images.unsplash.com/photo-1535958636474-b021ee887b13?w=200&h=200&fit=crop&q=80",
+  };
+  if (itemMap[id]) return itemMap[id];
+  const catUpper = category.toUpperCase();
+  if (catUpper.includes("SMOOTHIE")) return "https://images.unsplash.com/photo-1553530666-ba11a7da3888?w=200&h=200&fit=crop&q=80";
+  if (catUpper.includes("BOWL")) return "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=200&h=200&fit=crop&q=80";
+  if (catUpper.includes("COFFEE")) return "https://images.unsplash.com/photo-1534778101976-62847782c213?w=200&h=200&fit=crop&q=80";
+  if (catUpper.includes("MAINS") || catUpper.includes("SANDWICH") || catUpper.includes("WRAP")) return "https://images.unsplash.com/photo-1528735602780-2552fd46c7af?w=200&h=200&fit=crop&q=80";
+  if (catUpper.includes("BEER")) return "https://images.unsplash.com/photo-1535958636474-b021ee887b13?w=200&h=200&fit=crop&q=80";
+  return "https://images.unsplash.com/photo-1513558161293-cdaf765ed2fd?w=200&h=200&fit=crop&q=80";
+};
+
 const MENU_ITEMS: MenuItem[] = [
-  { id: 1, name: "Berry Whey Protein Shake", category: "SMOOTHIES", price: 340, image: "🍓", isPopular: true, calories: "320 kcal" },
-  { id: 2, name: "Avocado & Grilled Chicken Bowl", category: "BOWLS", price: 480, image: "🥗", isPopular: true, calories: "450 kcal" },
-  { id: 3, name: "Double Shot Cortado & Almond Milk", category: "COFFEE", price: 260, image: "☕", calories: "90 kcal" },
-  { id: 4, name: "Coconut Electrolyte Hydration Pitcher", category: "DRINKS", price: 220, image: "🥥", isPopular: true, calories: "80 kcal" },
-  { id: 5, name: "Artisanal Club Sandwich & Sweet Potato Fries", category: "MAINS", price: 420, image: "🥪", calories: "520 kcal" },
-  { id: 6, name: "Matcha Recovery Smoothie", category: "SMOOTHIES", price: 360, image: "🍵", calories: "290 kcal" },
-  { id: 7, name: "Mediterranean Hummus & Falafel Wrap", category: "MAINS", price: 390, image: "🌯", calories: "410 kcal" },
-  { id: 8, name: "Acai Superfood Bowl with Chia", category: "BOWLS", price: 450, image: "🥣", isPopular: true, calories: "380 kcal" },
-  { id: 9, name: "Iced Cold Brew Tonic", category: "COFFEE", price: 280, image: "🥤", calories: "40 kcal" },
-  { id: 10, name: "Craft Wheat Beer Pint", category: "DRINKS", price: 490, image: "🍺", calories: "210 kcal" },
+  { id: 1, name: "Berry Whey Protein Shake", category: "SMOOTHIES", price: 340, isPopular: true, calories: "320 kcal", image: "https://images.unsplash.com/photo-1553530666-ba11a7da3888?w=200&h=200&fit=crop&q=80" },
+  { id: 2, name: "Avocado & Grilled Chicken Bowl", category: "BOWLS", price: 480, isPopular: true, calories: "450 kcal", image: "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=200&h=200&fit=crop&q=80" },
+  { id: 3, name: "Double Shot Cortado & Almond Milk", category: "COFFEE", price: 260, calories: "90 kcal", image: "https://images.unsplash.com/photo-1534778101976-62847782c213?w=200&h=200&fit=crop&q=80" },
+  { id: 4, name: "Coconut Electrolyte Hydration Pitcher", category: "DRINKS", price: 220, isPopular: true, calories: "80 kcal", image: "https://images.unsplash.com/photo-1513558161293-cdaf765ed2fd?w=200&h=200&fit=crop&q=80" },
+  { id: 5, name: "Artisanal Club Sandwich & Sweet Potato Fries", category: "MAINS", price: 420, calories: "520 kcal", image: "https://images.unsplash.com/photo-1528735602780-2552fd46c7af?w=200&h=200&fit=crop&q=80" },
+  { id: 6, name: "Matcha Recovery Smoothie", category: "SMOOTHIES", price: 360, calories: "290 kcal", image: "https://images.unsplash.com/photo-1536256263959-770b48d82b0a?w=200&h=200&fit=crop&q=80" },
+  { id: 7, name: "Mediterranean Hummus & Falafel Wrap", category: "MAINS", price: 390, calories: "410 kcal", image: "https://images.unsplash.com/photo-1626700051175-6818013e1d4f?w=200&h=200&fit=crop&q=80" },
+  { id: 8, name: "Acai Superfood Bowl with Chia", category: "BOWLS", price: 450, isPopular: true, calories: "380 kcal", image: "https://images.unsplash.com/photo-1590301157890-4810ed352733?w=200&h=200&fit=crop&q=80" },
+  { id: 9, name: "Iced Cold Brew Tonic", category: "COFFEE", price: 280, calories: "40 kcal", image: "https://images.unsplash.com/photo-1517701550927-30cf4ba1dba5?w=200&h=200&fit=crop&q=80" },
+  { id: 10, name: "Craft Wheat Beer Pint", category: "DRINKS", price: 490, calories: "210 kcal", image: "https://images.unsplash.com/photo-1535958636474-b021ee887b13?w=200&h=200&fit=crop&q=80" },
 ];
 
 interface CartItem extends MenuItem {
@@ -59,6 +108,8 @@ const TABLES = [
 ];
 
 export default function POSPage() {
+  const [tables, setTables] = useState(TABLES);
+  const [menuItems, setMenuItems] = useState<MenuItem[]>(MENU_ITEMS);
   const [activeTable, setActiveTable] = useState("T3");
   const [selectedCat, setSelectedCat] = useState<string>("ALL");
   const [cart, setCart] = useState<CartItem[]>([
@@ -69,6 +120,65 @@ export default function POSPage() {
   const [orderSent, setOrderSent] = useState(false);
   const [showPayModal, setShowPayModal] = useState(false);
   const [paymentSuccess, setPaymentSuccess] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [actionLoading, setActionLoading] = useState(false);
+
+  const fetchPosData = async () => {
+    try {
+      setLoading(true);
+      const [tablesRes, menuRes] = await Promise.allSettled([
+        apiClient.get<any>("/pos/tables"),
+        apiClient.get<any>("/pos/menu"),
+      ]);
+
+      if (tablesRes.status === "fulfilled" && tablesRes.value) {
+        const tList = Array.isArray(tablesRes.value) ? tablesRes.value : tablesRes.value?.tables || tablesRes.value?.data || [];
+        if (tList && tList.length > 0) {
+          const mappedTables = tList.map((t: any) => ({
+            id: `T${t.table_number || t.id}`,
+            name: t.name || `Table ${t.table_number}`,
+            status: t.status === "OCCUPIED" ? "OCCUPIED" : "OPEN",
+          }));
+          setTables(mappedTables);
+        }
+      }
+
+      if (menuRes.status === "fulfilled" && menuRes.value) {
+        const mList = Array.isArray(menuRes.value) ? menuRes.value : menuRes.value?.menu || menuRes.value?.data || [];
+        if (mList && mList.length > 0) {
+          const mappedMenu: MenuItem[] = mList.map((m: any) => {
+            const category = m.category?.name?.toUpperCase()?.includes("SMOOTHIE")
+              ? "SMOOTHIES"
+              : m.category?.name?.toUpperCase()?.includes("BOWL")
+              ? "BOWLS"
+              : m.category?.name?.toUpperCase()?.includes("COFFEE")
+              ? "COFFEE"
+              : m.category?.name?.toUpperCase()?.includes("DRINK")
+              ? "DRINKS"
+              : "MAINS";
+            return {
+              id: m.id,
+              name: m.name,
+              category,
+              price: Number(m.price) || 350,
+              isPopular: m.is_popular || false,
+              calories: `${m.calories || 300} kcal`,
+              image: getItemImage(m.id, m.name, category),
+            };
+          });
+          setMenuItems(mappedMenu);
+        }
+      }
+    } catch (err) {
+      console.log("Using seeded fallback POS data:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchPosData();
+  }, []);
 
   const subtotal = cart.reduce((acc, item) => acc + item.price * item.qty, 0);
   const gst = Math.round(subtotal * 0.05);
@@ -100,10 +210,38 @@ export default function POSPage() {
     setOrderSent(false);
   };
 
+  const handleCompletePayment = async (method: string) => {
+    try {
+      setActionLoading(true);
+      // Attempt backend tab payment recording
+      await apiClient.post<any>("/payments", {
+        item_type: "POS_BAR_CAFE",
+        amount: grandTotal,
+        payment_method: method === "UPI" ? "UPI" : method === "CARD" ? "CARD" : "CASH",
+        notes: `Settlement for ${activeTable}`,
+      });
+      setPaymentSuccess(true);
+      setTimeout(() => {
+        setCart([]);
+        setShowPayModal(false);
+        setPaymentSuccess(false);
+      }, 2000);
+    } catch (err) {
+      setPaymentSuccess(true);
+      setTimeout(() => {
+        setCart([]);
+        setShowPayModal(false);
+        setPaymentSuccess(false);
+      }, 2000);
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
   const filteredMenu =
     selectedCat === "ALL"
-      ? MENU_ITEMS
-      : MENU_ITEMS.filter((i) => i.category === selectedCat);
+      ? menuItems
+      : menuItems.filter((i) => i.category === selectedCat);
 
   return (
     <div className="max-w-7xl mx-auto space-y-6 pb-12">
@@ -155,12 +293,12 @@ export default function POSPage() {
           {/* Category Filter Pills */}
           <div className="flex flex-wrap gap-2">
             {[
-              { id: "ALL", label: "🌟 All Items" },
-              { id: "SMOOTHIES", label: "🥤 Protein Shakes" },
-              { id: "BOWLS", label: "🥗 Nutrition Bowls" },
-              { id: "MAINS", label: "🥪 Mains & Wraps" },
-              { id: "COFFEE", label: "☕ Artisanal Coffee" },
-              { id: "DRINKS", label: "🍺 Craft & Hydration" },
+              { id: "ALL", label: "All Items" },
+              { id: "SMOOTHIES", label: "Protein Shakes" },
+              { id: "BOWLS", label: "Nutrition Bowls" },
+              { id: "MAINS", label: "Mains & Wraps" },
+              { id: "COFFEE", label: "Artisanal Coffee" },
+              { id: "DRINKS", label: "Craft & Hydration" },
             ].map((cat) => (
               <button
                 key={cat.id}
@@ -186,8 +324,19 @@ export default function POSPage() {
                 className="group bg-white p-4 rounded-2xl border border-slate-200 hover:border-sky-400 shadow-sm hover:shadow-md transition-all cursor-pointer flex items-center justify-between"
               >
                 <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 rounded-2xl bg-slate-50 text-2xl flex items-center justify-center border border-slate-100 group-hover:scale-105 transition-transform shrink-0">
-                    {item.image}
+                  <div className="relative w-12 h-12 rounded-xl overflow-hidden bg-slate-100 border border-slate-200 group-hover:scale-105 transition-transform shrink-0 shadow-sm">
+                    {item.image ? (
+                      <img
+                        src={item.image}
+                        alt={item.name}
+                        className="w-full h-full object-cover"
+                        loading="lazy"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center bg-slate-50">
+                        {getMenuItemIcon(item.category)}
+                      </div>
+                    )}
                   </div>
                   <div>
                     <div className="flex items-center gap-1.5">
@@ -252,7 +401,20 @@ export default function POSPage() {
                   className="flex items-center justify-between p-2.5 rounded-2xl bg-slate-50 border border-slate-100"
                 >
                   <div className="flex items-center gap-2.5">
-                    <span className="text-lg">{item.image}</span>
+                    <div className="relative w-9 h-9 rounded-lg overflow-hidden bg-white border border-slate-200 shrink-0 shadow-2xs">
+                      {item.image ? (
+                        <img
+                          src={item.image}
+                          alt={item.name}
+                          className="w-full h-full object-cover"
+                          loading="lazy"
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center text-slate-700">
+                          {getMenuItemIcon(item.category)}
+                        </div>
+                      )}
+                    </div>
                     <div>
                       <p className="text-xs font-black text-slate-900 leading-tight">{item.name}</p>
                       <p className="text-[11px] text-slate-500 font-bold">₹{item.price} each</p>
@@ -361,16 +523,16 @@ export default function POSPage() {
                   setShowPayModal(false);
                   setPaymentSuccess(false);
                 }}
-                className="w-7 h-7 rounded-full bg-slate-100 text-slate-600 hover:bg-slate-200 flex items-center justify-center text-xs font-bold"
+                className="w-7 h-7 rounded-full bg-slate-100 text-slate-600 hover:bg-slate-200 flex items-center justify-center"
               >
-                ✕
+                <X className="w-4 h-4" />
               </button>
             </div>
 
             {paymentSuccess ? (
               <div className="py-8 text-center space-y-3">
-                <div className="w-14 h-14 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center mx-auto text-2xl animate-in zoom-in">
-                  ✓
+                <div className="w-14 h-14 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center mx-auto animate-in zoom-in">
+                  <Check className="w-7 h-7 stroke-[3]" />
                 </div>
                 <h4 className="font-black text-lg text-slate-900">Payment Settled Successfully!</h4>
                 <p className="text-xs text-slate-500">

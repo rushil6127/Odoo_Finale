@@ -95,6 +95,13 @@ backend/
 │   │   ├── report_tasks.py
 │   │   └── notification_tasks.py
 │   │
+│   ├── middleware/
+│   │   ├── __init__.py
+│   │   ├── auth.py
+│   │   ├── request_logging.py
+│   │   ├── request_id.py
+│   │   └── error_handler.py
+│   │
 │   └── common/
 │       ├── errors.py
 │       ├── permissions.py
@@ -207,3 +214,35 @@ Celery worker
  ↓
 Email / notification / report
 ```
+
+## 10. Middleware Layer
+
+The Flask backend employs a dedicated middleware layer to manage cross-cutting concerns cleanly before and after request dispatching, ensuring business logic remains strictly within service modules.
+
+### Request Pipeline
+
+```text
+Client
+  ↓
+Request ID (X-Request-ID propagation / generation)
+  ↓
+Authentication Context (Safe JWT identity extraction into request context)
+  ↓
+Request Logging (Timing, metadata capture, secret redaction)
+  ↓
+Flask Route
+  ↓
+Role / Permission Authorization (@roles_required, @owner_required)
+  ↓
+Service Layer (Business rules, validations, workflows)
+  ↓
+Database (SQLAlchemy)
+```
+
+### Key Responsibilities
+
+1. **Request Correlation ID (`request_id.py`)**: Intercepts or generates UUID `X-Request-ID`, attaches to Flask `g.request_id`, and injects `X-Request-ID` into every HTTP response header (success and error).
+2. **Authentication Context (`auth.py`)**: Safely inspects optional JWT tokens without blocking unauthenticated public routes (e.g. login, registration, Google auth, payment webhooks).
+3. **Request Logging (`request_logging.py`)**: Records structured execution metadata (HTTP method, path, response status, duration ms, request ID, user ID, role) while strictly redacting sensitive tokens, secrets, passwords, and cards.
+4. **Centralized Error Handling (`error_handler.py`)**: Intercepts domain `AppException`, validation errors, database integrity violations, and unexpected 500 crashes into a consistent JSON envelope (`{"success": false, "error": {"code": "...", "message": "..."}}`) while protecting stack traces and internal secrets in production.
+

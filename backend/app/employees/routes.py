@@ -376,3 +376,26 @@ def put_pay_payroll(payroll_id: int):
         data=record.to_dict(),
         message=f"Payroll record {record.payroll_reference} marked as paid",
     )
+
+
+@employees_bp.route("/export", methods=["GET"])
+@employees_bp.route("/export/excel", methods=["GET"])
+def export_employees_excel():
+    """Export staff & employee directory data as an Excel (.exl / .xlsx) spreadsheet."""
+    from backend.app.reports.routes import _authenticate_export_user
+    from backend.app.reports.exports import generate_excel_workbook
+    from flask import send_file
+    from datetime import datetime
+
+    _authenticate_export_user(allowed_roles=(RoleEnum.OWNER, RoleEnum.ADMIN, RoleEnum.FRONT_DESK))
+    ext = "exl" if request.args.get("format", "").lower() == "exl" else "xlsx"
+    buffer = generate_excel_workbook(section="employees")
+    timestamp = datetime.utcnow().strftime("%Y%m%d_%H%M%S")
+    filename = f"champions_club_employees_{timestamp}.{ext}"
+
+    return send_file(
+        buffer,
+        mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        as_attachment=True,
+        download_name=filename,
+    )

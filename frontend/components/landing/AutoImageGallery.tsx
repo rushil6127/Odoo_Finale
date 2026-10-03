@@ -2,11 +2,11 @@
 
 import { useState, useEffect } from "react";
 import Image from "next/image";
-import { 
-  ChevronLeft, 
-  ChevronRight, 
-  Camera, 
-  Sparkles 
+import {
+  ChevronLeft,
+  ChevronRight,
+  Camera,
+  Sparkles
 } from "lucide-react";
 
 interface GallerySlide {
@@ -155,11 +155,10 @@ export default function AutoImageGallery() {
                 <button
                   key={slide.id}
                   onClick={() => setCurrentIndex(idx)}
-                  className={`h-2 rounded-full transition-all duration-300 ${
-                    idx === currentIndex
+                  className={`h-2 rounded-full transition-all duration-300 ${idx === currentIndex
                       ? "w-8 bg-sky-400"
                       : "w-2 bg-white/50 hover:bg-white"
-                  }`}
+                    }`}
                   aria-label={`Go to slide ${idx + 1}`}
                 />
               ))}
@@ -173,11 +172,10 @@ export default function AutoImageGallery() {
             <button
               key={slide.id}
               onClick={() => setCurrentIndex(idx)}
-              className={`p-3.5 rounded-2xl text-left transition-all duration-200 flex items-center gap-3.5 border ${
-                idx === currentIndex
+              className={`p-3.5 rounded-2xl text-left transition-all duration-200 flex items-center gap-3.5 border ${idx === currentIndex
                   ? "bg-white border-sky-400 shadow-md ring-2 ring-sky-400/20"
                   : "bg-white/60 hover:bg-white border-slate-200"
-              }`}
+                }`}
             >
               <div className="w-14 h-14 rounded-xl relative overflow-hidden shrink-0 border border-slate-200">
                 <Image
