@@ -67,6 +67,9 @@ def make_celery(app=None) -> Celery:
         """Task executing inside Flask application context."""
 
         def __call__(self, *args, **kwargs):
+            from flask import has_app_context
+            if has_app_context():
+                return self.run(*args, **kwargs)
             with app.app_context():
                 return self.run(*args, **kwargs)
 
