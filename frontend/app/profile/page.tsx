@@ -365,11 +365,11 @@ export default function ProfilePage() {
     <div className="min-h-screen bg-white text-slate-900 selection:bg-sky-200 selection:text-sky-900 flex flex-col hero-gradient-bg">
       
       {/* ============================================================ */}
-      {/* FLOATING PILL NAVBAR (Club Landing Page Theme) */}
+      {/* FLOATING PILL NAVBAR (Clean, Spacious & Decongested) */}
       {/* ============================================================ */}
       <header className="fixed top-0 left-0 right-0 z-50 px-3 sm:px-6 pt-3 sm:pt-4 transition-all duration-300">
         <div className="max-w-7xl mx-auto">
-          <nav className="pill-navbar-glass pill-navbar-shadow rounded-full px-3.5 sm:px-6 py-2.5 sm:py-3 transition-all duration-300 flex items-center justify-between bg-white/95 border border-sky-100 shadow-lg">
+          <nav className="pill-navbar-glass pill-navbar-shadow rounded-full px-4 sm:px-6 py-2.5 sm:py-3 transition-all duration-300 flex items-center justify-between bg-white/95 border border-sky-100 shadow-lg">
             
             {/* Brand Emblem & Name */}
             <Link href="/" className="flex items-center gap-2.5 sm:gap-3 group shrink-0">
@@ -386,59 +386,15 @@ export default function ProfilePage() {
               </div>
             </Link>
 
-            {/* Desktop Navigation Links */}
-            <div className="hidden lg:flex items-center gap-1 bg-slate-100/70 p-1 rounded-full border border-slate-200/60 shadow-inner">
-              <Link href="/" className="px-3.5 py-1.5 rounded-full text-xs font-medium text-slate-600 hover:text-sky-600 hover:bg-white/50 transition-all">
-                Home
-              </Link>
-              <Link href="/#courts" className="px-3.5 py-1.5 rounded-full text-xs font-medium text-slate-600 hover:text-sky-600 hover:bg-white/50 transition-all">
-                Courts
-              </Link>
-              <Link href="/#memberships" className="px-3.5 py-1.5 rounded-full text-xs font-medium text-slate-600 hover:text-sky-600 hover:bg-white/50 transition-all">
-                Memberships
-              </Link>
-              <Link href="/#shop" className="px-3.5 py-1.5 rounded-full text-xs font-medium text-slate-600 hover:text-sky-600 hover:bg-white/50 transition-all">
-                Pro Shop
-              </Link>
-              <Link href="/#cafe" className="px-3.5 py-1.5 rounded-full text-xs font-medium text-slate-600 hover:text-sky-600 hover:bg-white/50 transition-all">
-                Café
-              </Link>
-              <Link href="/profile" className="px-3.5 py-1.5 rounded-full text-xs font-bold bg-white text-sky-700 shadow-sm border border-slate-200/80 transition-all">
-                My Profile & Pass
-              </Link>
-            </div>
-
-            {/* Right Action CTA Buttons */}
-            <div className="hidden md:flex items-center gap-2.5 shrink-0">
+            {/* Right Clean Action CTA Buttons */}
+            <div className="hidden md:flex items-center gap-3 shrink-0">
               <Link
                 href="/"
-                className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full text-xs font-bold bg-sky-50 hover:bg-sky-100 text-sky-700 border border-sky-200 transition-all"
+                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-extrabold bg-sky-50 hover:bg-sky-100 text-sky-700 border border-sky-200 transition-all shadow-sm"
               >
                 <ChevronLeft className="w-3.5 h-3.5 text-sky-600" />
-                <span>Back to Club</span>
+                <span>Back to Club Sanctuary</span>
               </Link>
-
-              {canAccessConsole && (
-                <Link
-                  href="/dashboard"
-                  className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-bold bg-lime-100 hover:bg-lime-200 text-lime-900 border border-lime-300 transition-all shadow-sm"
-                >
-                  <TrendingUp className="w-3.5 h-3.5 text-lime-700" />
-                  <span>Staff & Admin Console</span>
-                </Link>
-              )}
-
-              {isSuperOwner && (
-                <button
-                  type="button"
-                  onClick={() => setShowGrantModal(true)}
-                  className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-black bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-500 hover:to-amber-600 text-amber-950 border border-amber-300 shadow-md transition-all"
-                  title="Super Owner Access Delegator"
-                >
-                  <Crown className="w-3.5 h-3.5 text-amber-900" />
-                  <span>Owner Access Control</span>
-                </button>
-              )}
 
               <button
                 type="button"
@@ -446,7 +402,7 @@ export default function ProfilePage() {
                   logout();
                   router.push("/");
                 }}
-                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-bold text-red-600 hover:bg-red-50 border border-red-200 transition-all"
+                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-extrabold text-red-600 hover:bg-red-50 border border-red-200 transition-all shadow-sm"
                 title="Sign Out"
               >
                 <LogOut className="w-3.5 h-3.5" />
@@ -458,7 +414,7 @@ export default function ProfilePage() {
             <button
               type="button"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="p-2 rounded-full text-slate-700 hover:bg-slate-100 lg:hidden focus:outline-none"
+              className="p-2 rounded-full text-slate-700 hover:bg-slate-100 md:hidden focus:outline-none"
               aria-label="Toggle Navigation Menu"
             >
               {mobileMenuOpen ? <X className="w-5 h-5 text-slate-900" /> : <Menu className="w-5 h-5 text-slate-900" />}
@@ -468,24 +424,34 @@ export default function ProfilePage() {
 
         {/* Mobile Drawer Dropdown */}
         {mobileMenuOpen && (
-          <div className="lg:hidden mt-2 mx-auto max-w-7xl px-2">
+          <div className="md:hidden mt-2 mx-auto max-w-7xl px-2">
             <div className="glass-card rounded-3xl p-4 shadow-xl border border-sky-100 flex flex-col gap-2 animate-in fade-in slide-in-from-top-4 duration-200">
-              <div className="grid grid-cols-2 gap-1.5 pb-3 border-b border-slate-100">
-                <Link href="/" onClick={() => setMobileMenuOpen(false)} className="px-3 py-2 rounded-xl text-xs font-medium text-slate-600 hover:bg-slate-50">
-                  Home
-                </Link>
-                <Link href="/#courts" onClick={() => setMobileMenuOpen(false)} className="px-3 py-2 rounded-xl text-xs font-medium text-slate-600 hover:bg-slate-50">
-                  Courts
-                </Link>
-                <Link href="/#memberships" onClick={() => setMobileMenuOpen(false)} className="px-3 py-2 rounded-xl text-xs font-medium text-slate-600 hover:bg-slate-50">
-                  Memberships
-                </Link>
-                <Link href="/#shop" onClick={() => setMobileMenuOpen(false)} className="px-3 py-2 rounded-xl text-xs font-medium text-slate-600 hover:bg-slate-50">
-                  Pro Shop
-                </Link>
-              </div>
+              <div className="flex flex-col gap-2 pt-1">
+                {isSuperOwner && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setMobileMenuOpen(false);
+                      setShowGrantModal(true);
+                    }}
+                    className="flex items-center justify-center gap-2 py-2.5 rounded-xl text-xs font-black bg-amber-400 text-amber-950 border border-amber-300 shadow-sm"
+                  >
+                    <Crown className="w-4 h-4 text-amber-900" />
+                    <span>👑 Owner Access Delegator</span>
+                  </button>
+                )}
 
-              <div className="flex flex-col gap-2 pt-2">
+                {canAccessConsole && (
+                  <Link
+                    href="/dashboard"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="flex items-center justify-center gap-2 py-2.5 rounded-xl text-xs font-bold bg-lime-100 text-lime-900 border border-lime-300"
+                  >
+                    <TrendingUp className="w-4 h-4 text-lime-800" />
+                    <span>Open Staff & Admin Console</span>
+                  </Link>
+                )}
+
                 <Link
                   href="/"
                   onClick={() => setMobileMenuOpen(false)}
@@ -494,31 +460,6 @@ export default function ProfilePage() {
                   <ChevronLeft className="w-4 h-4 text-sky-600" />
                   <span>Back to Club Sanctuary</span>
                 </Link>
-
-                {canAccessConsole && (
-                  <Link
-                    href="/dashboard"
-                    onClick={() => setMobileMenuOpen(false)}
-                    className="flex items-center justify-center gap-2 py-2.5 rounded-xl text-xs font-bold bg-lime-100 text-lime-900 border border-lime-300"
-                  >
-                    <TrendingUp className="w-4 h-4" />
-                    <span>Open Staff & Admin Console</span>
-                  </Link>
-                )}
-
-                {isSuperOwner && (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setMobileMenuOpen(false);
-                      setShowGrantModal(true);
-                    }}
-                    className="flex items-center justify-center gap-2 py-2.5 rounded-xl text-xs font-black bg-amber-400 text-amber-950 border border-amber-300"
-                  >
-                    <Crown className="w-4 h-4" />
-                    <span>Owner Access Delegator</span>
-                  </button>
-                )}
 
                 <button
                   type="button"
@@ -643,16 +584,23 @@ export default function ProfilePage() {
         <div className="flex gap-6 mt-6 items-start">
 
           {/* ======== LEFT VERTICAL NAV SIDEBAR ======== */}
-          <aside className="hidden lg:flex flex-col w-56 shrink-0 sticky top-28">
-            <div className="bg-white rounded-2xl shadow-lg border border-slate-200/80 overflow-hidden">
+          <aside className="hidden lg:flex flex-col w-64 shrink-0 sticky top-28">
+            <div className="bg-white rounded-3xl shadow-xl border border-slate-200/90 overflow-hidden">
               {/* Sidebar header */}
-              <div className="bg-gradient-to-br from-slate-900 to-blue-950 px-4 py-4">
+              <div className="bg-gradient-to-br from-slate-900 to-blue-950 px-5 py-4">
                 <div className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">My Portal</div>
-                <div className="text-xs font-bold text-white">{activeUser.name.split(" ")[0]}'s Dashboard</div>
+                <div className="text-sm font-extrabold text-white flex items-center justify-between">
+                  <span>{activeUser.name.split(" ")[0]}'s Dashboard</span>
+                  {isSuperOwner && (
+                    <span className="text-[9px] font-black uppercase bg-amber-400 text-amber-950 px-2 py-0.5 rounded-full">
+                      Owner
+                    </span>
+                  )}
+                </div>
               </div>
 
-              {/* Nav Items */}
-              <nav className="p-2 space-y-0.5">
+              {/* Primary Nav Tabs */}
+              <nav className="p-3 space-y-1">
                 {[
                   { id: "overview", label: "Overview", icon: User },
                   { id: "crm", label: `CRM & Enquiries`, icon: MessageSquare, badge: inquiries.length },
@@ -667,20 +615,20 @@ export default function ProfilePage() {
                     <button
                       key={tab.id}
                       onClick={() => setActiveTab(tab.id as TabType)}
-                      className={`w-full flex items-center justify-between gap-2.5 px-3 py-2.5 rounded-xl text-xs font-bold transition-all text-left ${
+                      className={`w-full flex items-center justify-between gap-2.5 px-3.5 py-2.5 rounded-2xl text-xs font-bold transition-all text-left ${
                         isActive
                           ? "bg-slate-900 text-white shadow-md"
                           : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
                       }`}
                     >
                       <span className="flex items-center gap-2.5">
-                        <Icon className={`w-3.5 h-3.5 shrink-0 ${
+                        <Icon className={`w-4 h-4 shrink-0 ${
                           isActive ? "text-sky-400" : "text-slate-400"
                         }`} />
                         <span>{tab.label}</span>
                       </span>
                       {tab.badge !== undefined && tab.badge > 0 && (
-                        <span className={`text-[10px] font-black px-1.5 py-0.5 rounded-full ${
+                        <span className={`text-[10px] font-black px-2 py-0.5 rounded-full ${
                           isActive ? "bg-sky-500 text-white" : "bg-slate-200 text-slate-600"
                         }`}>{tab.badge}</span>
                       )}
@@ -689,21 +637,63 @@ export default function ProfilePage() {
                 })}
               </nav>
 
-              {/* Sidebar Quick Actions */}
-              <div className="p-3 pt-1 border-t border-slate-100 space-y-1.5 mt-1">
+              {/* Sidebar Quick Actions & Management */}
+              <div className="p-3 pt-2 border-t border-slate-100 space-y-2 bg-slate-50/50">
+                <div className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 px-1 mb-1">
+                  Actions & Controls
+                </div>
+
+                {/* Super Owner Master Access Control */}
+                {isSuperOwner && (
+                  <button
+                    type="button"
+                    onClick={() => setShowGrantModal(true)}
+                    className="w-full flex items-center justify-between gap-2 px-3.5 py-2.5 rounded-2xl bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-500 hover:to-amber-600 text-amber-950 font-black text-xs shadow-md border border-amber-300 transition-all group"
+                  >
+                    <span className="flex items-center gap-2">
+                      <Crown className="w-4 h-4 text-amber-900 group-hover:scale-110 transition-transform" />
+                      <span>Owner Access Control</span>
+                    </span>
+                    <Key className="w-3.5 h-3.5 text-amber-900/70" />
+                  </button>
+                )}
+
+                {/* Staff & Admin Console */}
+                {canAccessConsole && (
+                  <Link
+                    href="/dashboard"
+                    className="w-full flex items-center justify-between gap-2 px-3.5 py-2.5 rounded-2xl bg-lime-100 hover:bg-lime-200 text-lime-950 font-extrabold text-xs border border-lime-300 shadow-sm transition-all"
+                  >
+                    <span className="flex items-center gap-2">
+                      <TrendingUp className="w-4 h-4 text-lime-800" />
+                      <span>Staff & Admin Console</span>
+                    </span>
+                    <ExternalLink className="w-3.5 h-3.5 text-lime-700" />
+                  </Link>
+                )}
+
                 <Link
                   href="/#courts"
-                  className="w-full flex items-center gap-2 px-3 py-2 rounded-xl bg-sky-600 hover:bg-sky-700 text-white font-extrabold text-[11px] shadow-sm transition-all"
+                  className="w-full flex items-center gap-2 px-3.5 py-2.5 rounded-2xl bg-sky-600 hover:bg-sky-700 text-white font-extrabold text-xs shadow-md shadow-sky-600/20 transition-all"
                 >
-                  <CalendarIcon className="w-3.5 h-3.5" />
-                  Book Court Slot
+                  <CalendarIcon className="w-4 h-4" />
+                  <span>Book Court Slot</span>
                 </Link>
+
                 <Link
                   href="/#shop"
-                  className="w-full flex items-center gap-2 px-3 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 font-extrabold text-[11px] transition-all"
+                  className="w-full flex items-center gap-2 px-3.5 py-2.5 rounded-2xl bg-white hover:bg-slate-100 text-slate-800 font-extrabold text-xs border border-slate-200 transition-all"
                 >
-                  <ShoppingBag className="w-3.5 h-3.5" />
-                  Pro Shop
+                  <ShoppingBag className="w-4 h-4 text-slate-500" />
+                  <span>Pro Shop & Café</span>
+                </Link>
+
+                <Link
+                  href="/"
+                  className="w-full flex items-center gap-2 px-3.5 py-2 rounded-2xl text-slate-500 hover:text-slate-900 hover:bg-slate-100 text-xs font-bold transition-all text-center justify-center mt-1"
+                >
+                  <ChevronLeft className="w-3.5 h-3.5" />
+                  <span>Back to Club Sanctuary</span>
                 </Link>
               </div>
             </div>
