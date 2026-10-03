@@ -85,49 +85,21 @@ export default function AutoImageGallery() {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-10">
-          <div>
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-sky-100 text-sky-700 text-xs font-bold uppercase tracking-wider mb-2">
-              <Camera className="w-3.5 h-3.5" />
-              <span>Campus Visual Tour</span>
-            </div>
-            <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
-              World-Class Arenas & Amenities
-            </h2>
-            <p className="text-slate-600 text-sm mt-1 max-w-xl">
-              Tour our tournament courts, clubhouse, swimming pavilion, and state-of-the-art sporting facilities.
-            </p>
+        <div className="mb-10 text-center md:text-left">
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-sky-100 text-sky-700 text-xs font-bold uppercase tracking-wider mb-2">
+            <Camera className="w-3.5 h-3.5" />
+            <span>Campus Visual Tour</span>
           </div>
-
-          {/* Autoplay & Navigation Controls */}
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => setIsPlaying(!isPlaying)}
-              className="p-2.5 rounded-full bg-white text-slate-700 hover:text-sky-600 border border-slate-200 shadow-sm transition-all hover:scale-105"
-              title={isPlaying ? "Pause Slideshow" : "Resume Slideshow"}
-              aria-label="Toggle Slideshow Playback"
-            >
-              {isPlaying ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
-            </button>
-            <button
-              onClick={handlePrev}
-              className="p-2.5 rounded-full bg-white text-slate-700 hover:text-sky-600 border border-slate-200 shadow-sm transition-all hover:scale-105"
-              aria-label="Previous Slide"
-            >
-              <ChevronLeft className="w-4 h-4" />
-            </button>
-            <button
-              onClick={handleNext}
-              className="p-2.5 rounded-full bg-white text-slate-700 hover:text-sky-600 border border-slate-200 shadow-sm transition-all hover:scale-105"
-              aria-label="Next Slide"
-            >
-              <ChevronRight className="w-4 h-4" />
-            </button>
-          </div>
+          <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
+            World-Class Arenas & Amenities
+          </h2>
+          <p className="text-slate-600 text-sm mt-1 max-w-xl">
+            Tour our tournament courts, clubhouse, swimming pavilion, and state-of-the-art sporting facilities.
+          </p>
         </div>
 
         {/* Featured Large Slide Showcase */}
-        <div className="relative rounded-3xl overflow-hidden shadow-2xl border border-slate-200 bg-slate-900 aspect-[16/9] max-h-[560px] group">
+        <div className="relative rounded-3xl overflow-hidden shadow-2xl border border-slate-200 bg-slate-900 aspect-[16/9] max-h-[580px] group">
           {/* Main Slide Image */}
           <div className="relative w-full h-full">
             <Image
@@ -142,18 +114,56 @@ export default function AutoImageGallery() {
             <div className="absolute inset-0 bg-gradient-to-r from-slate-950/70 via-transparent to-transparent hidden md:block" />
           </div>
 
-          {/* Top Badge */}
-          <div className="absolute top-6 left-6 flex items-center gap-2">
-            <span className="px-3.5 py-1 rounded-full bg-white/90 backdrop-blur-md text-slate-900 text-xs font-extrabold shadow-md border border-white">
-              {current.category}
-            </span>
-            <span className="px-3 py-1 rounded-full bg-lime-400 text-slate-950 text-xs font-extrabold shadow-md">
-              {current.tag}
-            </span>
+          {/* Top Badges & Autoplay Indicator on Photo */}
+          <div className="absolute top-6 left-6 right-6 flex items-center justify-between pointer-events-auto z-20">
+            <div className="flex items-center gap-2">
+              <span className="px-3.5 py-1 rounded-full bg-white/90 backdrop-blur-md text-slate-900 text-xs font-extrabold shadow-md border border-white">
+                {current.category}
+              </span>
+              <span className="px-3 py-1 rounded-full bg-lime-400 text-slate-950 text-xs font-extrabold shadow-md">
+                {current.tag}
+              </span>
+            </div>
+
+            <button
+              onClick={() => setIsPlaying(!isPlaying)}
+              className="px-3 py-1.5 rounded-full bg-black/40 hover:bg-black/60 text-white backdrop-blur-md border border-white/20 text-xs font-medium flex items-center gap-1.5 transition-all shadow-md"
+              title={isPlaying ? "Pause Slideshow" : "Resume Slideshow"}
+            >
+              {isPlaying ? (
+                <>
+                  <Pause className="w-3.5 h-3.5 text-lime-400" />
+                  <span className="text-[11px] hidden sm:inline">Auto-Playing</span>
+                </>
+              ) : (
+                <>
+                  <Play className="w-3.5 h-3.5 text-sky-400" />
+                  <span className="text-[11px] hidden sm:inline">Paused</span>
+                </>
+              )}
+            </button>
           </div>
 
+          {/* PREVIOUS BUTTON DIRECTLY ON PHOTO (LEFT) */}
+          <button
+            onClick={handlePrev}
+            className="absolute left-3 sm:left-6 top-1/2 -translate-y-1/2 z-30 w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-white/85 hover:bg-white text-slate-900 shadow-xl backdrop-blur-md flex items-center justify-center border border-white/60 transition-all duration-200 hover:scale-110 active:scale-95 focus:outline-none focus:ring-2 focus:ring-sky-400"
+            aria-label="Previous Slide"
+          >
+            <ChevronLeft className="w-6 h-6 stroke-[2.5]" />
+          </button>
+
+          {/* NEXT BUTTON DIRECTLY ON PHOTO (RIGHT) */}
+          <button
+            onClick={handleNext}
+            className="absolute right-3 sm:right-6 top-1/2 -translate-y-1/2 z-30 w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-white/85 hover:bg-white text-slate-900 shadow-xl backdrop-blur-md flex items-center justify-center border border-white/60 transition-all duration-200 hover:scale-110 active:scale-95 focus:outline-none focus:ring-2 focus:ring-sky-400"
+            aria-label="Next Slide"
+          >
+            <ChevronRight className="w-6 h-6 stroke-[2.5]" />
+          </button>
+
           {/* Bottom Content Overlay */}
-          <div className="absolute bottom-6 left-6 right-6 md:right-auto md:max-w-xl text-white">
+          <div className="absolute bottom-6 left-6 right-6 md:right-auto md:max-w-xl text-white z-20">
             <div className="text-sky-400 text-xs font-bold uppercase tracking-wider mb-1 flex items-center gap-1.5">
               <Sparkles className="w-3.5 h-3.5" />
               <span>{current.subtitle}</span>
