@@ -45,6 +45,18 @@ class User(db.Model):
         """Return user's full name."""
         return f"{self.first_name} {self.last_name}".strip()
 
+    @property
+    def is_member(self) -> bool:
+        """Check if user has MEMBER role."""
+        role_val = self.role.value if hasattr(self.role, "value") else str(self.role)
+        return role_val == "MEMBER"
+
+    @property
+    def is_staff(self) -> bool:
+        """Check if user has any staff/admin role."""
+        role_val = self.role.value if hasattr(self.role, "value") else str(self.role)
+        return role_val in ("OWNER", "ADMIN", "FRONT_DESK", "SHOP_STAFF", "BAR_STAFF", "COACH")
+
     def to_dict(self) -> dict:
         """Safe dictionary representation without sensitive password hashes."""
         return {
