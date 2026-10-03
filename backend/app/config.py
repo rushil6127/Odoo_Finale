@@ -76,6 +76,13 @@ class BaseConfig:
     CELERY_BROKER_URL = os.getenv("CELERY_BROKER_URL", REDIS_URL)
     CELERY_RESULT_BACKEND = os.getenv("CELERY_RESULT_BACKEND", REDIS_URL)
 
+    # Rate Limiting Configuration (Flask-Limiter)
+    RATELIMIT_ENABLED = os.getenv("RATELIMIT_ENABLED", "True").lower() in ("true", "1", "yes")
+    RATELIMIT_STORAGE_URI = os.getenv("RATELIMIT_STORAGE_URI", os.getenv("REDIS_URL", "redis://localhost:6379/0"))
+    RATELIMIT_DEFAULT = os.getenv("RATELIMIT_DEFAULT", "500 per minute")
+    RATELIMIT_STRATEGY = "fixed-window"
+    RATELIMIT_HEADERS_ENABLED = True
+
     # CORS configuration
     CORS_ORIGINS = [
         origin.strip()
@@ -94,6 +101,7 @@ class DevelopmentConfig(BaseConfig):
     SQLALCHEMY_DATABASE_URI = os.getenv(
         "DATABASE_URL", f"sqlite:///{default_sqlite_path}"
     )
+    RATELIMIT_STORAGE_URI = os.getenv("RATELIMIT_STORAGE_URI", "memory://")
 
 
 from sqlalchemy.pool import StaticPool
@@ -109,6 +117,8 @@ class TestingConfig(BaseConfig):
     SECRET_KEY = "test-secret-key-minimum-32-bytes-length-ok"
     CELERY_TASK_ALWAYS_EAGER = True
     CELERY_TASK_EAGER_PROPAGATES = True
+    RATELIMIT_STORAGE_URI = "memory://"
+    RATELIMIT_ENABLED = True
 
 
 class ProductionConfig(BaseConfig):
@@ -118,6 +128,9 @@ class ProductionConfig(BaseConfig):
     TESTING = False
     SQLALCHEMY_DATABASE_URI = os.getenv(
         "DATABASE_URL", "postgresql://localhost:5432/champions_club_prod"
+    )
+    RATELIMIT_STORAGE_URI = os.getenv(
+        "RATELIMIT_STORAGE_URI", os.getenv("REDIS_URL", "redis://localhost:6379/0")
     )
 
 
