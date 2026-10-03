@@ -25,10 +25,25 @@ export default function EnquiryCrmSection() {
     notes: "",
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Simulate CRM lead capture
-    setSubmitted(true);
+    try {
+      const { apiClient } = await import("@/lib/api/client");
+      await apiClient.post("/crm/public/enquiries", {
+        name: formData.name,
+        email: formData.email,
+        phone: formData.phone,
+        interested_plan: formData.interestedPlan,
+        preferred_sport: formData.preferredSport,
+        preferred_trial_date: formData.trialDate || undefined,
+        trial_requested: !!formData.trialDate,
+        message: formData.notes
+      });
+      setSubmitted(true);
+    } catch (error) {
+      console.error("Failed to submit enquiry:", error);
+      alert("There was an issue submitting your request. Please try again.");
+    }
   };
 
   return (

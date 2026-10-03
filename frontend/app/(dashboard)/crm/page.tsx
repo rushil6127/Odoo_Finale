@@ -4,7 +4,7 @@
 
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   TrendingUp,
   Search,
@@ -27,29 +27,51 @@ interface Lead {
   phone: string;
   interestedPlan: string;
   source: string;
-  stage: "NEW_INQUIRY" | "TRIAL_SCHEDULED" | "TOUR_COMPLETED" | "PROPOSAL_SENT" | "CONVERTED";
+  stage: string;
   notes: string;
 }
 
-const LEADS_DATA: Lead[] = [
-  { id: 1, name: "Rajesh Singhania", email: "rajesh.s@singhania-group.com", phone: "+91 99000 11223", interestedPlan: "👑 Black Card VIP", source: "Executive Referral", stage: "PROPOSAL_SENT", notes: "Interested in corporate court package & cabana access." },
-  { id: 2, name: "Dr. Sunita Deshmukh", email: "sunita.ortho@med.org", phone: "+91 99111 22334", interestedPlan: "💎 Platinum Elite", source: "Instagram Ad", stage: "TRIAL_SCHEDULED", notes: "Lawn tennis trial session booked for Sunday 9 AM." },
-  { id: 3, name: "Karan Johar", email: "karan.j@productions.in", phone: "+91 99222 33445", interestedPlan: "🥇 Gold Club", source: "Website Lead Form", stage: "NEW_INQUIRY", notes: "Inquired about badminton coaching for family." },
-  { id: 4, name: "Meera Kapoor", email: "meera.kapoor@art.com", phone: "+91 99333 44556", interestedPlan: "💎 Platinum Elite", source: "Club Walk-in", stage: "TOUR_COMPLETED", notes: "Toured pool and Olympic fitness center. Loved facilities." },
-  { id: 5, name: "Sameer Nambiar", email: "sameer.n@tech.io", phone: "+91 99444 55667", interestedPlan: "👑 Black Card VIP", source: "Owner Direct Invite", stage: "CONVERTED", notes: "Membership payment verified. Activated." },
-];
-
 const STAGES = [
-  { id: "NEW_INQUIRY", title: "New Inquiries", bg: "bg-sky-50 border-sky-200 text-sky-800" },
+  { id: "NEW", title: "New Inquiries", bg: "bg-sky-50 border-sky-200 text-sky-800" },
+  { id: "CONTACTED", title: "Contacted", bg: "bg-blue-50 border-blue-200 text-blue-800" },
   { id: "TRIAL_SCHEDULED", title: "Trial Scheduled", bg: "bg-amber-50 border-amber-200 text-amber-800" },
-  { id: "TOUR_COMPLETED", title: "Tour Completed", bg: "bg-purple-50 border-purple-200 text-purple-800" },
   { id: "PROPOSAL_SENT", title: "Proposal Sent", bg: "bg-indigo-50 border-indigo-200 text-indigo-800" },
   { id: "CONVERTED", title: "Converted & Active", bg: "bg-emerald-50 border-emerald-200 text-emerald-800" },
 ];
 
 export default function CRMPage() {
-  const [leads, setLeads] = useState<Lead[]>(LEADS_DATA);
+  const [leads, setLeads] = useState<Lead[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [showAddModal, setShowAddModal] = useState(false);
+
+  const fetchLeads = async () => {
+    try {
+      setIsLoading(true);
+      const { apiClient } = await import("@/lib/api/client");
+      const res = await apiClient.get<any>("/crm/leads?per_page=100");
+      if (res.data) {
+        const transformed: Lead[] = res.data.map((l: any) => ({
+          id: l.id,
+          name: l.first_name + (l.last_name ? ` ${l.last_name}` : ""),
+          email: l.email || "No Email",
+          phone: l.phone || "No Phone",
+          interestedPlan: l.interested_plan || "Any Plan",
+          source: l.source || "UNKNOWN",
+          stage: l.status || "NEW",
+          notes: l.initial_message || l.notes || "No notes available",
+        }));
+        setLeads(transformed);
+      }
+    } catch (error) {
+      console.error("Failed to fetch leads", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchLeads();
+  }, []);
 
   return (
     <div className="max-w-7xl mx-auto space-y-6 pb-12">

@@ -140,7 +140,8 @@ const TIER_BADGES = {
 };
 
 export default function MembersPage() {
-  const [members, setMembers] = useState<MemberRecord[]>(INITIAL_MEMBERS);
+  const [members, setMembers] = useState<MemberRecord[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedTier, setSelectedTier] = useState<string>("ALL");
   const [selectedStatus, setSelectedStatus] = useState<string>("ALL");
@@ -149,7 +150,55 @@ export default function MembersPage() {
   const [showPassModal, setShowPassModal] = useState(false);
   const [currentUser, setCurrentUser] = useState<AuthUser | null>(null);
 
+  const fetchMembers = async () => {
+    try {
+      setIsLoading(true);
+      const res = await apiClient.get<any>("/members?per_page=100");
+      if (res.data && res.data.members) {
+        const transformed: MemberRecord[] = res.data.members.map((m: any) => {
+          const bgColors = [
+            "from-amber-400 to-amber-600",
+            "from-sky-400 to-blue-600",
+            "from-emerald-400 to-teal-600",
+            "from-purple-400 to-indigo-600",
+            "from-pink-400 to-rose-600",
+          ];
+          let tier = "STANDARD";
+          let expiresDate = "N/A";
+          if (m.active_membership && m.active_membership.plan) {
+            const planCode = (m.active_membership.plan.plan_code || m.active_membership.plan.name || "").toUpperCase();
+            if (planCode.includes("BLACK")) tier = "BLACK_CARD";
+            else if (planCode.includes("PLATINUM")) tier = "PLATINUM";
+            else if (planCode.includes("GOLD")) tier = "GOLD";
+            
+            expiresDate = m.active_membership.end_date || "Lifetime";
+          }
+          return {
+            id: m.id,
+            user_id: m.user_id,
+            name: m.user?.full_name || "Unknown",
+            email: m.user?.email || "",
+            phone: m.phone || "+91 00000 00000",
+            tier: tier as any,
+            status: m.has_active_membership ? "ACTIVE" : "EXPIRED",
+            joinedDate: new Date(m.created_at).toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' }),
+            expiresDate: expiresDate === "Lifetime" || expiresDate === "N/A" ? expiresDate : new Date(expiresDate).toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' }),
+            totalSpend: 0, // Fallback as backend doesn't aggregate this
+            totalBookings: 0,
+            avatarBg: bgColors[m.id % bgColors.length],
+          };
+        });
+        setMembers(transformed);
+      }
+    } catch (error) {
+      console.error("Failed to fetch members", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   useEffect(() => {
+    fetchMembers();
     setCurrentUser(getStoredUser());
   }, []);
 
