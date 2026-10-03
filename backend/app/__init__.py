@@ -5,6 +5,14 @@ from backend.app.extensions import db, migrate, jwt, bcrypt, ma, cors
 from backend.app.common.errors import register_error_handlers
 from backend.app.health.routes import health_bp
 from backend.app.auth import auth_bp, create_owner_command, User  # noqa: F401
+from backend.app.members import members_bp, Member  # noqa: F401
+from backend.app.memberships import (  # noqa: F401
+    membership_plans_bp,
+    memberships_bp,
+    seed_plans_command,
+    MembershipPlan,
+    Membership,
+)
 
 
 def create_app(config_name: str = None) -> Flask:
@@ -43,8 +51,12 @@ def create_app(config_name: str = None) -> Flask:
     # Register blueprints
     app.register_blueprint(health_bp)
     app.register_blueprint(auth_bp)
+    app.register_blueprint(members_bp)
+    app.register_blueprint(membership_plans_bp)
+    app.register_blueprint(memberships_bp)
 
     # Register CLI commands
     app.cli.add_command(create_owner_command)
+    app.cli.add_command(seed_plans_command)
 
     return app
