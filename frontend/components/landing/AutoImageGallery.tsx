@@ -99,6 +99,7 @@ export default function AutoImageGallery() {
               src={current.image}
               alt={current.title}
               fill
+              sizes="(max-width: 1280px) 100vw, 1280px"
               className="object-cover object-center transition-all duration-700 group-hover:scale-105"
               priority
             />
@@ -183,6 +184,7 @@ export default function AutoImageGallery() {
                   src={slide.image}
                   alt={slide.title}
                   fill
+                  sizes="56px"
                   className="object-cover"
                 />
               </div>
