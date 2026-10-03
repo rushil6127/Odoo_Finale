@@ -977,122 +977,52 @@ export default function ProfileViewContainer({ forcedMode }: ProfileViewContaine
 
                   </div>
 
-                  {/* Right / Executive Status Cards (5 cols) */}
-                  <div className="lg:col-span-5 flex flex-col justify-between gap-4">
-                    {/* Card 1: Executive Authority */}
-                    <div className="p-5 rounded-3xl bg-white border border-slate-200 shadow-2xs flex-1 flex flex-col justify-between">
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="text-[10px] font-black uppercase tracking-wider bg-slate-100 text-slate-700 px-2.5 py-1 rounded-full border border-slate-200 flex items-center gap-1">
-                          <Crown className="w-3 h-3 text-amber-500" />
-                          Master Governance
-                        </span>
-                        <span className="text-xs font-bold text-emerald-600 flex items-center gap-1">
-                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-                          All Access
-                        </span>
-                      </div>
-                      <div>
-                        <h4 className="text-base font-black text-slate-900 font-[family-name:var(--font-outfit)]">
-                          Executive Sovereignty
-                        </h4>
-                        <p className="text-xs text-slate-500 mt-1 leading-relaxed">
-                          Unrestricted authority across all 3 arena complexes, VIP member lounges, and operational consoles.
-                        </p>
-                      </div>
-                      <div className="mt-3 pt-2.5 border-t border-slate-100 flex items-center justify-between text-xs text-slate-600">
-                        <span>Tier: <strong>Annual VIP Patron</strong></span>
-                        <span className="font-bold text-slate-800">Member #1</span>
-                      </div>
-                    </div>
-
-                    {/* Card 2: Duty Staffing */}
-                    <div className="p-5 rounded-3xl bg-white border border-slate-200 shadow-2xs flex-1 flex flex-col justify-between">
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="text-[10px] font-black uppercase tracking-wider bg-indigo-50 text-indigo-800 px-2.5 py-1 rounded-full border border-indigo-200 flex items-center gap-1">
-                          <ShieldCheck className="w-3 h-3 text-indigo-600" />
-                          On-Duty Shift
-                        </span>
-                        <span className="text-xs font-bold text-indigo-700">4 Staff Live</span>
-                      </div>
-                      <div>
-                        <h4 className="text-base font-black text-slate-900 font-[family-name:var(--font-outfit)]">
-                          Supervision & Concierge
-                        </h4>
-                        <p className="text-xs text-slate-500 mt-1 leading-relaxed">
-                          Head Coach Rajesh & Floor Marshals active on grass courts. Front Concierge desk responding in &lt;2 min.
-                        </p>
-                      </div>
-                      <div className="mt-3 pt-2.5 border-t border-slate-100 flex items-center justify-between text-xs text-slate-600">
-                        <span>Status: <strong>Standard Ops</strong></span>
-                        <span className="text-emerald-700 font-bold">● Normal Flow</span>
-                      </div>
-                    </div>
-                  </div>
 
                 </div>
 
-
-                  {/* Minimal Upcoming Schedule Overview */}
-                  <div className="p-6 rounded-3xl bg-slate-50/80 border border-slate-200/90 shadow-sm space-y-4">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <h3 className="text-base font-black text-slate-900 font-[family-name:var(--font-outfit)] flex items-center gap-2">
-                          <CalendarCheck className="w-4 h-4 text-sky-600" />
-                          Upcoming Club Fixtures & Key Events
-                        </h3>
-                        <p className="text-xs text-slate-500 mt-0.5">High-priority tournaments, coaching clinics, and court allocations</p>
-                      </div>
-                      <button
-                        onClick={() => setActiveTab("calendar")}
-                        className="px-3.5 py-1.5 rounded-xl bg-white hover:bg-slate-100 text-sky-600 font-bold text-xs border border-slate-200 shadow-sm transition-all flex items-center gap-1.5"
-                      >
-                        <CalendarIcon className="w-3.5 h-3.5" />
-                        View Full Calendar in Sidebar &rarr;
-                      </button>
+                {/* Upcoming Fixtures — Minimal */}
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h3 className="text-sm font-black text-slate-900 font-[family-name:var(--font-outfit)]">
+                        Upcoming Fixtures
+                      </h3>
+                      <p className="text-xs text-slate-400 mt-0.5">Tournaments, clinics &amp; court allocations</p>
                     </div>
+                    <button
+                      onClick={() => setActiveTab("calendar")}
+                      className="text-xs font-bold text-sky-600 hover:text-sky-700 flex items-center gap-1 transition-colors"
+                    >
+                      View calendar <ArrowRight className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
 
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-                      {[
-                        { date: "Oct 04", time: "07:00 AM", title: "Padel Match #2", location: "Padel Glass Arena", tag: "Booking", color: "bg-green-100 text-green-800 border-green-200" },
-                        { date: "Oct 07", time: "06:30 PM", title: "Clay Court Masterclass", location: "Red Clay Court 2", tag: "Coaching", color: "bg-indigo-100 text-indigo-800 border-indigo-200" },
-                        { date: "Oct 11", time: "09:00 AM", title: "Gujarat Open Championship", location: "Centre Grass Court", tag: "Tournament", color: "bg-amber-100 text-amber-900 border-amber-200" },
-                        { date: "Oct 18", time: "04:00 PM", title: "VIP Racket Demo & Lounge", location: "Clubhouse Lounge", tag: "Special Event", color: "bg-purple-100 text-purple-800 border-purple-200" },
-                      ].map((item, idx) => (
-                        <div
-                          key={idx}
-                          onClick={() => {
-                            setSelectedDate(parseInt(item.date.split(" ")[1]));
-                            setActiveTab("calendar");
-                          }}
-                          className="p-3.5 rounded-2xl bg-white border border-slate-200 hover:border-sky-300 hover:shadow-md transition-all cursor-pointer flex flex-col justify-between gap-3 group"
-                        >
-                          <div className="flex items-center justify-between">
-                            <span className="font-mono text-xs font-black text-slate-900 bg-slate-100 px-2 py-0.5 rounded-lg border border-slate-200">
-                              {item.date}
-                            </span>
-                            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${item.color}`}>
-                              {item.tag}
-                            </span>
-                          </div>
-                          <div>
-                            <h4 className="text-xs font-black text-slate-800 group-hover:text-sky-600 transition-colors line-clamp-1">
-                              {item.title}
-                            </h4>
-                            <p className="text-[11px] text-slate-500 flex items-center gap-1 mt-1">
-                              <Clock className="w-3 h-3 text-slate-400" />
-                              {item.time}
-                            </p>
-                            <p className="text-[10px] text-slate-400 flex items-center gap-1 mt-0.5">
-                              <MapPin className="w-2.5 h-2.5 text-sky-500" />
-                              {item.location}
-                            </p>
+                  <div className="space-y-2">
+                    {[
+                      { date: "Oct 04", time: "07:00 AM", title: "Padel Match #2", location: "Padel Glass Arena", tag: "Booking", color: "bg-emerald-50 text-emerald-700 border-emerald-200" },
+                      { date: "Oct 07", time: "06:30 PM", title: "Clay Court Masterclass", location: "Red Clay Court 2", tag: "Coaching", color: "bg-indigo-50 text-indigo-700 border-indigo-200" },
+                      { date: "Oct 11", time: "09:00 AM", title: "Gujarat Open Championship", location: "Centre Grass Court", tag: "Tournament", color: "bg-amber-50 text-amber-700 border-amber-200" },
+                      { date: "Oct 18", time: "04:00 PM", title: "VIP Racket Demo & Lounge", location: "Clubhouse Lounge", tag: "Special Event", color: "bg-purple-50 text-purple-700 border-purple-200" },
+                    ].map((item, idx) => (
+                      <div
+                        key={idx}
+                        onClick={() => { setSelectedDate(parseInt(item.date.split(" ")[1])); setActiveTab("calendar"); }}
+                        className="flex items-center justify-between px-4 py-3 rounded-2xl bg-white border border-slate-100 hover:border-slate-200 hover:shadow-sm transition-all cursor-pointer group"
+                      >
+                        <div className="flex items-center gap-3 min-w-0">
+                          <span className="text-[11px] font-black text-slate-500 font-mono w-12 shrink-0">{item.date}</span>
+                          <div className="min-w-0">
+                            <p className="text-xs font-bold text-slate-800 group-hover:text-sky-600 transition-colors truncate">{item.title}</p>
+                            <p className="text-[10px] text-slate-400 truncate">{item.time} &middot; {item.location}</p>
                           </div>
                         </div>
-                      ))}
-                    </div>
+                        <span className={`shrink-0 text-[10px] font-bold px-2 py-0.5 rounded-full border ${item.color} ml-3`}>{item.tag}</span>
+                      </div>
+                    ))}
                   </div>
-
                 </div>
+
+              </div>
             )}
 
                 {/* ============================================================ */}
@@ -1404,86 +1334,114 @@ export default function ProfileViewContainer({ forcedMode }: ProfileViewContaine
             {/* ============================================================ */}
             {/* TAB 4: ORDERS & RECEIPTS */}
             {/* ============================================================ */}
-            {activeTab === "orders" && (
-              <div className="p-6 sm:p-8 space-y-5 animate-in fade-in duration-200">
+{activeTab === "orders" && (
+              <div className="p-6 sm:p-8 space-y-6 animate-in fade-in duration-200">
 
+                {/* Header */}
                 <div className="flex items-center justify-between flex-wrap gap-3">
-                  <h4 className="text-xs font-extrabold uppercase tracking-wider text-slate-500">
-                    Pro Shop, Stringing & Café Orders ({filteredOrders.length})
-                  </h4>
+                  <div className="flex items-center gap-3">
+                    <h2 className="text-2xl font-black text-slate-900 font-[family-name:var(--font-outfit)]">
+                      Club orders
+                    </h2>
+                    <span className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-slate-100 text-slate-600 text-xs font-black">
+                      {filteredOrders.length}
+                    </span>
+                  </div>
 
-                  <div className="flex items-center gap-2">
-                    <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-xl text-xs font-bold">
+                  <div className="flex items-center gap-3">
+                    {/* Filter pills */}
+                    <div className="flex items-center gap-1.5">
                       {(["ALL", "PRO_SHOP", "CAFE", "STRINGING"] as const).map((filter) => (
                         <button
                           key={filter}
                           onClick={() => setOrderFilter(filter)}
-                          className={`px-3 py-1 rounded-lg transition-all ${orderFilter === filter
-                            ? "bg-white text-slate-900 shadow-sm"
-                            : "text-slate-600 hover:text-slate-900"
-                            }`}
+                          className={`px-3.5 py-1.5 rounded-full text-xs font-bold transition-all ${
+                            orderFilter === filter
+                              ? "bg-slate-900 text-white"
+                              : "bg-white border border-slate-200 text-slate-600 hover:border-slate-300"
+                          }`}
                         >
-                          {filter.replace("_", " ")}
+                          {filter === "ALL" ? "All" : filter === "PRO_SHOP" ? "Pro shop" : filter.charAt(0) + filter.slice(1).toLowerCase()}
                         </button>
                       ))}
                     </div>
 
                     <Link
                       href="/#shop"
-                      className="text-xs font-extrabold text-sky-600 hover:underline flex items-center gap-1 ml-2"
+                      className="text-sm font-bold text-sky-600 hover:text-sky-700 flex items-center gap-1 transition-colors"
                     >
-                      <span>Order Gear</span> &rarr;
+                      Order gear <ArrowRight className="w-3.5 h-3.5" />
                     </Link>
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Order list */}
+                <div className="space-y-3">
                   {filteredOrders.map((order, idx) => (
                     <div
                       key={`${order.id || "order"}-${idx}`}
-                      className="p-5 rounded-2xl bg-white border border-slate-200 shadow-sm space-y-3 flex flex-col justify-between"
+                      className="p-5 rounded-2xl bg-white border border-slate-200 shadow-sm space-y-4"
                     >
-                      <div>
-                        <div className="flex items-center justify-between gap-3 pb-2.5 border-b border-slate-100">
-                          <div className="flex items-center gap-2">
-                            <span className="font-mono text-xs font-extrabold text-slate-900">
+                      {/* Order header */}
+                      <div className="flex items-start justify-between gap-3">
+                        <div>
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <span className="font-mono text-sm font-black text-slate-900">
                               {order.orderNumber}
                             </span>
-                            <span className="text-[10px] font-bold bg-slate-100 text-slate-700 px-2 py-0.5 rounded-full">
-                              {order.type.replace("_", " ")}
-                            </span>
-                            <span className="text-xs text-slate-400">&bull; {order.date}</span>
-                          </div>
-
-                          <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-extrabold ${order.status === "COMPLETED"
-                            ? "bg-green-100 text-green-800 border border-green-200"
-                            : order.status === "READY_FOR_PICKUP"
-                              ? "bg-sky-100 text-sky-800 border border-sky-200 animate-pulse"
-                              : "bg-amber-100 text-amber-800 border border-amber-200"
+                            <span className={`text-[11px] font-bold px-2.5 py-0.5 rounded-full border ${
+                              order.type === "PRO_SHOP"
+                                ? "bg-sky-50 text-sky-700 border-sky-200"
+                                : order.type === "CAFE"
+                                ? "bg-amber-50 text-amber-700 border-amber-200"
+                                : "bg-purple-50 text-purple-700 border-purple-200"
                             }`}>
-                            {order.status.replace(/_/g, " ")}
-                          </span>
+                              {order.type === "PRO_SHOP" ? "Pro Shop" : order.type.charAt(0) + order.type.slice(1).toLowerCase()}
+                            </span>
+                          </div>
+                          <p className="text-xs text-slate-400 mt-0.5">{order.date}</p>
                         </div>
 
-                        <div className="space-y-1.5 mt-3">
-                          {order.items.map((item, i) => (
-                            <div key={i} className="flex items-center justify-between text-xs text-slate-700 bg-slate-50 p-2 rounded-xl">
-                              <span className="font-bold text-slate-900">
-                                {item.quantity}x {item.name}
-                              </span>
-                              <span className="font-mono font-bold text-slate-900">
-                                ₹{(item.price * item.quantity).toLocaleString("en-IN")}
-                              </span>
-                            </div>
-                          ))}
-                        </div>
+                        <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold shrink-0 ${
+                          order.status === "COMPLETED"
+                            ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                            : order.status === "READY_FOR_PICKUP"
+                            ? "bg-sky-50 text-sky-700 border border-sky-200"
+                            : "bg-amber-50 text-amber-700 border border-amber-200"
+                        }`}>
+                          {order.status === "COMPLETED" && <CheckCircle2 className="w-3.5 h-3.5" />}
+                          {order.status === "READY_FOR_PICKUP" && <Clock className="w-3.5 h-3.5" />}
+                          {order.status === "COMPLETED" ? "Completed" : order.status === "READY_FOR_PICKUP" ? "Ready for pickup" : order.status.replace(/_/g, " ")}
+                        </span>
                       </div>
 
+                      {/* Items */}
+                      <div className="space-y-2">
+                        {order.items.map((item, i) => (
+                          <div key={i} className="flex items-center justify-between text-sm">
+                            <span className="text-slate-700">
+                              <span className="font-bold text-slate-500 mr-2">{item.quantity}×</span>
+                              {item.name}
+                            </span>
+                            <span className="font-semibold text-slate-900 tabular-nums">
+                              ₹{(item.price * item.quantity).toLocaleString("en-IN")}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+
+                      {/* Footer */}
                       <div className="flex items-center justify-between pt-3 border-t border-slate-100 text-xs">
-                        <span className="text-slate-500 font-medium">Paid via {order.paymentMethod}</span>
-                        <span className="font-black text-slate-900 text-sm font-[family-name:var(--font-outfit)]">
-                          Total: ₹{order.totalAmount.toLocaleString("en-IN")}
+                        <span className="flex items-center gap-1.5 text-slate-500">
+                          <CreditCard className="w-3.5 h-3.5 text-slate-400" />
+                          Paid via {order.paymentMethod}
                         </span>
+                        <div className="flex items-center gap-2">
+                          <span className="text-slate-500 text-xs">Total</span>
+                          <span className="font-black text-slate-900 text-base font-[family-name:var(--font-outfit)]">
+                            ₹{order.totalAmount.toLocaleString("en-IN")}
+                          </span>
+                        </div>
                       </div>
                     </div>
                   ))}

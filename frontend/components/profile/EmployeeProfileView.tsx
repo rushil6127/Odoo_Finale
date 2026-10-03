@@ -462,33 +462,35 @@ export default function EmployeeProfileView({
         <div className="flex flex-col lg:flex-row gap-6 items-start">
 
           {/* ======== LEFT VERTICAL NAV SIDEBAR ======== */}
-          <aside className="hidden lg:flex flex-col w-64 shrink-0 sticky top-28 space-y-4">
-            <div className="bg-white rounded-3xl shadow-xl border border-slate-200/90 overflow-hidden">
-              
-              {/* Sidebar header (Image 2 style dark block) */}
-              <div className="bg-gradient-to-br from-slate-900 to-blue-950 p-5 text-white">
-                <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
-                  SPORT SUPERVISOR DESK
-                </div>
-                <div className="flex items-center justify-between mt-1">
-                  <span className="text-base font-black text-white font-[family-name:var(--font-outfit)]">
-                    {user.name.split(" ")[0]}'s Workspace
-                  </span>
-                  <span className="text-[9px] uppercase px-2 py-0.5 rounded font-black bg-emerald-400 text-emerald-950">
-                    COACH
-                  </span>
+          {/* ======== LEFT VERTICAL NAV SIDEBAR ======== */}
+          <aside className="hidden lg:flex flex-col w-52 shrink-0 sticky top-28 space-y-2">
+            <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+
+              {/* Title + Avatar */}
+              <div className="p-5 pb-4">
+                <h2 className="text-lg font-black text-slate-900 font-[family-name:var(--font-outfit)] leading-tight mb-4">
+                  Coach's<br />Workspace
+                </h2>
+                <div className="flex items-center gap-2.5">
+                  <div className="w-9 h-9 rounded-full bg-slate-200 flex items-center justify-center text-slate-700 font-black text-sm shrink-0">
+                    {user.name.split(" ").map((n: string) => n[0]).join("").slice(0,2).toUpperCase()}
+                  </div>
+                  <div>
+                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Coach</p>
+                    <p className="text-xs font-bold text-slate-800 leading-tight">{user.name}</p>
+                  </div>
                 </div>
               </div>
 
               {/* Nav Items */}
-              <nav className="p-3 space-y-1">
+              <nav className="px-3 pb-3 space-y-0.5">
                 {[
-                  { id: "emp_overview", label: "Duty & Sport Overview", icon: ClipboardCheck },
-                  { id: "emp_calendar", label: "Court Slot Calendar", icon: CalendarCheck, badge: empSlots.length },
-                  { id: "emp_trainees", label: "Assigned Trainees", icon: GraduationCap, badge: traineesList.length },
-                  { id: "emp_maintenance", label: "Court Readiness & Logs", icon: Wrench, badge: maintenanceList.length },
-                  { id: "emp_inquiries", label: "CRM Inquiries", icon: MessageSquare, badge: user.crmInquiries?.length || 2 },
-                  { id: "emp_settings", label: "Staff Profile & Sport Settings", icon: Settings },
+                  { id: "emp_overview", label: "Overview", icon: ClipboardCheck },
+                  { id: "emp_calendar", label: "Court Calendar", icon: CalendarCheck },
+                  { id: "emp_trainees", label: "Trainees", icon: GraduationCap },
+                  { id: "emp_maintenance", label: "Court Readiness", icon: Wrench },
+                  { id: "emp_inquiries", label: "CRM", icon: MessageSquare },
+                  { id: "emp_settings", label: "Settings", icon: Settings },
                 ].map((tab) => {
                   const Icon = tab.icon;
                   const isActive = activeTab === tab.id;
@@ -496,75 +498,41 @@ export default function EmployeeProfileView({
                     <button
                       key={tab.id}
                       onClick={() => setActiveTab(tab.id as EmployeeTabType)}
-                      className={`w-full flex items-center justify-between gap-3 px-4 py-2.5 rounded-2xl text-xs font-bold transition-all text-left ${
+                      className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition-all text-left ${
                         isActive
-                          ? "bg-slate-900 text-white shadow-md font-extrabold"
-                          : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
+                          ? "bg-blue-50 text-blue-700"
+                          : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
                       }`}
                     >
-                      <span className="flex items-center gap-2.5">
-                        <Icon className={`w-4 h-4 shrink-0 ${
-                          isActive ? "text-emerald-400" : "text-slate-400"
-                        }`} />
-                        <span>{tab.label}</span>
-                      </span>
-                      {tab.badge !== undefined && tab.badge > 0 && (
-                        <span className={`text-[10px] font-black px-2 py-0.5 rounded-full ${
-                          isActive ? "bg-emerald-500 text-white" : "bg-slate-100 text-slate-700"
-                        }`}>{tab.badge}</span>
-                      )}
+                      <Icon className={`w-4 h-4 shrink-0 ${isActive ? "text-blue-600" : "text-slate-400"}`} />
+                      {tab.label}
                     </button>
                   );
                 })}
               </nav>
-
-              {/* ACTIONS & CONTROLS (Exactly matching Image 2!) */}
-              <div className="p-3 pt-2 border-t border-slate-100 space-y-2">
-                <div className="text-[10px] font-black uppercase text-slate-400 tracking-wider px-2">
-                  ACTIONS & CONTROLS
-                </div>
-
-                {/* Gold Button: Report Court Issue */}
-                <button
-                  type="button"
-                  onClick={() => setShowReportIssueModal(true)}
-                  className="w-full flex items-center justify-between px-4 py-3 rounded-2xl text-xs font-black bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-500 hover:to-amber-600 text-amber-950 shadow-md border border-amber-300 transition-all group"
-                >
-                  <span className="flex items-center gap-2">
-                    <AlertCircle className="w-4 h-4 text-amber-900" />
-                    <span>Report Court Issue</span>
-                  </span>
-                  <ArrowRight className="w-3.5 h-3.5 text-amber-900 group-hover:translate-x-0.5 transition-transform" />
-                </button>
-
-
-                {/* Blue Button: Switch to Member Pass */}
-                <button
-                  type="button"
-                  onClick={onSwitchToMemberView}
-                  className="w-full flex items-center justify-between px-4 py-3 rounded-2xl text-xs font-black bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-600 hover:to-blue-700 text-white shadow-md transition-all"
-                >
-                  <span className="flex items-center gap-2">
-                    <Crown className="w-4 h-4 text-amber-300" />
-                    <span>Switch to Member Pass</span>
-                  </span>
-                  <ArrowRight className="w-3.5 h-3.5" />
-                </button>
-
-                {/* White Button: Pro Shop & Café */}
-                <Link
-                  href="/pro-shop"
-                  className="w-full flex items-center justify-between px-4 py-3 rounded-2xl text-xs font-bold bg-white hover:bg-slate-50 text-slate-800 border border-slate-200 shadow-sm transition-all"
-                >
-                  <span className="flex items-center gap-2">
-                    <ShoppingBag className="w-4 h-4 text-slate-600" />
-                    <span>Pro Shop & Café</span>
-                  </span>
-                </Link>
-              </div>
-
             </div>
+
+            {/* Report Issue button */}
+            <button
+              type="button"
+              onClick={() => setShowReportIssueModal(true)}
+              className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-2xl text-sm font-bold bg-blue-600 hover:bg-blue-700 text-white shadow-sm transition-all"
+            >
+              <AlertCircle className="w-4 h-4" />
+              Report issue
+            </button>
+
+            {/* Member pass link */}
+            <button
+              type="button"
+              onClick={onSwitchToMemberView}
+              className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-2xl text-sm font-semibold bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 transition-all"
+            >
+              <CreditCard className="w-4 h-4 text-slate-500" />
+              Member pass
+            </button>
           </aside>
+
 
           {/* ======== MOBILE TAB STRIP (shown below lg) ======== */}
           <div className="lg:hidden w-full flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none mb-2">
@@ -602,212 +570,172 @@ export default function EmployeeProfileView({
             {/* TAB 1: EMPLOYEE DUTY & SPORT OVERVIEW                        */}
             {/* ============================================================ */}
             {activeTab === "emp_overview" && (
-              <div className="p-6 sm:p-8 space-y-6 sm:space-y-8 animate-in fade-in duration-200">
-                
-                {/* PRIORITY SPORT DISPATCH NOTICE (Image 2 style notice banner) */}
-                <div className="bg-gradient-to-r from-slate-900 via-blue-950 to-slate-900 text-white rounded-3xl p-6 sm:p-7 shadow-xl border border-slate-850 relative overflow-hidden flex flex-col md:flex-row md:items-center justify-between gap-5">
-                  <div className="absolute top-0 right-0 w-80 h-80 bg-sky-500/10 rounded-full blur-3xl pointer-events-none" />
-                  <div className="flex items-start sm:items-center gap-4 relative z-10">
-                    <div className="w-12 h-12 rounded-2xl bg-white/10 border border-white/15 flex items-center justify-center shrink-0">
-                      <Activity className="w-6 h-6 text-emerald-300" />
-                    </div>
-                    <div>
-                      <div className="flex items-center gap-2 flex-wrap mb-1">
-                        <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase bg-emerald-400 text-emerald-950">
-                          MATCH & ARENA DISPATCH
-                        </span>
-                        <span className="text-xs text-slate-400">Today • Centre Grass Court #1</span>
-                      </div>
-                      <h3 className="text-lg sm:text-xl font-black text-white font-[family-name:var(--font-outfit)]">
-                        Gujarat Open State Championship Night Matches Tonight!
-                      </h3>
-                      <p className="text-xs text-slate-300 mt-1 max-w-2xl leading-relaxed">
-                        Assigned Supervisor David: Ensure 800 LUX floodlight array is powered and line markings swept before 06:00 PM. First match starts at 08:00 PM.
-                      </p>
-                    </div>
-                  </div>
+              <div className="p-6 sm:p-8 space-y-6 animate-in fade-in duration-200">
 
-                  <div className="flex items-center gap-2.5 shrink-0 self-start md:self-auto relative z-10">
+                {/* ANNOUNCEMENT BANNER */}
+                <div className="relative bg-slate-900 text-white rounded-2xl overflow-hidden flex items-stretch min-h-[140px]">
+                  {/* Text side */}
+                  <div className="flex-1 p-6 flex flex-col justify-between z-10">
+                    <div className="flex items-start gap-3">
+                      <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center shrink-0 mt-0.5">
+                        <Activity className="w-5 h-5 text-white" />
+                      </div>
+                      <div>
+                        <h3 className="text-lg font-black text-white font-[family-name:var(--font-outfit)] leading-tight">
+                          Gujarat Open State Championship Night Matches Tonight!
+                        </h3>
+                        <p className="text-xs text-slate-300 mt-1">
+                          Court #1 grass and line markings must be ready by 6:00 PM.
+                        </p>
+                      </div>
+                    </div>
                     <button
                       onClick={() => setActiveTab("emp_calendar")}
-                      className="px-5 py-2.5 rounded-full text-xs font-black shadow-lg transition-transform hover:scale-105 shrink-0 bg-emerald-400 hover:bg-emerald-300 text-emerald-950 flex items-center gap-1.5"
+                      className="mt-4 self-start inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-emerald-950 text-xs font-black transition-all"
                     >
-                      <span>View Slot Calendar</span>
-                      <ArrowRight className="w-3.5 h-3.5" />
+                      <CalendarCheck className="w-3.5 h-3.5" />
+                      View calendar
                     </button>
                   </div>
+                  {/* Photo side */}
+                  <div className="hidden sm:block w-48 shrink-0 relative">
+                    <img
+                      src="https://images.unsplash.com/photo-1560012057-4372e14c5085?w=300&h=200&fit=crop&q=80"
+                      alt="Tennis court"
+                      className="absolute inset-0 w-full h-full object-cover"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-r from-slate-900 to-transparent" />
+                  </div>
                 </div>
 
-                {/* Top 3 High-Visibility Coach KPI Cards (Image 2 style metric cards) */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-                  
-                  {/* 1. Allotted Sport & Supervised Arenas */}
-                  <div className="bg-white rounded-3xl p-6 border border-slate-200/90 shadow-xl flex flex-col justify-between">
-                    <div>
-                      <div className="text-xs font-black text-sky-600 uppercase tracking-wider mb-2">
-                        Allotted Sport & Arenas
-                      </div>
-                      <div className="text-2xl sm:text-3xl font-black text-slate-900 font-[family-name:var(--font-outfit)]">
-                        {empData.primarySport}
-                      </div>
-                      <p className="text-xs text-slate-500 mt-1.5 font-medium">
-                        3 Arenas under supervision
-                      </p>
-                    </div>
-                    <div className="mt-4 pt-3 border-t border-slate-100 text-xs font-semibold text-slate-600 flex items-center justify-between">
-                      <span>Shift: <strong>Morning Roster</strong></span>
-                      <span className="text-emerald-600 font-bold flex items-center gap-1">
-                        <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                        Active
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* 2. Next Upcoming Session */}
-                  <div className="bg-white rounded-3xl p-6 border border-slate-200/90 shadow-xl flex flex-col justify-between">
-                    <div>
-                      <div className="text-xs font-black text-sky-600 uppercase tracking-wider mb-2">
-                        Immediate Next Session
-                      </div>
-                      <div className="text-xl sm:text-2xl font-black text-slate-900 truncate font-[family-name:var(--font-outfit)]">
-                        Dev Patel (Trial Evaluation)
-                      </div>
-                      <p className="text-xs text-slate-500 mt-1.5 font-semibold flex items-center gap-1.5">
-                        <Clock className="w-3.5 h-3.5 text-sky-600" />
-                        <span>03:00 PM – 04:00 PM (Grass #1)</span>
-                      </p>
-                    </div>
-                    <div className="mt-4 pt-3 border-t border-slate-100 text-xs font-semibold text-slate-600 flex items-center justify-between">
-                      <span>Status: <strong>Checked-In</strong></span>
-                      <button 
-                        onClick={() => handleCompleteSlot("SLOT-105")}
-                        className="text-sky-600 hover:text-sky-700 font-bold flex items-center gap-1"
-                      >
-                        <span>Start Drills</span>
-                        <ArrowRight className="w-3 h-3" />
-                      </button>
-                    </div>
-                  </div>
-
-                  {/* 3. Surface & Equipment Readiness */}
-                  <div className="bg-white rounded-3xl p-6 border border-amber-200/90 shadow-xl flex flex-col justify-between">
-                    <div>
-                      <div className="text-xs font-black text-amber-600 uppercase tracking-wider mb-2">
-                        Surface & Net Readiness
-                      </div>
-                      <div className="text-2xl sm:text-3xl font-black text-slate-900 font-[family-name:var(--font-outfit)]">
-                        100% Prepared
-                      </div>
-                      <p className="text-xs text-slate-500 mt-1.5 font-medium">
-                        Grass 8.5mm cut & clay moisture optimal
-                      </p>
-                    </div>
-                    <div className="mt-4 pt-3 border-t border-slate-100 text-xs font-semibold text-slate-600 flex items-center justify-between">
-                      <span>Stringing jobs: <strong>1 Ready</strong></span>
-                      <button 
-                        onClick={() => setActiveTab("emp_maintenance")}
-                        className="text-amber-600 hover:text-amber-700 font-bold flex items-center gap-1"
-                      >
-                        <span>View Logs</span>
-                        <span>↓</span>
-                      </button>
-                    </div>
-                  </div>
-
-                </div>
-
-              {/* LIVE ARENA ALLOTMENT STATUS GRID */}
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-sm font-black text-slate-900 font-[family-name:var(--font-outfit)] flex items-center gap-2">
-                    <Layers className="w-4 h-4 text-emerald-600" />
-                    <span>Live Supervised Court Zones & Status</span>
-                  </h3>
-                  <span className="text-xs font-bold text-slate-500">Auto-refreshed live</span>
-                </div>
-
+                {/* 3 KPI CARDS */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  
-                  {/* Zone 1 */}
-                  <div className="p-4 rounded-2xl bg-white border border-slate-200 shadow-sm space-y-3 hover:border-emerald-300 transition-all">
-                    <div className="flex items-center justify-between">
-                      <span className="px-2 py-0.5 rounded-full text-[10px] font-black uppercase bg-emerald-100 text-emerald-900">
-                        Natural Grass
-                      </span>
-                      <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
-                        OCCUPIED
-                      </span>
+
+                  {/* Card 1: Sport & Arenas */}
+                  <div className="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm flex flex-col gap-3">
+                    <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center">
+                      <Layers className="w-5 h-5 text-slate-600" />
                     </div>
                     <div>
-                      <div className="text-sm font-black text-slate-900">Centre Grass Court #1</div>
-                      <div className="text-xs text-slate-500 mt-0.5">Wimbledon Specification Lawn (9mm)</div>
-                    </div>
-                    <div className="pt-2 border-t border-slate-100 text-[11px] text-slate-600 space-y-1">
-                      <div className="flex justify-between">
-                        <span>Current:</span>
-                        <strong className="text-slate-800">Dev Patel (Trial Candidate)</strong>
-                      </div>
-                      <div className="flex justify-between">
-                        <span>Next (05 PM):</span>
-                        <strong className="text-emerald-700">Alex Morgan (Gold VIP)</strong>
-                      </div>
+                      <p className="text-xs text-slate-500 mb-0.5">Sport & arenas</p>
+                      <p className="text-2xl font-black text-slate-900 font-[family-name:var(--font-outfit)]">{empData.primarySport}</p>
+                      <p className="text-xs text-slate-500 mt-0.5">3 arenas</p>
                     </div>
                   </div>
 
-                  {/* Zone 2 */}
-                  <div className="p-4 rounded-2xl bg-white border border-slate-200 shadow-sm space-y-3 hover:border-emerald-300 transition-all">
-                    <div className="flex items-center justify-between">
-                      <span className="px-2 py-0.5 rounded-full text-[10px] font-black uppercase bg-amber-100 text-amber-900">
-                        European Clay
-                      </span>
-                      <span className="text-[10px] font-bold text-sky-600 bg-sky-50 px-2 py-0.5 rounded border border-sky-200">
-                        READY FOR PLAY
-                      </span>
+                  {/* Card 2: Next Session */}
+                  <div className="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm flex flex-col gap-3">
+                    <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center">
+                      <User className="w-5 h-5 text-slate-600" />
                     </div>
                     <div>
-                      <div className="text-sm font-black text-slate-900">Roland-Garros Red Clay #3</div>
-                      <div className="text-xs text-slate-500 mt-0.5">Crushed Brick & Moisture Balanced</div>
-                    </div>
-                    <div className="pt-2 border-t border-slate-100 text-[11px] text-slate-600 space-y-1">
-                      <div className="flex justify-between">
-                        <span>Rolled & Swept:</span>
-                        <strong className="text-slate-800">01:30 PM by Manoj</strong>
-                      </div>
-                      <div className="flex justify-between">
-                        <span>Next (06:30 PM):</span>
-                        <strong className="text-amber-700">Meera Singhania (Coaching)</strong>
-                      </div>
+                      <p className="text-xs text-slate-500 mb-0.5">Next session</p>
+                      <p className="text-2xl font-black text-slate-900 font-[family-name:var(--font-outfit)]">Dev Patel</p>
+                      <p className="text-xs text-slate-500 mt-0.5">3:00 – 4:00 PM · Grass Court #1</p>
+                      <span className="inline-flex items-center gap-1 mt-2 px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 text-[11px] font-bold">
+                        <Check className="w-3 h-3" />
+                        Checked in
+                      </span>
                     </div>
                   </div>
 
-                  {/* Zone 3 */}
-                  <div className="p-4 rounded-2xl bg-white border border-slate-200 shadow-sm space-y-3 hover:border-emerald-300 transition-all">
-                    <div className="flex items-center justify-between">
-                      <span className="px-2 py-0.5 rounded-full text-[10px] font-black uppercase bg-indigo-100 text-indigo-900">
-                        Hard Court
-                      </span>
-                      <span className="text-[10px] font-bold text-green-600 bg-green-50 px-2 py-0.5 rounded border border-green-200">
-                        OPEN FOR DRILLS
-                      </span>
+                  {/* Card 3: Court Readiness */}
+                  <div className="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm flex flex-col gap-3">
+                    <div className="w-10 h-10 rounded-full bg-emerald-100 flex items-center justify-center">
+                      <CheckCircle2 className="w-5 h-5 text-emerald-600" />
                     </div>
                     <div>
-                      <div className="text-sm font-black text-slate-900">Grandstand Synthetic Court #2</div>
-                      <div className="text-xs text-slate-500 mt-0.5">US Open DecoTurf 8-Layer Cushion</div>
-                    </div>
-                    <div className="pt-2 border-t border-slate-100 text-[11px] text-slate-600 space-y-1">
-                      <div className="flex justify-between">
-                        <span>Ball Machine:</span>
-                        <strong className="text-slate-800">Lobster Grand V Loaded</strong>
-                      </div>
-                      <div className="flex justify-between">
-                        <span>Available until:</span>
-                        <strong className="text-indigo-700">07:00 PM Open Play</strong>
-                      </div>
+                      <p className="text-xs text-slate-500 mb-0.5">Court readiness</p>
+                      <p className="text-2xl font-black text-slate-900 font-[family-name:var(--font-outfit)]">100% ready</p>
+                      <p className="text-xs text-slate-500 mt-0.5">1 stringing job ready</p>
                     </div>
                   </div>
 
                 </div>
-              </div>
+
+                {/* COURT STATUS SECTION */}
+                <div className="space-y-4">
+                  <h3 className="text-lg font-black text-slate-900 font-[family-name:var(--font-outfit)]">Court status</h3>
+
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+
+                    {/* Court 1 */}
+                    <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                      <img
+                        src="https://images.unsplash.com/photo-1554068865-24cecd4e34b8?w=400&h=200&fit=crop&q=80"
+                        alt="Centre Grass Court"
+                        className="w-full h-36 object-cover"
+                      />
+                      <div className="p-4 space-y-2">
+                        <div>
+                          <p className="text-sm font-black text-slate-900">Centre Grass Court #1</p>
+                          <p className="text-xs text-slate-500">Natural grass</p>
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <span className="flex items-center gap-1 text-xs text-slate-600">
+                            <Clock className="w-3.5 h-3.5 text-slate-400" />
+                            Match in progress
+                          </span>
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-red-50 text-red-700 border border-red-200 text-[10px] font-bold">
+                            <UserCheck className="w-3 h-3" />
+                            Occupied
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Court 2 */}
+                    <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                      <img
+                        src="https://images.unsplash.com/photo-1599474924187-334a4ae5bd3c?w=400&h=200&fit=crop&q=80"
+                        alt="Roland-Garros Red Clay"
+                        className="w-full h-36 object-cover"
+                      />
+                      <div className="p-4 space-y-2">
+                        <div>
+                          <p className="text-sm font-black text-slate-900">Roland-Garros Red Clay #3</p>
+                          <p className="text-xs text-slate-500">European clay</p>
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <span className="flex items-center gap-1 text-xs text-slate-600">
+                            <Wrench className="w-3.5 h-3.5 text-slate-400" />
+                            Surface groomed
+                          </span>
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] font-bold">
+                            <Check className="w-3 h-3" />
+                            Ready for play
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Court 3 */}
+                    <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                      <img
+                        src="https://images.unsplash.com/photo-1567013127542-490d757e51fc?w=400&h=200&fit=crop&q=80"
+                        alt="Grandstand Synthetic Court"
+                        className="w-full h-36 object-cover"
+                      />
+                      <div className="p-4 space-y-2">
+                        <div>
+                          <p className="text-sm font-black text-slate-900">Grandstand Synthetic Court #2</p>
+                          <p className="text-xs text-slate-500">Hard court</p>
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <span className="flex items-center gap-1 text-xs text-slate-600">
+                            <Activity className="w-3.5 h-3.5 text-slate-400" />
+                            Drills in progress
+                          </span>
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200 text-[10px] font-bold">
+                            <ArrowRight className="w-3 h-3" />
+                            Open for drills
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+
+                  </div>
+                </div>
 
               {/* DAILY SHIFT ROSTER & CHECKLIST */}
               <div className="p-5 sm:p-6 rounded-2xl bg-slate-50 border border-slate-200 space-y-3">
