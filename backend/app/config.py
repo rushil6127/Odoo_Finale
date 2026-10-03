@@ -105,10 +105,6 @@ class TestingConfig(BaseConfig):
     DEBUG = True
     TESTING = True
     SQLALCHEMY_DATABASE_URI = os.getenv("TEST_DATABASE_URL", "sqlite:///:memory:")
-    SQLALCHEMY_ENGINE_OPTIONS = {
-        "connect_args": {"check_same_thread": False},
-        "poolclass": StaticPool,
-    }
     JWT_SECRET_KEY = "test-jwt-secret-key-minimum-32-bytes-length-ok"
     SECRET_KEY = "test-secret-key-minimum-32-bytes-length-ok"
     CELERY_TASK_ALWAYS_EAGER = True

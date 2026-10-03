@@ -1,3 +1,4 @@
+import os
 from sqlalchemy import text
 from backend.app import create_app
 from backend.app.config import DevelopmentConfig, TestingConfig, ProductionConfig
@@ -19,7 +20,8 @@ def test_configurations():
 
     test_app = create_app("testing")
     assert test_app.config["TESTING"] is True
-    assert test_app.config["SQLALCHEMY_DATABASE_URI"] == "sqlite:///:memory:"
+    expected_test_uri = os.getenv("TEST_DATABASE_URL", "sqlite:///:memory:")
+    assert test_app.config["SQLALCHEMY_DATABASE_URI"] == expected_test_uri
 
     prod_app = create_app("production")
     assert prod_app.config["TESTING"] is False
