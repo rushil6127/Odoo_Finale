@@ -164,7 +164,7 @@ export default function Topbar() {
                   onClick={() => {
                     setMenuOpen(false);
                     logout();
-                    window.location.href = "/";
+                    window.location.href = "/login";
                   }}
                   className="flex items-center gap-2.5 w-full text-left px-3 py-2 rounded-lg text-red-600 hover:bg-red-50 transition-colors text-xs font-bold"
                 >
