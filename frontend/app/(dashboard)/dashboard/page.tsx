@@ -201,7 +201,7 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* Court Occupancy */}
+        {/* Court Occupancy with Mini Sharp Donut Gauge */}
         <div className="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm flex flex-col justify-between hover:shadow-md transition-shadow">
           <div className="flex items-center justify-between">
             <span className="text-xs font-bold text-slate-700 uppercase tracking-wider">Court Slot Utilization</span>
@@ -209,16 +209,37 @@ export default function DashboardPage() {
               <CalendarDays className="w-4 h-4" />
             </div>
           </div>
-          <div className="mt-4">
-            <div className="flex items-baseline gap-2">
-              <span className="text-2xl font-black text-slate-900 font-[family-name:var(--font-outfit)]">
-                74% Occupied
-              </span>
-              <span className="text-xs font-bold text-sky-600">
+          <div className="mt-4 flex items-center justify-between gap-2">
+            <div>
+              <div className="flex items-baseline gap-2">
+                <span className="text-2xl font-black text-slate-900 font-[family-name:var(--font-outfit)]">
+                  74% Occupied
+                </span>
+              </div>
+              <p className="text-xs font-bold text-sky-600 mt-0.5">
                 19 / 26 Slots Booked
+              </p>
+              <p className="text-[11px] text-slate-500 mt-1">High demand in Tennis & Badminton</p>
+            </div>
+            {/* Sharp Mini Gauge */}
+            <div className="relative w-12 h-12 shrink-0">
+              <svg className="w-full h-full -rotate-90 transform" viewBox="0 0 36 36">
+                <circle cx="18" cy="18" r="14" stroke="#f1f5f9" strokeWidth="3.5" fill="none" />
+                <circle
+                  cx="18"
+                  cy="18"
+                  r="14"
+                  stroke="#0284c7"
+                  strokeWidth="3.5"
+                  strokeDasharray="65.1 88"
+                  strokeLinecap="butt"
+                  fill="none"
+                />
+              </svg>
+              <span className="absolute inset-0 flex items-center justify-center text-[10px] font-mono font-black text-slate-800">
+                74%
               </span>
             </div>
-            <p className="text-[11px] text-slate-600 mt-1">High demand in Tennis & Badminton</p>
           </div>
         </div>
 

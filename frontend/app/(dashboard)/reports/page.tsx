@@ -166,39 +166,196 @@ export default function ReportsPage() {
         </div>
       </div>
 
-      {/* Revenue by Department Breakdown */}
-      <div className="bg-white rounded-3xl border border-slate-200 p-6 shadow-sm space-y-4">
-        <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+      {/* Revenue by Department Breakdown with Sharp Circular Chart */}
+      <div className="bg-white rounded-3xl border border-slate-200 p-6 sm:p-7 shadow-sm space-y-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-slate-100 gap-2">
           <div>
-            <h3 className="text-base font-black text-slate-900 font-[family-name:var(--font-outfit)]">
-              Department Performance Breakdown
+            <h3 className="text-base font-black text-slate-900 font-[family-name:var(--font-outfit)] flex items-center gap-2">
+              <PieChart className="w-4 h-4 text-emerald-600" />
+              <span>Department Revenue & Stream Performance</span>
             </h3>
-            <p className="text-xs text-slate-500">Revenue and slot volume breakdown by sports wing and hospitality</p>
+            <p className="text-xs text-slate-500 mt-0.5">Real-time revenue reconciliation and volume share across all club wings</p>
           </div>
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-50 text-emerald-800 border border-emerald-200 self-start sm:self-auto">
+            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+            6 Revenue Streams Synced
+          </span>
         </div>
 
-        <div className="space-y-4">
-          {REVENUE_BY_DEPT.map((dept) => (
-            <div key={dept.department} className="space-y-1.5">
-              <div className="flex items-center justify-between text-xs">
-                <span className="font-bold text-slate-800">{dept.department}</span>
-                <div className="flex items-center gap-3 font-mono">
-                  <span className="text-slate-400">{dept.bookings} sessions</span>
-                  <span className="font-black text-slate-900">₹{dept.revenue.toLocaleString()}</span>
-                  <span className="text-emerald-600 font-bold text-[11px]">{dept.trend}</span>
-                </div>
-              </div>
-
-              <div className="w-full h-2.5 rounded-full bg-slate-100 overflow-hidden">
-                <div
-                  className="h-full rounded-full bg-gradient-to-r from-sky-500 to-emerald-500 transition-all duration-500"
-                  style={{ width: `${dept.sharePct}%` }}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+          {/* Left: Sharp Circular Donut Chart (5 cols) */}
+          <div className="lg:col-span-5 flex flex-col items-center justify-center p-6 rounded-2xl bg-slate-50/80 border border-slate-200/80">
+            <div className="relative w-48 h-48 shrink-0 flex items-center justify-center">
+              <svg className="w-full h-full -rotate-90 transform" viewBox="0 0 128 128">
+                {/* Outer Precision Track Ring */}
+                <circle
+                  cx="64"
+                  cy="64"
+                  r="58"
+                  stroke="#e2e8f0"
+                  strokeWidth="1"
+                  strokeDasharray="3 3"
+                  fill="none"
                 />
+
+                {/* Base Background Ring */}
+                <circle
+                  cx="64"
+                  cy="64"
+                  r="50"
+                  stroke="#f1f5f9"
+                  strokeWidth="12"
+                  fill="none"
+                />
+
+                {/* Segment 1: Badminton (31.89% -> 100.19 arc) */}
+                <circle
+                  cx="64"
+                  cy="64"
+                  r="50"
+                  stroke="#10b981"
+                  strokeWidth="12"
+                  strokeDasharray="100.19 314.16"
+                  strokeDashoffset="0"
+                  strokeLinecap="butt"
+                  fill="none"
+                />
+
+                {/* Segment 2: Lawn Tennis (24.50% -> 76.97 arc) */}
+                <circle
+                  cx="64"
+                  cy="64"
+                  r="50"
+                  stroke="#0ea5e9"
+                  strokeWidth="12"
+                  strokeDasharray="76.97 314.16"
+                  strokeDashoffset="-100.19"
+                  strokeLinecap="butt"
+                  fill="none"
+                />
+
+                {/* Segment 3: Sports Bar & Cafe (17.44% -> 54.79 arc) */}
+                <circle
+                  cx="64"
+                  cy="64"
+                  r="50"
+                  stroke="#f59e0b"
+                  strokeWidth="12"
+                  strokeDasharray="54.79 314.16"
+                  strokeDashoffset="-177.16"
+                  strokeLinecap="butt"
+                  fill="none"
+                />
+
+                {/* Segment 4: Olympic Aquatics (12.04% -> 37.83 arc) */}
+                <circle
+                  cx="64"
+                  cy="64"
+                  r="50"
+                  stroke="#06b6d4"
+                  strokeWidth="12"
+                  strokeDasharray="37.83 314.16"
+                  strokeDashoffset="-231.95"
+                  strokeLinecap="butt"
+                  fill="none"
+                />
+
+                {/* Segment 5: Pro Shop (8.14% -> 25.57 arc) */}
+                <circle
+                  cx="64"
+                  cy="64"
+                  r="50"
+                  stroke="#8b5cf6"
+                  strokeWidth="12"
+                  strokeDasharray="25.57 314.16"
+                  strokeDashoffset="-269.78"
+                  strokeLinecap="butt"
+                  fill="none"
+                />
+
+                {/* Segment 6: Box Cricket (5.98% -> 18.79 arc) */}
+                <circle
+                  cx="64"
+                  cy="64"
+                  r="50"
+                  stroke="#ec4899"
+                  strokeWidth="12"
+                  strokeDasharray="18.79 314.16"
+                  strokeDashoffset="-295.35"
+                  strokeLinecap="butt"
+                  fill="none"
+                />
+
+                {/* Inner Precision Hairline Ring */}
+                <circle
+                  cx="64"
+                  cy="64"
+                  r="42"
+                  stroke="#e2e8f0"
+                  strokeWidth="1"
+                  fill="none"
+                />
+              </svg>
+
+              {/* Center Metrics (Sharp Technical Monospace Typography) */}
+              <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                <span className="text-2xl font-black text-slate-900 tracking-tight font-mono leading-none">
+                  ₹1.20M
+                </span>
+                <span className="text-[9px] font-black uppercase tracking-widest text-slate-400 font-mono mt-1">
+                  GROSS MTD
+                </span>
+                <span className="text-[8px] font-bold uppercase tracking-wider text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded-sm border border-emerald-200 mt-1 font-mono">
+                  +21.4% GROWTH
+                </span>
               </div>
             </div>
-          ))}
+
+            {/* Subtitle / Top Contributing Department */}
+            <div className="mt-4 pt-3 border-t border-slate-200/80 w-full text-center">
+              <p className="text-[11px] font-bold text-slate-500">
+                Top Contributor: <strong className="text-slate-800">Badminton (32%)</strong>
+              </p>
+            </div>
+          </div>
+
+          {/* Right: Department Performance List (7 cols) */}
+          <div className="lg:col-span-7 space-y-3.5">
+            {[
+              { department: "🏸 Badminton Pavilion (6 Courts)", revenue: 384000, bookings: 420, sharePct: 32, trend: "+18%", color: "bg-emerald-500" },
+              { department: "🎾 Lawn Tennis Arenas (Grass & Clay)", revenue: 295000, bookings: 195, sharePct: 24, trend: "+12%", color: "bg-sky-500" },
+              { department: "🍽️ Sports Bar & Café POS", revenue: 210000, bookings: 540, sharePct: 18, trend: "+25%", color: "bg-amber-500" },
+              { department: "🏊‍♂️ Olympic Aquatic Pavilion", revenue: 145000, bookings: 280, sharePct: 12, trend: "+8%", color: "bg-cyan-500" },
+              { department: "🛍️ Pro Shop & Restringing Services", revenue: 98000, bookings: 85, sharePct: 8, trend: "+15%", color: "bg-purple-500" },
+              { department: "🏏 Box Cricket Astroturf", revenue: 72000, bookings: 64, sharePct: 6, trend: "+30%", color: "bg-pink-500" },
+            ].map((dept) => (
+              <div key={dept.department} className="p-3 rounded-xl bg-slate-50/70 border border-slate-200/80 space-y-2 hover:bg-slate-50 transition-colors">
+                <div className="flex items-center justify-between text-xs">
+                  <div className="flex items-center gap-2">
+                    <span className={`w-2.5 h-2.5 rounded-sm ${dept.color} shrink-0`} />
+                    <span className="font-bold text-slate-800 text-xs">{dept.department}</span>
+                  </div>
+                  <div className="flex items-center gap-3 font-mono text-xs">
+                    <span className="text-slate-400 hidden sm:inline">{dept.bookings} sessions</span>
+                    <span className="font-black text-slate-900">₹{dept.revenue.toLocaleString()}</span>
+                    <span className="text-emerald-700 bg-emerald-50 border border-emerald-200 px-1.5 py-0.5 rounded-sm text-[10px] font-bold">
+                      {dept.trend}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="w-full h-2 rounded-full bg-slate-200/70 overflow-hidden">
+                  <div
+                    className={`h-full rounded-full ${dept.color} transition-all duration-500`}
+                    style={{ width: `${dept.sharePct}%` }}
+                  />
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
+
 
       {/* Sovereign Audit Trail */}
       <div className="bg-white rounded-3xl border border-slate-200 p-6 shadow-sm space-y-4">
