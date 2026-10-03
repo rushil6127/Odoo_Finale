@@ -7,8 +7,12 @@ from backend.app.common.validation import validate_schema
 from backend.app.common.permissions import roles_required, RoleEnum
 from backend.app.common.errors import NotFoundException, ForbiddenException
 from backend.app.members.models import Member
-from backend.app.memberships.models import MembershipPlan
-from backend.app.memberships.schemas import AssignMembershipSchema, ChangePlanSchema
+from backend.app.memberships.schemas import (
+    AssignMembershipSchema,
+    ChangePlanSchema,
+    MembershipRequestCreateSchema,
+    MembershipRequestReviewSchema,
+)
 from backend.app.memberships.services import (
     get_all_plans,
     get_plan_by_id,
@@ -137,3 +141,210 @@ def change_member_plan(member_id: int, validated_data):
         message="Membership plan changed successfully",
         status_code=200,
     )
+
+
+# ---------------------------------------------------------
+# Membership Requests & Offline Payment Review Endpoints
+# ---------------------------------------------------------
+
+@memberships_bp.route("/requests", methods=["POST"])
+@jwt_required()
+@validate_schema(MembershipRequestCreateSchema)
+def submit_membership_request(validated_data):
+    """Submit a membership request with offline payment proof (Always starts as PENDING)."""
+    from backend.app.memberships.services import create_membership_request
+
+    req = create_membership_request(
+        user_id=current_user.id,
+        plan_id=validated_data["plan_id"],
+        transaction_reference=validated_data["transaction_reference"],
+        amount_paid=validated_data["amount_paid"],
+        screenshot_url=validated_data.get("screenshot_url"),
+        payment_method=validated_data.get("payment_method", "UPI_QR"),
+        requester_notes=validated_data.get("requester_notes"),
+    )
+
+    return success_response(
+        data={"request": req.to_dict()},
+        message="Membership payment request submitted successfully and is pending admin approval.",
+        status_code=201,
+    )
+
+
+@memberships_bp.route("/requests/my", methods=["GET"])
+@jwt_required()
+def get_my_membership_requests():
+    """Retrieve all membership requests submitted by the currently logged-in user."""
+    from backend.app.memberships.services import list_membership_requests
+    from flask import request
+
+    page = int(request.args.get("page", 1))
+    per_page = int(request.args.get("per_page", 50))
+    status_filter = request.args.get("status")
+
+    requests, total = list_membership_requests(
+        user_id=current_user.id,
+        status_filter=status_filter,
+        page=page,
+        per_page=per_page,
+    )
+
+    return success_response(
+        data={"requests": [r.to_dict() for r in requests]},
+        meta={"total": total, "page": page, "per_page": per_page},
+        status_code=200,
+    )
+
+
+@memberships_bp.route("/requests", methods=["GET"])
+@roles_required(RoleEnum.OWNER, RoleEnum.ADMIN)
+def get_all_membership_requests():
+    """Admin/Owner endpoint to list and search all membership requests across the club."""
+    from backend.app.memberships.services import list_membership_requests
+    from flask import request
+
+    page = int(request.args.get("page", 1))
+    per_page = int(request.args.get("per_page", 50))
+    status_filter = request.args.get("status")
+    search = request.args.get("q")
+
+    requests, total = list_membership_requests(
+        user_id=None,
+        status_filter=status_filter,
+        search=search,
+        page=page,
+        per_page=per_page,
+    )
+
+    return success_response(
+        data={"requests": [r.to_dict() for r in requests]},
+        meta={"total": total, "page": page, "per_page": per_page},
+        status_code=200,
+    )
+
+
+@memberships_bp.route("/requests/<int:request_id>", methods=["GET"])
+@jwt_required()
+def get_membership_request_details(request_id: int):
+    """View details of a specific membership request."""
+    from backend.app.memberships.services import get_membership_request_by_id
+
+    req = get_membership_request_by_id(request_id)
+    if not req:
+        raise NotFoundException(f"Membership request with ID {request_id} not found.")
+
+    user_role = (
+        current_user.role.value
+        if hasattr(current_user.role, "value")
+        else str(current_user.role)
+    )
+
+    # Regular members can only view their own request
+    if user_role == RoleEnum.MEMBER.value and req.user_id != current_user.id:
+        raise ForbiddenException("You do not have permission to view another user's request.")
+
+    return success_response(
+        data={"request": req.to_dict()},
+        status_code=200,
+    )
+
+
+@memberships_bp.route("/requests/<int:request_id>/approve", methods=["POST"])
+@roles_required(RoleEnum.OWNER, RoleEnum.ADMIN)
+def approve_membership_request_endpoint(request_id: int):
+    """Admin/Owner endpoint to manually approve a payment request and activate membership."""
+    from flask import request
+    from backend.app.memberships.services import approve_membership_request
+
+    body = request.get_json(silent=True) or {}
+    review_notes = body.get("review_notes")
+
+    req, membership = approve_membership_request(
+        request_id=request_id,
+        reviewer_user=current_user,
+        review_notes=review_notes,
+    )
+
+    return success_response(
+        data={
+            "request": req.to_dict(),
+            "membership": membership.to_dict(include_plan=True),
+        },
+        message="Membership request approved and membership subscription activated successfully.",
+        status_code=200,
+    )
+
+
+@memberships_bp.route("/requests/<int:request_id>/reject", methods=["POST"])
+@roles_required(RoleEnum.OWNER, RoleEnum.ADMIN)
+def reject_membership_request_endpoint(request_id: int):
+    """Admin/Owner endpoint to reject a payment request."""
+    from flask import request
+    from backend.app.memberships.services import reject_membership_request
+
+    body = request.get_json(silent=True) or {}
+    review_notes = body.get("review_notes")
+
+    req = reject_membership_request(
+        request_id=request_id,
+        reviewer_user=current_user,
+        review_notes=review_notes,
+    )
+
+    return success_response(
+        data={"request": req.to_dict()},
+        message="Membership request has been rejected.",
+        status_code=200,
+    )
+
+
+@memberships_bp.route("/upload-proof", methods=["POST"])
+@jwt_required()
+def upload_payment_proof():
+    """Upload payment screenshot proof file or base64 image securely."""
+    import os
+    import secrets
+    from flask import request
+    from backend.app.common.errors import BadRequestException
+
+    # Check for multipart file upload
+    if "file" in request.files:
+        file = request.files["file"]
+        if not file or file.filename == "":
+            raise BadRequestException("No file selected.")
+
+        ext = file.filename.rsplit(".", 1)[-1].lower() if "." in file.filename else ""
+        if ext not in ["png", "jpg", "jpeg", "webp", "pdf"]:
+            raise BadRequestException("Invalid file format. Allowed: PNG, JPG, JPEG, WEBP, PDF.")
+
+        # Save to instance/uploads/proofs
+        upload_dir = os.path.abspath(
+            os.path.join(os.path.dirname(__file__), "..", "..", "instance", "uploads", "proofs")
+        )
+        os.makedirs(upload_dir, exist_ok=True)
+
+        filename = f"payment_proof_{secrets.token_hex(8)}.{ext}"
+        filepath = os.path.join(upload_dir, filename)
+        file.save(filepath)
+
+        # In local dev, store relative static/data reference
+        file_url = f"/api/v1/memberships/proofs/{filename}"
+
+        return success_response(
+            data={"url": file_url, "filename": filename},
+            message="Payment screenshot uploaded successfully.",
+            status_code=201,
+        )
+
+    # Check for base64 JSON payload
+    body = request.get_json(silent=True) or {}
+    data_url = body.get("image_data") or body.get("data")
+    if data_url and data_url.startswith("data:image/"):
+        return success_response(
+            data={"url": data_url},
+            message="Payment screenshot stored successfully.",
+            status_code=201,
+        )
+
+    raise BadRequestException("No valid image file or data payload provided.")
+

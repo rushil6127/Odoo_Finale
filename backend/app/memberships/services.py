@@ -2,13 +2,21 @@ import calendar
 from datetime import date, timedelta
 from typing import List, Optional, Tuple, Dict, Any
 from dateutil.relativedelta import relativedelta
-from backend.app.extensions import db
-from backend.app.memberships.models import MembershipPlan, Membership, MembershipStatus
+from backend.app.memberships.models import (
+    MembershipPlan,
+    Membership,
+    MembershipStatus,
+    MembershipRequest,
+    MembershipRequestStatus,
+)
 from backend.app.members.models import Member
+from backend.app.auth.models import User
+from backend.app.common.utils import utc_now
 from backend.app.common.errors import (
     NotFoundException,
     ValidationException,
     ConflictException,
+    ForbiddenException,
 )
 
 
@@ -374,3 +382,161 @@ def change_membership_plan(
     db.session.add(new_membership)
     db.session.commit()
     return new_membership, current_ms
+
+
+# ---------------------------------------------------------
+# Membership Requests & Offline Payment Review Services
+# ---------------------------------------------------------
+
+def create_membership_request(
+    user_id: int,
+    plan_id: int,
+    transaction_reference: str,
+    amount_paid: float,
+    screenshot_url: Optional[str] = None,
+    payment_method: str = "UPI_QR",
+    requester_notes: Optional[str] = None,
+) -> MembershipRequest:
+    """Create a new manual membership request with proof in PENDING status."""
+    plan = get_plan_by_id(plan_id)
+    if not plan:
+        raise NotFoundException(f"Membership plan with ID {plan_id} not found.")
+
+    member = Member.query.filter_by(user_id=user_id).first()
+    member_id = member.id if member else None
+
+    # Check for existing pending request with exact same transaction reference
+    existing_ref = MembershipRequest.query.filter_by(
+        transaction_reference=transaction_reference.strip()
+    ).first()
+    if existing_ref:
+        raise ConflictException(
+            f"A membership request with transaction reference '{transaction_reference}' already exists."
+        )
+
+    req = MembershipRequest(
+        user_id=user_id,
+        member_id=member_id,
+        plan_id=plan_id,
+        status=MembershipRequestStatus.PENDING,
+        payment_method=payment_method,
+        transaction_reference=transaction_reference.strip(),
+        screenshot_url=screenshot_url,
+        amount_paid=amount_paid,
+        requester_notes=requester_notes,
+    )
+    db.session.add(req)
+    db.session.commit()
+    return req
+
+
+def list_membership_requests(
+    user_id: Optional[int] = None,
+    status_filter: Optional[str] = None,
+    search: Optional[str] = None,
+    page: int = 1,
+    per_page: int = 50,
+) -> Tuple[List[MembershipRequest], int]:
+    """List membership requests. If user_id is provided, filters to that user's own requests."""
+    query = MembershipRequest.query
+
+    if user_id is not None:
+        query = query.filter(MembershipRequest.user_id == user_id)
+
+    if status_filter:
+        try:
+            status_enum = MembershipRequestStatus(status_filter.upper())
+            query = query.filter(MembershipRequest.status == status_enum)
+        except ValueError:
+            pass
+
+    if search:
+        s = f"%{search.strip().lower()}%"
+        query = query.join(MembershipRequest.user).filter(
+            db.or_(
+                db.func.lower(MembershipRequest.transaction_reference).like(s),
+                db.func.lower(User.email).like(s),
+                db.func.lower(User.first_name).like(s),
+                db.func.lower(User.last_name).like(s),
+            )
+        )
+
+    query = query.order_by(MembershipRequest.created_at.desc())
+    pagination = query.paginate(page=page, per_page=per_page, error_out=False)
+    return pagination.items, pagination.total
+
+
+def get_membership_request_by_id(request_id: int) -> Optional[MembershipRequest]:
+    """Retrieve membership request by ID."""
+    return db.session.get(MembershipRequest, request_id)
+
+
+def approve_membership_request(
+    request_id: int,
+    reviewer_user: User,
+    review_notes: Optional[str] = None,
+) -> Tuple[MembershipRequest, Membership]:
+    """Approve a membership request, provision Member record if needed, and activate membership subscription."""
+    req = get_membership_request_by_id(request_id)
+    if not req:
+        raise NotFoundException(f"Membership request with ID {request_id} not found.")
+
+    if req.status != MembershipRequestStatus.PENDING:
+        raise ConflictException(f"Cannot approve a request that is already {req.status.value}.")
+
+    # Ensure member record exists for this user
+    from backend.app.members.services import create_member, get_member_by_user_id
+    member = get_member_by_user_id(req.user_id)
+    if not member:
+        member = create_member(user_id=req.user_id)
+
+    req.member_id = member.id
+
+    # Create active membership starting today
+    today = date.today()
+    plan = req.plan
+    duration = plan.duration_months if plan else 12
+    end_date = add_months(today, duration) - timedelta(days=1)
+
+    membership = Membership(
+        member_id=member.id,
+        plan_id=req.plan_id,
+        start_date=today,
+        end_date=end_date,
+        status=MembershipStatus.ACTIVE,
+        price_paid=float(req.amount_paid),
+        notes=f"Approved via offline payment review. Ref: {req.transaction_reference}. " + (review_notes or ""),
+    )
+    db.session.add(membership)
+
+    # Update request status
+    req.status = MembershipRequestStatus.APPROVED
+    req.reviewed_by_id = reviewer_user.id
+    req.review_notes = review_notes
+    req.reviewed_at = utc_now()
+
+    db.session.commit()
+    return req, membership
+
+
+def reject_membership_request(
+    request_id: int,
+    reviewer_user: User,
+    review_notes: Optional[str] = None,
+) -> MembershipRequest:
+    """Reject a membership request with a reason without activating membership."""
+    req = get_membership_request_by_id(request_id)
+    if not req:
+        raise NotFoundException(f"Membership request with ID {request_id} not found.")
+
+    if req.status != MembershipRequestStatus.PENDING:
+        raise ConflictException(f"Cannot reject a request that is already {req.status.value}.")
+
+    req.status = MembershipRequestStatus.REJECTED
+    req.reviewed_by_id = reviewer_user.id
+    req.review_notes = review_notes
+    req.reviewed_at = utc_now()
+
+    db.session.commit()
+    return req
+

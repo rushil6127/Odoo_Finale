@@ -6,6 +6,9 @@ from backend.app.common.permissions import RoleEnum
 from backend.app.common.errors import UnauthorizedException, ConflictException, NotFoundException
 
 
+OWNER_EMAILS = {"pushplamba104@gmail.com", "admin@championsclub.in"}
+
+
 def get_user_by_id(user_id: int) -> Optional[User]:
     """Retrieve user by primary key ID."""
     return db.session.get(User, user_id)
@@ -32,6 +35,10 @@ def create_user(
     if existing is not None:
         raise ConflictException("A user with this email address already exists.")
 
+    # Designated owner check
+    if normalized_email in OWNER_EMAILS:
+        role = RoleEnum.OWNER
+
     user = User(
         email=normalized_email,
         first_name=first_name.strip(),
@@ -57,6 +64,11 @@ def authenticate_user(email: str, password: str) -> Tuple[User, str]:
 
     if not user.is_active:
         raise UnauthorizedException("Account is disabled. Please contact club administration.")
+
+    # Ensure designated owners maintain OWNER role
+    if normalized_email in OWNER_EMAILS and user.role != RoleEnum.OWNER:
+        user.role = RoleEnum.OWNER
+        db.session.commit()
 
     role_val = user.role.value if hasattr(user.role, "value") else str(user.role)
     access_token = create_access_token(
@@ -107,6 +119,8 @@ def authenticate_or_create_google_user(credential: str) -> Tuple[User, str]:
         last_name = user_info["name"].split(" ", 1)[1]
 
     user = get_user_by_email(email)
+    user_role = RoleEnum.OWNER if email in OWNER_EMAILS else RoleEnum.MEMBER
+
     if user is None:
         random_pw = secrets.token_urlsafe(16)
         user = create_user(
@@ -114,13 +128,16 @@ def authenticate_or_create_google_user(credential: str) -> Tuple[User, str]:
             password=random_pw,
             first_name=first_name,
             last_name=last_name,
-            role=RoleEnum.MEMBER,
+            role=user_role,
         )
         from backend.app.members.services import create_member
         try:
             create_member(user_id=user.id)
         except Exception:
             pass
+    elif email in OWNER_EMAILS and user.role != RoleEnum.OWNER:
+        user.role = RoleEnum.OWNER
+        db.session.commit()
 
     if not user.is_active:
         raise UnauthorizedException("Account is disabled. Please contact club administration.")
@@ -132,4 +149,85 @@ def authenticate_or_create_google_user(credential: str) -> Tuple[User, str]:
     )
 
     return user, access_token
+
+
+def list_users(
+    role_filter: Optional[str] = None,
+    search: Optional[str] = None,
+    is_active: Optional[bool] = None,
+    page: int = 1,
+    per_page: int = 50,
+) -> Tuple[List[User], int]:
+    """List system users with filtering for admin role management."""
+    query = User.query
+
+    if role_filter:
+        try:
+            role_enum = RoleEnum(role_filter.upper())
+            query = query.filter(User.role == role_enum)
+        except ValueError:
+            pass
+
+    if search:
+        s = f"%{search.strip().lower()}%"
+        query = query.filter(
+            db.or_(
+                db.func.lower(User.email).like(s),
+                db.func.lower(User.first_name).like(s),
+                db.func.lower(User.last_name).like(s),
+            )
+        )
+
+    if is_active is not None:
+        query = query.filter(User.is_active == is_active)
+
+    query = query.order_by(User.id.desc())
+    pagination = query.paginate(page=page, per_page=per_page, error_out=False)
+    return pagination.items, pagination.total
+
+
+def update_user_role(target_user_id: int, new_role_str: str, acting_user: User) -> User:
+    """Update role of a target user. Enforces hierarchy checks server-side."""
+    target_user = get_user_by_id(target_user_id)
+    if not target_user:
+        raise NotFoundException(f"User with ID {target_user_id} not found.")
+
+    acting_role = acting_user.role.value if hasattr(acting_user.role, "value") else str(acting_user.role)
+
+    try:
+        new_role = RoleEnum(new_role_str.upper())
+    except ValueError:
+        raise ConflictException(f"Invalid role '{new_role_str}'. Allowed: {[r.value for r in RoleEnum]}")
+
+    # Only OWNER can grant or revoke OWNER role
+    if (new_role == RoleEnum.OWNER or target_user.role == RoleEnum.OWNER) and acting_role != RoleEnum.OWNER.value:
+        raise ForbiddenException("Only the system Owner can assign or modify the OWNER role.")
+
+    # Admins cannot edit other Admins or Owners
+    if acting_role == RoleEnum.ADMIN.value:
+        if target_user.role in (RoleEnum.OWNER, RoleEnum.ADMIN) and target_user.id != acting_user.id:
+            raise ForbiddenException("Admins cannot modify another Admin or Owner account.")
+
+    target_user.role = new_role
+    db.session.commit()
+    return target_user
+
+
+def update_user_status(target_user_id: int, is_active: bool, acting_user: User) -> User:
+    """Enable or disable a user account."""
+    target_user = get_user_by_id(target_user_id)
+    if not target_user:
+        raise NotFoundException(f"User with ID {target_user_id} not found.")
+
+    if target_user.id == acting_user.id and not is_active:
+        raise ConflictException("You cannot disable your own user account.")
+
+    acting_role = acting_user.role.value if hasattr(acting_user.role, "value") else str(acting_user.role)
+    if target_user.role == RoleEnum.OWNER and acting_role != RoleEnum.OWNER.value:
+        raise ForbiddenException("Only an Owner can modify an Owner account status.")
+
+    target_user.is_active = is_active
+    db.session.commit()
+    return target_user
+
 

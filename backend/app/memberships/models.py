@@ -169,3 +169,105 @@ class Membership(db.Model):
 
     def __repr__(self) -> str:
         return f"<Membership id={self.id} member_id={self.member_id} plan_id={self.plan_id} {self.start_date}->{self.end_date}>"
+
+
+class MembershipRequestStatus(str, enum.Enum):
+    PENDING = "PENDING"
+    APPROVED = "APPROVED"
+    REJECTED = "REJECTED"
+
+
+class MembershipRequest(db.Model):
+    """Membership request and manual offline payment review submission."""
+
+    __tablename__ = "membership_requests"
+
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    user_id = db.Column(
+        db.Integer,
+        db.ForeignKey("users.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    member_id = db.Column(
+        db.Integer,
+        db.ForeignKey("members.id", ondelete="CASCADE"),
+        nullable=True,
+        index=True,
+    )
+    plan_id = db.Column(
+        db.Integer,
+        db.ForeignKey("membership_plans.id"),
+        nullable=False,
+        index=True,
+    )
+    status = db.Column(
+        db.Enum(MembershipRequestStatus, name="membership_request_status_enum"),
+        default=MembershipRequestStatus.PENDING,
+        nullable=False,
+        index=True,
+    )
+    payment_method = db.Column(db.String(50), default="UPI_QR", nullable=False)
+    transaction_reference = db.Column(db.String(100), nullable=False, index=True)
+    screenshot_url = db.Column(db.String(500), nullable=True)
+    amount_paid = db.Column(Numeric(10, 2), nullable=False)
+    requester_notes = db.Column(db.Text, nullable=True)
+
+    reviewed_by_id = db.Column(
+        db.Integer,
+        db.ForeignKey("users.id", ondelete="SET NULL"),
+        nullable=True,
+    )
+    review_notes = db.Column(db.Text, nullable=True)
+    reviewed_at = db.Column(DateTime(timezone=True), nullable=True)
+
+    created_at = db.Column(DateTime(timezone=True), default=utc_now, nullable=False)
+    updated_at = db.Column(
+        DateTime(timezone=True),
+        default=utc_now,
+        onupdate=utc_now,
+        nullable=False,
+    )
+
+    # Relationships
+    user = db.relationship("User", foreign_keys=[user_id])
+    reviewer = db.relationship("User", foreign_keys=[reviewed_by_id])
+    member = db.relationship("Member")
+    plan = db.relationship("MembershipPlan")
+
+    def to_dict(self) -> dict:
+        """Serialize request object with user, plan, and reviewer details."""
+        return {
+            "id": self.id,
+            "user_id": self.user_id,
+            "user": {
+                "id": self.user.id,
+                "email": self.user.email,
+                "first_name": self.user.first_name,
+                "last_name": self.user.last_name,
+                "full_name": self.user.full_name,
+            } if self.user else None,
+            "member_id": self.member_id,
+            "plan_id": self.plan_id,
+            "plan": self.plan.to_dict() if self.plan else None,
+            "status": self.status.value if hasattr(self.status, "value") else str(self.status),
+            "payment_method": self.payment_method,
+            "transaction_reference": self.transaction_reference,
+            "screenshot_url": self.screenshot_url,
+            "amount_paid": float(self.amount_paid) if self.amount_paid is not None else 0.0,
+            "requester_notes": self.requester_notes,
+            "reviewed_by_id": self.reviewed_by_id,
+            "reviewer": {
+                "id": self.reviewer.id,
+                "full_name": self.reviewer.full_name,
+                "email": self.reviewer.email,
+            } if self.reviewer else None,
+            "review_notes": self.review_notes,
+            "reviewed_at": self.reviewed_at.isoformat() if self.reviewed_at else None,
+            "created_at": self.created_at.isoformat() if self.created_at else None,
+            "updated_at": self.updated_at.isoformat() if self.updated_at else None,
+        }
+
+    def __repr__(self) -> str:
+        return f"<MembershipRequest id={self.id} user_id={self.user_id} plan_id={self.plan_id} status={self.status}>"
+
