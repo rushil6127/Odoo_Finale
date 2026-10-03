@@ -76,13 +76,8 @@ export default function LoginPage() {
     setRegError(null);
 
     try {
-      const data = await loginWithGoogle(response.credential);
-      const user = data.user;
-      if (user?.role === "MEMBER") {
-        router.push("/");
-      } else {
-        router.push("/dashboard");
-      }
+      await loginWithGoogle(response.credential);
+      router.push("/profile");
     } catch (err: any) {
       const msg = err?.message || "Google authentication failed. Please try again.";
       setLoginError(msg);
