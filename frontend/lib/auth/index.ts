@@ -5,7 +5,7 @@
  * with support for client-side Demo member sessions and reactive hooks.
  */
 
-import { useSyncExternalStore } from "react";
+import { useSyncExternalStore, useMemo } from "react";
 import { apiClient } from "@/lib/api/client";
 import type { UserRole, MembershipPlan, MembershipStatus } from "@/types";
 
@@ -639,7 +639,6 @@ export function enrichUserProfile(parsed: any): (AuthUserProfile & AuthUser) | n
   }
   if (!parsed.memberCode) parsed.memberCode = `CC-${(parsed.role || "MEM").toUpperCase()}-${parsed.id || 101}`;
   if (!parsed.phone) parsed.phone = "+91 98765 43210";
-
   // Dynamic membership plan binding
   if (parsed.membership_plan) {
     parsed.membershipPlan = parsed.membership_plan.toUpperCase();
@@ -679,12 +678,12 @@ export function enrichUserProfile(parsed: any): (AuthUserProfile & AuthUser) | n
     parsed.membershipStartDate = "October 3, 2026";
   }
 
-  if (parsed.walletBalance === undefined) parsed.walletBalance = 8500;
-  if (parsed.clubTabsOutstanding === undefined) parsed.clubTabsOutstanding = 1250;
-  if (!parsed.crmInquiries || !Array.isArray(parsed.crmInquiries)) parsed.crmInquiries = DEMO_MEMBERS.alex.crmInquiries;
-  if (!parsed.orders || !Array.isArray(parsed.orders)) parsed.orders = DEMO_MEMBERS.alex.orders;
-  if (!parsed.bookings || !Array.isArray(parsed.bookings)) parsed.bookings = DEMO_MEMBERS.alex.bookings;
-  if (!parsed.payments || !Array.isArray(parsed.payments)) parsed.payments = DEMO_MEMBERS.alex.payments;
+  if (parsed.walletBalance === undefined) parsed.walletBalance = 0;
+  if (parsed.clubTabsOutstanding === undefined) parsed.clubTabsOutstanding = 0;
+  if (!parsed.crmInquiries || !Array.isArray(parsed.crmInquiries)) parsed.crmInquiries = [];
+  if (!parsed.orders || !Array.isArray(parsed.orders)) parsed.orders = [];
+  if (!parsed.bookings || !Array.isArray(parsed.bookings)) parsed.bookings = [];
+  if (!parsed.payments || !Array.isArray(parsed.payments)) parsed.payments = [];
 
   return parsed as (AuthUserProfile & AuthUser);
 }
@@ -820,16 +819,16 @@ function getServerSnapshot(): string | null {
   return null;
 }
 
-let _cachedUserJson: string | null = null;
-let _cachedUser: (AuthUserProfile & AuthUser) | null = null;
-
 export function useCurrentUser() {
   const userJson = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
-  if (userJson !== _cachedUserJson) {
-    _cachedUserJson = userJson;
-    _cachedUser = userJson ? enrichUserProfile(JSON.parse(userJson)) : null;
-  }
-  const user = _cachedUser;
+  const user = useMemo(() => {
+    if (!userJson) return null;
+    try {
+      return enrichUserProfile(JSON.parse(userJson));
+    } catch {
+      return null;
+    }
+  }, [userJson]);
 
   return {
     user,

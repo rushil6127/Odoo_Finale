@@ -121,7 +121,9 @@ EXPLICIT_PUBLIC_ENDPOINTS = {
     "courts.list_courts",
     "courts.get_court_details",
     "courts.get_availability",
+    "bookings.get_pricing_rules_route",
     "payments.webhook_receiver_route",
+    "auth.demo_login",
     # Public CRM & Catalog endpoints
     "crm.api_public_club_info",
     "crm.api_public_plans",

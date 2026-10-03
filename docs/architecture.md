@@ -246,3 +246,21 @@ Database (SQLAlchemy)
 3. **Request Logging (`request_logging.py`)**: Records structured execution metadata (HTTP method, path, response status, duration ms, request ID, user ID, role) while strictly redacting sensitive tokens, secrets, passwords, and cards.
 4. **Centralized Error Handling (`error_handler.py`)**: Intercepts domain `AppException`, validation errors, database integrity violations, and unexpected 500 crashes into a consistent JSON envelope (`{"success": false, "error": {"code": "...", "message": "..."}}`) while protecting stack traces and internal secrets in production.
 
+## 11. Database as the Sole System of Record
+
+1. **Authoritative State**: The database (PostgreSQL / SQLite via SQLAlchemy) is the only source of truth. The Next.js frontend contains zero authoritative business data or mock fallback state.
+2. **End-to-End Persistence Pipeline**:
+   ```text
+   Next.js UI (Display & Input)
+     ↓ HTTP REST / JSON + JWT Bearer
+   Flask REST API (/api/v1/*)
+     ↓ Middleware (Correlation ID, Auth Context, Audit Logging)
+   Domain Services (Auth, Members, Bookings, POS, Shop, Inventory, CRM, Reports)
+     ↓ Unit of Work & Validation
+   SQLAlchemy ORM Models
+     ↓ ACID Transactions
+   Database Storage (instance/champions_club.db / PostgreSQL)
+   ```
+3. **Seeding Framework**: Hackathon demonstrations populate real database records via `flask seed core` and `flask seed demo`. The frontend queries these persisted records upon initialization.
+4. **No LocalStorage as Database**: LocalStorage is reserved solely for ephemeral JWT auth tokens; all business records (members, bookings, inventory, orders, tabs, leads) are persisted and queried dynamically from backend APIs.
+

@@ -204,7 +204,7 @@ def check_daily_booking_limit(
     active_count = query.count()
     if active_count >= max_limit:
         raise ValidationException(
-            f"Daily booking limit of {max_limit} active session(s) reached for {booking_date.isoformat()}.",
+            f"Daily booking limit reached. You can book a maximum of {max_limit} slots per day.",
             code="DAILY_LIMIT_EXCEEDED",
             details={
                 "member_id": [f"Member already has {active_count} confirmed booking(s) on this date."],

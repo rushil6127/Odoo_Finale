@@ -1,6 +1,7 @@
 from datetime import datetime, date
 from flask import Blueprint, request
 from flask_jwt_extended import jwt_required, current_user
+from backend.app.extensions import limiter
 from backend.app.common.responses import success_response
 from backend.app.common.validation import validate_schema
 from backend.app.common.permissions import roles_required, RoleEnum
@@ -151,6 +152,7 @@ def calculate_price_route():
 
 
 @bookings_bp.route("", methods=["POST"])
+@limiter.limit("20 per minute")
 @jwt_required()
 @roles_required(
     RoleEnum.OWNER,
@@ -223,6 +225,7 @@ def create_booking_route(validated_data):
 
 
 @bookings_bp.route("/guest", methods=["POST"])
+@limiter.limit("15 per minute")
 @validate_schema(BookingCreateSchema)
 def create_guest_booking_route(validated_data):
     """Create a guest/walk-in court booking without requiring user JWT login."""
