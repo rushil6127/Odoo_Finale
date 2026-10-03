@@ -152,61 +152,7 @@ def register_jwt_error_handlers(jwt_manager: JWTManager):
 # ---------------------------------------------------------
 
 def register_error_handlers(app: Flask, jwt_manager: Optional[JWTManager] = None):
-    """Register global JSON error handlers on the Flask application."""
+    """Register global JSON error handlers on the Flask application (delegated to middleware)."""
+    from backend.app.middleware.error_handler import register_error_handler_middleware
+    register_error_handler_middleware(app, jwt_manager=jwt_manager)
 
-    if jwt_manager is not None:
-        register_jwt_error_handlers(jwt_manager)
-
-    @app.errorhandler(AppException)
-    def handle_app_exception(e: AppException):
-        return error_response(
-            code=e.code,
-            message=e.message,
-            status_code=e.status_code,
-            details=e.details,
-        )
-
-    @app.errorhandler(ValidationError)
-    def handle_marshmallow_validation(e: ValidationError):
-        return error_response(
-            code="VALIDATION_ERROR",
-            message="Invalid request payload",
-            status_code=422,
-            details=e.messages,
-        )
-
-    @app.errorhandler(IntegrityError)
-    def handle_integrity_error(e: IntegrityError):
-        logger.warning("Database integrity error: %s", str(e))
-        return error_response(
-            code="CONFLICT",
-            message="A database integrity or uniqueness constraint was violated.",
-            status_code=409,
-        )
-
-    @app.errorhandler(SQLAlchemyError)
-    def handle_sqlalchemy_error(e: SQLAlchemyError):
-        logger.exception("Database error occurred: %s", str(e))
-        return error_response(
-            code="DATABASE_ERROR",
-            message="A database error occurred. Please try again later.",
-            status_code=500,
-        )
-
-    @app.errorhandler(HTTPException)
-    def handle_http_exception(e: HTTPException):
-        code_name = e.name.upper().replace(" ", "_")
-        return error_response(
-            code=code_name,
-            message=e.description or str(e),
-            status_code=e.code or 500,
-        )
-
-    @app.errorhandler(Exception)
-    def handle_generic_exception(e: Exception):
-        logger.exception("Unhandled internal exception: %s", str(e))
-        return error_response(
-            code="INTERNAL_SERVER_ERROR",
-            message="An unexpected error occurred. Please try again later.",
-            status_code=500,
-        )
