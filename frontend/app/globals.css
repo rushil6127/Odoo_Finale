@@ -1,0 +1,131 @@
+@import "tailwindcss";
+
+/* ============================================================
+   Champions Club — Design Tokens
+   Source of truth: docs/design.md
+   ============================================================ */
+
+:root {
+  /* ---- Green: Ground Sports ---- */
+  --cc-green-bright: #CEF852;       /* Bright Sport Green */
+  --cc-green-deep: #1E4B33;         /* Deep Club Green */
+  --cc-green-olive: #6F7A4B;        /* Olive Sport Green */
+
+  /* ---- Blue: Water / Cool Sports ---- */
+  --cc-blue-deep: #133C73;          /* Deep Sports Blue */
+  --cc-blue-medium: #1A5276;        /* Medium blue — UI depth */
+  --cc-blue-light: #2E86C1;         /* Light blue — accents */
+
+  /* ---- Neutral ---- */
+  --cc-white-warm: #F3EEE0;         /* Warm White */
+  --cc-white-soft: #FFFBF8;         /* Soft White */
+  --cc-white: #FFFFFF;
+
+  /* ---- Accent ---- */
+  --cc-lime: #F6ED5B;               /* Sport Lime */
+
+  /* ---- Semantic ---- */
+  --cc-success: #2ECC71;
+  --cc-warning: #F39C12;
+  --cc-error: #E74C3C;
+  --cc-info: #3498DB;
+
+  /* ---- Text ---- */
+  --cc-text-primary: #1A1A1A;
+  --cc-text-secondary: #5A5A5A;
+  --cc-text-muted: #9A9A9A;
+  --cc-text-inverse: #FFFFFF;
+
+  /* ---- Surfaces ---- */
+  --cc-surface-primary: var(--cc-white-soft);
+  --cc-surface-card: var(--cc-white);
+  --cc-surface-elevated: var(--cc-white);
+  --cc-surface-warm: var(--cc-white-warm);
+
+  /* ---- Borders ---- */
+  --cc-border: #E5E5E5;
+  --cc-border-focus: var(--cc-green-deep);
+
+  /* ---- Shadows ---- */
+  --cc-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --cc-shadow-md: 0 4px 6px rgba(0, 0, 0, 0.07);
+  --cc-shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
+
+  /* ---- Radii ---- */
+  --cc-radius-sm: 6px;
+  --cc-radius-md: 10px;
+  --cc-radius-lg: 16px;
+  --cc-radius-full: 9999px;
+
+  /* ---- Spacing scale (rem) ---- */
+  --cc-space-1: 0.25rem;
+  --cc-space-2: 0.5rem;
+  --cc-space-3: 0.75rem;
+  --cc-space-4: 1rem;
+  --cc-space-5: 1.25rem;
+  --cc-space-6: 1.5rem;
+  --cc-space-8: 2rem;
+  --cc-space-10: 2.5rem;
+  --cc-space-12: 3rem;
+  --cc-space-16: 4rem;
+
+  /* ---- Typography ---- */
+  --cc-font-sans: "Inter", system-ui, -apple-system, sans-serif;
+  --cc-font-display: "Inter", system-ui, -apple-system, sans-serif;
+
+  /* ---- Transitions ---- */
+  --cc-transition-fast: 150ms ease;
+  --cc-transition-normal: 250ms ease;
+  --cc-transition-slow: 400ms ease;
+}
+
+/* ---- Tailwind theme integration ---- */
+@theme inline {
+  --color-cc-green-bright: var(--cc-green-bright);
+  --color-cc-green-deep: var(--cc-green-deep);
+  --color-cc-green-olive: var(--cc-green-olive);
+
+  --color-cc-blue-deep: var(--cc-blue-deep);
+  --color-cc-blue-medium: var(--cc-blue-medium);
+  --color-cc-blue-light: var(--cc-blue-light);
+
+  --color-cc-white-warm: var(--cc-white-warm);
+  --color-cc-white-soft: var(--cc-white-soft);
+
+  --color-cc-lime: var(--cc-lime);
+
+  --color-cc-success: var(--cc-success);
+  --color-cc-warning: var(--cc-warning);
+  --color-cc-error: var(--cc-error);
+  --color-cc-info: var(--cc-info);
+
+  --color-cc-text-primary: var(--cc-text-primary);
+  --color-cc-text-secondary: var(--cc-text-secondary);
+  --color-cc-text-muted: var(--cc-text-muted);
+
+  --color-cc-border: var(--cc-border);
+
+  --font-sans: var(--cc-font-sans);
+  --font-display: var(--cc-font-display);
+}
+
+/* ---- Global base styles ---- */
+body {
+  background: var(--cc-surface-primary);
+  color: var(--cc-text-primary);
+  font-family: var(--cc-font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ---- Focus ring utility ---- */
+*:focus-visible {
+  outline: 2px solid var(--cc-border-focus);
+  outline-offset: 2px;
+}
+
+/* ---- Selection ---- */
+::selection {
+  background: var(--cc-green-bright);
+  color: var(--cc-green-deep);
+}
