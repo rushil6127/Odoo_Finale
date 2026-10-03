@@ -12,11 +12,12 @@ from flask import current_app
 from flask.cli import AppGroup
 from backend.app.extensions import db
 from backend.app.seeds.demo_seed import seed_core_demo
+from backend.app.seeds.demo_seed_b import seed_commerce_and_crm_demo
 
 seed_cli = AppGroup("seed", help="Database seeding and demo data management.")
 
 # Registry for modular seed providers (e.g. Developer B commerce modules)
-_ADDITIONAL_SEED_PROVIDERS = []
+_ADDITIONAL_SEED_PROVIDERS = [seed_commerce_and_crm_demo]
 
 
 def register_seed_provider(provider_fn):
