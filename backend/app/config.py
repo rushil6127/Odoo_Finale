@@ -16,8 +16,12 @@ default_sqlite_path = os.path.join(
 class BaseConfig:
     """Base application configuration."""
 
-    SECRET_KEY = os.getenv("SECRET_KEY", "dev-champions-club-secret-key-change-in-prod")
-    JWT_SECRET_KEY = os.getenv("JWT_SECRET_KEY", "dev-champions-club-jwt-secret-key")
+    SECRET_KEY = os.getenv(
+        "SECRET_KEY", "dev-champions-club-secret-key-change-in-prod-minimum-32-bytes"
+    )
+    JWT_SECRET_KEY = os.getenv(
+        "JWT_SECRET_KEY", "dev-champions-club-jwt-secret-key-minimum-32-bytes"
+    )
     JWT_ACCESS_TOKEN_EXPIRES = timedelta(
         seconds=int(os.getenv("JWT_ACCESS_TOKEN_EXPIRES", 86400))
     )
@@ -54,8 +58,8 @@ class TestingConfig(BaseConfig):
     DEBUG = True
     TESTING = True
     SQLALCHEMY_DATABASE_URI = os.getenv("TEST_DATABASE_URL", "sqlite:///:memory:")
-    JWT_SECRET_KEY = "test-jwt-secret-key"
-    SECRET_KEY = "test-secret-key"
+    JWT_SECRET_KEY = "test-jwt-secret-key-minimum-32-bytes-length-ok"
+    SECRET_KEY = "test-secret-key-minimum-32-bytes-length-ok"
     CELERY_TASK_ALWAYS_EAGER = True
 
 
