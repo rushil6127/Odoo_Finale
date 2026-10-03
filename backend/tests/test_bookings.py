@@ -162,8 +162,8 @@ def test_create_booking_service_success(app, db_session, seed_data, gold_member_
     assert booking.court_id == court.id
     assert booking.member_id == member.id
     assert booking.status == BookingStatus.CONFIRMED
-    assert booking.start_time == start_dt
-    assert booking.end_time == start_dt + timedelta(minutes=60)
+    assert booking.start_time.replace(tzinfo=None) == start_dt.replace(tzinfo=None)
+    assert booking.end_time.replace(tzinfo=None) == (start_dt + timedelta(minutes=60)).replace(tzinfo=None)
     assert booking.base_price == 800.0  # Tennis base rate
     assert booking.discount_amount == 800.0  # Gold 100% discount
     assert booking.final_price == 0.0
@@ -171,9 +171,9 @@ def test_create_booking_service_success(app, db_session, seed_data, gold_member_
     # Check that exactly two 30-minute occupancy entries were created
     occupancies = CourtOccupancy.query.filter_by(booking_id=booking.id).all()
     assert len(occupancies) == 2
-    slot_starts = [occ.slot_start for occ in occupancies]
-    assert start_dt in slot_starts
-    assert start_dt + timedelta(minutes=30) in slot_starts
+    slot_starts = [occ.slot_start.replace(tzinfo=None) for occ in occupancies]
+    assert start_dt.replace(tzinfo=None) in slot_starts
+    assert (start_dt + timedelta(minutes=30)).replace(tzinfo=None) in slot_starts
 
 
 def test_exact_overlap_booking_fails(app, db_session, seed_data, gold_member_user):

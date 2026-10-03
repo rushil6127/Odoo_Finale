@@ -11,7 +11,7 @@ import sqlalchemy as sa
 
 # revision identifiers, used by Alembic.
 revision = 'b67e814a0912'
-down_revision = 'fa27d8e4b14c'
+down_revision = '0b4e50e8b00f'
 branch_labels = None
 depends_on = None
 
@@ -21,18 +21,24 @@ NEW_SPORTS = ('LAWN_TENNIS', 'SWIMMING_POOL', 'BADMINTON', 'BOX_CRICKET', 'TABLE
 
 def upgrade():
     bind = op.get_bind()
-    
-    # 1. If existing rows have TENNIS, migrate to LAWN_TENNIS
-    try:
-        bind.execute(sa.text("UPDATE courts SET sport_type = 'LAWN_TENNIS' WHERE sport_type = 'TENNIS'"))
-    except Exception:
-        pass
 
-    # 2. Schema update
     if bind.dialect.name == 'postgresql':
-        for new_val in ['LAWN_TENNIS', 'SWIMMING_POOL', 'TABLE_TENNIS', 'VOLLEYBALL']:
-            op.execute(f"ALTER TYPE sport_types_enum ADD VALUE IF NOT EXISTS '{new_val}'")
+        op.execute("ALTER TYPE sport_types_enum RENAME TO sport_types_enum_old")
+        op.execute("CREATE TYPE sport_types_enum AS ENUM ('LAWN_TENNIS', 'SWIMMING_POOL', 'BADMINTON', 'BOX_CRICKET', 'TABLE_TENNIS', 'VOLLEYBALL')")
+        op.execute(
+            "ALTER TABLE courts ALTER COLUMN sport_type TYPE sport_types_enum USING ("
+            "CASE WHEN sport_type::text = 'TENNIS' THEN 'LAWN_TENNIS'::sport_types_enum "
+            "WHEN sport_type::text = 'PADEL' THEN 'LAWN_TENNIS'::sport_types_enum "
+            "ELSE sport_type::text::sport_types_enum END)"
+        )
+        op.execute("DROP TYPE sport_types_enum_old")
     else:
+        # 1. If existing rows have TENNIS, migrate to LAWN_TENNIS
+        try:
+            bind.execute(sa.text("UPDATE courts SET sport_type = 'LAWN_TENNIS' WHERE sport_type = 'TENNIS'"))
+        except Exception:
+            pass
+
         # SQLite batch alter
         with op.batch_alter_table('courts', schema=None) as batch_op:
             batch_op.alter_column(
@@ -45,12 +51,23 @@ def upgrade():
 
 def downgrade():
     bind = op.get_bind()
-    try:
-        bind.execute(sa.text("UPDATE courts SET sport_type = 'TENNIS' WHERE sport_type = 'LAWN_TENNIS'"))
-    except Exception:
-        pass
 
-    if bind.dialect.name != 'postgresql':
+    if bind.dialect.name == 'postgresql':
+        op.execute("ALTER TYPE sport_types_enum RENAME TO sport_types_enum_new")
+        op.execute("CREATE TYPE sport_types_enum AS ENUM ('TENNIS', 'PADEL', 'BADMINTON', 'BOX_CRICKET')")
+        op.execute(
+            "ALTER TABLE courts ALTER COLUMN sport_type TYPE sport_types_enum USING ("
+            "CASE WHEN sport_type::text = 'LAWN_TENNIS' THEN 'TENNIS'::sport_types_enum "
+            "WHEN sport_type::text IN ('SWIMMING_POOL', 'TABLE_TENNIS', 'VOLLEYBALL') THEN 'BADMINTON'::sport_types_enum "
+            "ELSE sport_type::text::sport_types_enum END)"
+        )
+        op.execute("DROP TYPE sport_types_enum_new")
+    else:
+        try:
+            bind.execute(sa.text("UPDATE courts SET sport_type = 'TENNIS' WHERE sport_type = 'LAWN_TENNIS'"))
+        except Exception:
+            pass
+
         with op.batch_alter_table('courts', schema=None) as batch_op:
             batch_op.alter_column(
                 'sport_type',
@@ -58,3 +75,4 @@ def downgrade():
                 type_=sa.Enum(*OLD_SPORTS, name='sport_types_enum'),
                 existing_nullable=False,
             )
+
