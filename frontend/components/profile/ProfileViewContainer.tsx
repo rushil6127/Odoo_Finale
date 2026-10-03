@@ -830,106 +830,143 @@ export default function ProfileViewContainer({ forcedMode }: ProfileViewContaine
 
                       {/* Chart & Legend Row */}
                       <div className="py-5 flex flex-col sm:flex-row items-center sm:items-stretch gap-6 sm:gap-8">
-                        {/* Circular Donut Chart */}
-                        <div className="relative w-36 h-36 shrink-0 flex items-center justify-center">
+                        {/* Circular Donut Chart - Sharp Technical Gauge */}
+                        <div className="relative w-40 h-40 shrink-0 flex items-center justify-center">
                           <svg className="w-full h-full -rotate-90 transform" viewBox="0 0 128 128">
-                            {/* Background Track */}
+                            {/* Outer Precision Track Ring */}
                             <circle
                               cx="64"
                               cy="64"
-                              r="50"
+                              r="58"
                               stroke="#e2e8f0"
-                              strokeWidth="12"
+                              strokeWidth="1"
+                              strokeDasharray="3 3"
                               fill="none"
                             />
-                            {/* Segment 1: Grass Tennis (36% -> strokeDasharray 113.1, gap 201) */}
+
+                            {/* Base Background Ring */}
                             <circle
                               cx="64"
                               cy="64"
                               r="50"
-                              stroke="#10b981"
+                              stroke="#f1f5f9"
                               strokeWidth="12"
-                              strokeDasharray="113.1 314.16"
+                              fill="none"
+                            />
+
+                            {/* Segment 1: Grass Tennis (36% -> 110.6 arc, flat butt cap) */}
+                            <circle
+                              cx="64"
+                              cy="64"
+                              r="50"
+                              stroke="#059669"
+                              strokeWidth="12"
+                              strokeDasharray="110.6 314.16"
                               strokeDashoffset="0"
-                              strokeLinecap="round"
+                              strokeLinecap="butt"
                               fill="none"
-                              className="transition-all duration-1000"
                             />
-                            {/* Segment 2: Box Cricket (24% -> strokeDasharray 75.4, gap 238.8, offset -117) */}
+
+                            {/* Segment 2: Box Cricket (24% -> 72.9 arc, flat butt cap) */}
                             <circle
                               cx="64"
                               cy="64"
                               r="50"
-                              stroke="#0ea5e9"
+                              stroke="#0284c7"
                               strokeWidth="12"
-                              strokeDasharray="75.4 314.16"
-                              strokeDashoffset="-117"
-                              strokeLinecap="round"
+                              strokeDasharray="72.9 314.16"
+                              strokeDashoffset="-113.1"
+                              strokeLinecap="butt"
                               fill="none"
-                              className="transition-all duration-1000"
                             />
-                            {/* Segment 3: Badminton & Aquatics (18% -> strokeDasharray 56.5, offset -196) */}
+
+                            {/* Segment 3: Badminton & Aquatics (18% -> 54.0 arc, flat butt cap) */}
                             <circle
                               cx="64"
                               cy="64"
                               r="50"
-                              stroke="#6366f1"
+                              stroke="#4f46e5"
                               strokeWidth="12"
-                              strokeDasharray="56.5 314.16"
-                              strokeDashoffset="-196"
-                              strokeLinecap="round"
+                              strokeDasharray="54.0 314.16"
+                              strokeDashoffset="-188.5"
+                              strokeLinecap="butt"
                               fill="none"
-                              className="transition-all duration-1000"
+                            />
+
+                            {/* Segment 4: Available Open Slots (22% -> 66.6 arc, crisp neutral track) */}
+                            <circle
+                              cx="64"
+                              cy="64"
+                              r="50"
+                              stroke="#cbd5e1"
+                              strokeWidth="12"
+                              strokeDasharray="66.6 314.16"
+                              strokeDashoffset="-245.0"
+                              strokeLinecap="butt"
+                              fill="none"
+                            />
+
+                            {/* Inner Precision Hairline Ring */}
+                            <circle
+                              cx="64"
+                              cy="64"
+                              r="42"
+                              stroke="#e2e8f0"
+                              strokeWidth="1"
+                              fill="none"
                             />
                           </svg>
 
-                          {/* Center Text in Donut */}
+                          {/* Center Text in Donut (Sharp Monospace Typography) */}
                           <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                            <span className="text-2xl font-black text-slate-900 tracking-tight font-[family-name:var(--font-outfit)]">
+                            <span className="text-2xl font-black text-slate-900 tracking-tight font-mono leading-none">
                               78%
                             </span>
-                            <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">
-                              Occupied
+                            <span className="text-[9px] font-black uppercase tracking-widest text-slate-400 font-mono mt-1">
+                              OCCUPIED
+                            </span>
+                            <span className="text-[8px] font-bold uppercase tracking-wider text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded-sm border border-emerald-200 mt-1 font-mono">
+                              29/38 SLOTS
                             </span>
                           </div>
                         </div>
 
-                        {/* Breakdown Legend Items */}
-                        <div className="flex-1 w-full space-y-2.5 justify-center flex flex-col text-xs">
+                        {/* Breakdown Legend Items with Sharp Indicators */}
+                        <div className="flex-1 w-full space-y-2 justify-center flex flex-col text-xs">
                           {/* Item 1 */}
-                          <div className="flex items-center justify-between p-2 rounded-xl bg-white border border-slate-200/70 shadow-2xs">
+                          <div className="flex items-center justify-between p-2 rounded-lg bg-white border border-slate-200/80 shadow-2xs">
                             <div className="flex items-center gap-2">
-                              <span className="w-2.5 h-2.5 rounded-full bg-emerald-500" />
-                              <span className="font-bold text-slate-700">Centre Lawn Tennis</span>
+                              <span className="w-2.5 h-2.5 rounded-sm bg-emerald-600 shrink-0" />
+                              <span className="font-bold text-slate-800 text-xs">Centre Lawn Tennis</span>
                             </div>
-                            <span className="font-mono font-extrabold text-slate-900">12 / 16 slots (75%)</span>
+                            <span className="font-mono font-bold text-slate-900 text-xs">12/16 slots &bull; 75%</span>
                           </div>
 
                           {/* Item 2 */}
-                          <div className="flex items-center justify-between p-2 rounded-xl bg-white border border-slate-200/70 shadow-2xs">
+                          <div className="flex items-center justify-between p-2 rounded-lg bg-white border border-slate-200/80 shadow-2xs">
                             <div className="flex items-center gap-2">
-                              <span className="w-2.5 h-2.5 rounded-full bg-sky-500" />
-                              <span className="font-bold text-slate-700">Box Cricket Turf</span>
+                              <span className="w-2.5 h-2.5 rounded-sm bg-sky-600 shrink-0" />
+                              <span className="font-bold text-slate-800 text-xs">Box Cricket Turf</span>
                             </div>
-                            <span className="font-mono font-extrabold text-slate-900">8 / 10 slots (80%)</span>
+                            <span className="font-mono font-bold text-slate-900 text-xs">8/10 slots &bull; 80%</span>
                           </div>
 
                           {/* Item 3 */}
-                          <div className="flex items-center justify-between p-2 rounded-xl bg-white border border-slate-200/70 shadow-2xs">
+                          <div className="flex items-center justify-between p-2 rounded-lg bg-white border border-slate-200/80 shadow-2xs">
                             <div className="flex items-center gap-2">
-                              <span className="w-2.5 h-2.5 rounded-full bg-indigo-500" />
-                              <span className="font-bold text-slate-700">Badminton & Aquatics</span>
+                              <span className="w-2.5 h-2.5 rounded-sm bg-indigo-600 shrink-0" />
+                              <span className="font-bold text-slate-800 text-xs">Badminton & Aquatics</span>
                             </div>
-                            <span className="font-mono font-extrabold text-slate-900">9 / 12 slots (75%)</span>
+                            <span className="font-mono font-bold text-slate-900 text-xs">9/12 slots &bull; 75%</span>
                           </div>
 
                           {/* Available Remaining */}
-                          <div className="flex items-center justify-between px-2 pt-1 text-[11px] text-slate-500">
+                          <div className="flex items-center justify-between px-2 pt-0.5 text-[11px] text-slate-500">
                             <span className="flex items-center gap-1.5">
-                              <span className="w-2 h-2 rounded-full bg-slate-300" />
-                              Open match slots remaining:
+                              <span className="w-2 h-2 rounded-sm bg-slate-300 shrink-0" />
+                              <span>Open slots available today:</span>
                             </span>
-                            <span className="font-bold text-slate-700">9 slots open</span>
+                            <span className="font-mono font-bold text-slate-700">9 open</span>
                           </div>
                         </div>
                       </div>
