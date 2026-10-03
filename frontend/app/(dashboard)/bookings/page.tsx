@@ -313,7 +313,7 @@ export default function BookingsPage() {
                 key={court.id}
                 className={`p-5 sm:p-6 rounded-2xl border transition-all flex flex-col justify-between ${
                   isMaint
-                    ? "bg-amber-50/70 border-amber-200/90 shadow-2xs hover:shadow-md"
+                    ? "bg-red-50/70 border-red-200/90 shadow-2xs hover:shadow-md"
                     : "bg-slate-50/90 hover:bg-white border-slate-200/90 hover:border-slate-300 shadow-2xs hover:shadow-md"
                 }`}
               >
@@ -325,11 +325,11 @@ export default function BookingsPage() {
                     <span
                       className={`px-2.5 py-0.5 rounded-full text-xs font-bold border flex items-center gap-1.5 shrink-0 ${
                         isMaint
-                          ? "bg-amber-100 text-amber-900 border-amber-300/80"
+                          ? "bg-red-100 text-red-800 border-red-300/80"
                           : "bg-emerald-50 text-emerald-800 border-emerald-200/80"
                       }`}
                     >
-                      <span className={`w-1.5 h-1.5 rounded-full ${isMaint ? "bg-amber-500" : "bg-emerald-500 animate-pulse"}`} />
+                      <span className={`w-1.5 h-1.5 rounded-full ${isMaint ? "bg-red-500" : "bg-emerald-500 animate-pulse"}`} />
                       {court.status}
                     </span>
                   </div>
@@ -339,7 +339,7 @@ export default function BookingsPage() {
                     <p>Type: <strong className="text-slate-700 font-semibold">{court.is_indoor ? "Indoor Arena" : "Outdoor"}</strong></p>
                     {court.features?.last_maintenance_note && (
                       <div className="p-3 rounded-xl bg-white border border-slate-200/80 text-xs text-slate-700 mt-2.5 shadow-2xs">
-                        <span className="text-amber-700 font-bold">Note: </span>
+                        <span className={`${isMaint ? "text-red-700" : "text-amber-700"} font-bold`}>Note: </span>
                         {court.features.last_maintenance_note}
                         {court.features.last_maintenance_date && (
                           <span className="block text-slate-400 text-[10px] mt-1 font-mono">
@@ -357,10 +357,10 @@ export default function BookingsPage() {
                     setNewCourtStatus(isMaint ? "ACTIVE" : "MAINTENANCE");
                     setMaintenanceNote(court.features?.last_maintenance_note || "");
                   }}
-                  className={`w-full py-2.5 px-3 rounded-xl text-xs font-bold flex items-center justify-center gap-2 border transition-all mt-2 ${
+                  className={`w-full py-2.5 px-3 rounded-xl text-xs font-bold flex items-center justify-center gap-2 border transition-all mt-2 active:scale-[0.99] ${
                     isMaint
                       ? "bg-emerald-600 hover:bg-emerald-500 text-white border-emerald-600 shadow-sm shadow-emerald-600/20"
-                      : "bg-white hover:bg-amber-50 text-amber-900 border-slate-200 hover:border-amber-300 shadow-2xs"
+                      : "bg-red-50 hover:bg-red-100 text-red-700 hover:text-red-800 border-red-200/90 hover:border-red-300 shadow-2xs"
                   }`}
                 >
                   {isMaint ? (
@@ -370,7 +370,7 @@ export default function BookingsPage() {
                     </>
                   ) : (
                     <>
-                      <Wrench className="w-3.5 h-3.5 text-amber-600" />
+                      <Wrench className="w-3.5 h-3.5 text-red-600" />
                       <span>Put Under Maintenance</span>
                     </>
                   )}
@@ -508,33 +508,33 @@ export default function BookingsPage() {
 
       {/* MODAL: UPDATE COURT MAINTENANCE */}
       {selectedCourtForMaint && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in">
-          <div className="bg-zinc-900 border border-zinc-700 rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-5">
-            <div className="flex items-center justify-between border-b border-zinc-800 pb-4">
-              <div className="flex items-center gap-2 text-white font-bold text-base">
-                <Wrench className="w-5 h-5 text-amber-400" />
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in">
+          <div className="bg-white border border-slate-200 rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-5 text-slate-800">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-4">
+              <div className="flex items-center gap-2 text-slate-900 font-bold text-base">
+                <Wrench className="w-5 h-5 text-red-600" />
                 Court Maintenance & Condition
               </div>
               <button
                 onClick={() => setSelectedCourtForMaint(null)}
-                className="text-zinc-400 hover:text-white p-1 rounded-lg hover:bg-zinc-800"
+                className="text-slate-400 hover:text-slate-700 p-1.5 rounded-lg hover:bg-slate-100 transition-colors"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            <div className="p-3 bg-zinc-950/80 rounded-xl border border-zinc-800">
-              <p className="font-bold text-white text-sm">{selectedCourtForMaint.name}</p>
-              <p className="text-xs text-zinc-400">Current Status: <strong className="text-white">{selectedCourtForMaint.status}</strong></p>
+            <div className="p-3 bg-slate-50 rounded-xl border border-slate-200">
+              <p className="font-bold text-slate-900 text-sm">{selectedCourtForMaint.name}</p>
+              <p className="text-xs text-slate-500">Current Status: <strong className="text-slate-800">{selectedCourtForMaint.status}</strong></p>
             </div>
 
             <form onSubmit={handleUpdateMaintenance} className="space-y-4">
               <div>
-                <label className="text-xs font-semibold text-zinc-300">Set Operational Status</label>
+                <label className="text-xs font-semibold text-slate-700">Set Operational Status</label>
                 <select
                   value={newCourtStatus}
                   onChange={(e) => setNewCourtStatus(e.target.value as any)}
-                  className="w-full mt-1.5 bg-zinc-950 border border-zinc-700 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-emerald-500"
+                  className="w-full mt-1.5 bg-white border border-slate-300 rounded-xl px-4 py-2.5 text-sm text-slate-900 focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500 shadow-2xs"
                 >
                   <option value="ACTIVE">✅ Active & Ready for Bookings</option>
                   <option value="MAINTENANCE">⚠️ Under Maintenance / Cleaning / Repairs</option>
@@ -542,28 +542,28 @@ export default function BookingsPage() {
               </div>
 
               <div>
-                <label className="text-xs font-semibold text-zinc-300">Maintenance Activity / Note</label>
+                <label className="text-xs font-semibold text-slate-700">Maintenance Activity / Note</label>
                 <textarea
                   rows={3}
                   value={maintenanceNote}
                   onChange={(e) => setMaintenanceNote(e.target.value)}
                   placeholder="e.g. Net height adjusted to BWF standards, floor mopped, lighting bulb replaced"
-                  className="w-full mt-1.5 bg-zinc-950 border border-zinc-700 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-emerald-500"
+                  className="w-full mt-1.5 bg-white border border-slate-300 rounded-xl px-3.5 py-2.5 text-sm text-slate-900 focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500 shadow-2xs"
                 />
               </div>
 
-              <div className="flex items-center justify-end gap-3 pt-3 border-t border-zinc-800">
+              <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-100">
                 <button
                   type="button"
                   onClick={() => setSelectedCourtForMaint(null)}
-                  className="px-4 py-2 rounded-xl text-xs font-medium text-zinc-400 hover:text-white bg-zinc-800"
+                  className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:text-slate-900 bg-slate-100 hover:bg-slate-200 transition-colors"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={actionLoading}
-                  className="inline-flex items-center gap-2 px-5 py-2 rounded-xl text-xs font-semibold text-white bg-emerald-600 hover:bg-emerald-500 shadow-lg shadow-emerald-950/50 disabled:opacity-50"
+                  className="inline-flex items-center gap-2 px-5 py-2 rounded-xl text-xs font-bold text-white bg-slate-900 hover:bg-red-600 shadow-md shadow-slate-900/10 disabled:opacity-50 transition-colors"
                 >
                   {actionLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Check className="w-3.5 h-3.5" />}
                   Save Maintenance Log
