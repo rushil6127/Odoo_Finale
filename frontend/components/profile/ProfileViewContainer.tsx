@@ -613,6 +613,17 @@ export default function ProfileViewContainer({ forcedMode }: ProfileViewContaine
 
             {/* Right Clean Action CTA Buttons */}
             <div className="hidden md:flex items-center gap-3 shrink-0">
+              {(forcedMode === "employee" || activeUser.role === "COACH") && !isSuperOwner && (
+                <button
+                  type="button"
+                  onClick={() => setViewMode("employee")}
+                  className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-black bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm shadow-emerald-600/25 transition-all cursor-pointer"
+                >
+                  <UserCheck className="w-3.5 h-3.5" />
+                  <span>Coach Workspace</span>
+                </button>
+              )}
+
               <Link
                 href="/"
                 className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-extrabold bg-sky-50 hover:bg-sky-100 text-sky-700 border border-sky-200 transition-all shadow-sm"
@@ -675,6 +686,20 @@ export default function ProfileViewContainer({ forcedMode }: ProfileViewContaine
                     <TrendingUp className="w-4 h-4 text-lime-800" />
                     <span>Open Staff & Admin Console</span>
                   </Link>
+                )}
+
+                {(forcedMode === "employee" || activeUser.role === "COACH") && !isSuperOwner && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setMobileMenuOpen(false);
+                      setViewMode("employee");
+                    }}
+                    className="flex items-center justify-center gap-2 py-2.5 rounded-xl text-xs font-bold bg-emerald-100 text-emerald-900 border border-emerald-300"
+                  >
+                    <UserCheck className="w-4 h-4 text-emerald-800" />
+                    <span>Switch to Coach Workspace</span>
+                  </button>
                 )}
 
                 <Link
@@ -918,6 +943,23 @@ export default function ProfileViewContainer({ forcedMode }: ProfileViewContaine
                 )}
 
 
+                {/* Switch back to Coach / Duty View */}
+                {(forcedMode === "employee" || activeUser.role === "COACH") && !isSuperOwner && (
+                  <button
+                    type="button"
+                    onClick={() => setViewMode("employee")}
+                    className="w-full flex items-center justify-between gap-2 px-3.5 py-2.5 rounded-2xl bg-emerald-100 hover:bg-emerald-200 text-emerald-950 font-extrabold text-xs border border-emerald-300 shadow-sm transition-all cursor-pointer group"
+                  >
+                    <span className="flex items-center gap-2">
+                      <UserCheck className="w-4 h-4 text-emerald-800 group-hover:scale-110 transition-transform" />
+                      <span>Coach / Duty Workspace</span>
+                    </span>
+                    <span className="text-[10px] font-black uppercase text-emerald-800 bg-emerald-200/80 px-1.5 py-0.5 rounded">
+                      Switch
+                    </span>
+                  </button>
+                )}
+
                 {/* Staff & Admin Console */}
                 {canAccessConsole && (
                   <Link
@@ -974,6 +1016,34 @@ export default function ProfileViewContainer({ forcedMode }: ProfileViewContaine
 
           {/* ======== RIGHT CONTENT PANEL ======== */}
           <div className="flex-1 min-w-0 bg-white rounded-2xl shadow-lg border border-slate-200/80 overflow-hidden">
+
+            {/* Coach Duty Banner when viewing personal pass */}
+            {(forcedMode === "employee" || activeUser.role === "COACH") && !isSuperOwner && (
+              <div className="mx-4 sm:mx-6 mt-4 sm:mt-6 p-3.5 sm:p-4 rounded-2xl bg-gradient-to-r from-emerald-500/10 via-sky-500/10 to-transparent border border-emerald-200 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-xl bg-emerald-600 text-white flex items-center justify-center shrink-0 shadow-sm">
+                    <UserCheck className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <div className="text-xs font-black text-slate-900 flex items-center gap-2">
+                      <span>Coach Personal Member Pass</span>
+                      <span className="text-[10px] font-bold bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full">Viewing Personal Pass</span>
+                    </div>
+                    <div className="text-[11px] text-slate-600 mt-0.5">
+                      Ready to resume coaching shifts, trainee clinics, and court inspection logs?
+                    </div>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setViewMode("employee")}
+                  className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs shadow-md shadow-emerald-600/20 transition-all flex items-center gap-2 shrink-0 cursor-pointer"
+                >
+                  <UserCheck className="w-3.5 h-3.5" />
+                  <span>Return to Coach Workspace</span>
+                </button>
+              </div>
+            )}
 
             {/* ============================================================ */}
             {/* TAB 1: OVERVIEW WITH NOTIFICATION BANNER & LIVE CONCIERGE CHAT */}

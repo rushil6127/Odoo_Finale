@@ -32,6 +32,7 @@ import {
 } from "lucide-react";
 import { useCurrentUser, setStoredUser, isOwner, getRoleProfilePath } from "@/lib/auth";
 import { apiClient } from "@/lib/api/client";
+import Navbar from "@/components/landing/Navbar";
 
 interface PlanBenefitDetails {
   tier_level?: number;
@@ -392,58 +393,10 @@ function MembershipContent() {
         <div className="absolute bottom-0 right-1/4 w-[500px] h-[500px] rounded-full bg-amber-400/5 blur-3xl" />
       </div>
 
-      {/* Sticky Header matching Luxury Light Theme */}
-      <header className="border-b border-slate-200/90 bg-white/95 backdrop-blur-md sticky top-0 z-40 shadow-xs">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <Link href="/" className="flex items-center gap-2.5 group">
-              <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-gradient-to-br from-sky-500 via-sky-600 to-blue-700 flex items-center justify-center text-white font-black text-sm tracking-wider shadow-md shadow-sky-500/25 border-2 border-white group-hover:scale-105 transition-transform duration-200">
-                <span className="text-[#CCFF00] drop-shadow-sm font-extrabold">CC</span>
-              </div>
-              <div className="flex flex-col">
-                <span className="font-extrabold text-sm sm:text-[15px] tracking-tight text-slate-900 leading-none group-hover:text-sky-600 transition-colors">
-                  The Champions Club
-                </span>
-                <span className="text-[10px] font-bold tracking-wider text-sky-600 uppercase mt-0.5">
-                  MEMBERSHIP PORTAL
-                </span>
-              </div>
-            </Link>
-          </div>
+      {/* Full Floating Navbar matching Landing Page */}
+      <Navbar />
 
-          <div className="flex items-center gap-3">
-            {isAuthenticated ? (
-              <div className="flex items-center gap-3">
-                <div className="hidden sm:flex flex-col text-right">
-                  <span className="text-xs font-bold text-slate-900">
-                    {user?.name || user?.full_name || user?.email}
-                  </span>
-                  <span className="text-[10px] font-extrabold text-amber-600 flex items-center justify-end gap-1 uppercase tracking-tight">
-                    <Crown className="w-2.5 h-2.5 text-amber-500" />
-                    {currentPlanCode ? `${currentPlanCode} Member` : "Club Member"}
-                  </span>
-                </div>
-                <Link
-                  href={profileLink}
-                  className="px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200/80 text-xs font-bold text-slate-800 border border-slate-200 shadow-2xs transition-all flex items-center gap-1.5"
-                >
-                  <User className="w-3.5 h-3.5 text-sky-600" />
-                  <span>My Profile</span>
-                </Link>
-              </div>
-            ) : (
-              <Link
-                href="/login"
-                className="px-4 py-2 rounded-xl bg-sky-600 hover:bg-sky-700 text-white font-bold text-xs shadow-md shadow-sky-500/20 transition-all"
-              >
-                Sign In
-              </Link>
-            )}
-          </div>
-        </div>
-      </header>
-
-      <main className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
+      <main className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 sm:pt-32 pb-8 sm:pb-12">
         {/* Navigation Breadcrumb */}
         <div className="flex items-center gap-2 mb-6 text-xs text-slate-500">
           <Link href="/" className="hover:text-sky-600 transition-colors flex items-center gap-1">
