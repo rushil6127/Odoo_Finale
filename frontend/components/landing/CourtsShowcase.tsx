@@ -108,22 +108,22 @@ const courtFacilities: CourtFacility[] = [
     ],
   },
   {
-    id: "padel-courts",
-    name: "Pro Panoramic Padel Arena",
-    count: 4,
-    sport: "Padel",
-    surface: "Mondo Supercourt XN Turf & Panoramic Glass",
+    id: "volleyball-courts",
+    name: "Volleyball Arena",
+    count: 2,
+    sport: "Volleyball",
+    surface: "Pure Dust Floor",
     image: "https://images.unsplash.com/photo-1612872087720-bb876e2e67d1?auto=format&fit=crop&w=1200&q=80",
-    tag: "WPT Spec Padel",
+    tag: "Pure Dust Ground",
     price: "₹900 / hr",
     memberPerk: "₹200 / hr for Members",
     lighting: "Anti-Glare Column LED (800 Lux)",
     pace: "Fast Agility & Spin",
     status: "Limited Slots",
     details: [
-      "12mm seamless panoramic tempered glass with zero frame obstruction",
+      "High-density pure dust cushioned floor for superior grip and dive safety",
       "Integrated electronic scorekeeper and match video replay",
-      "Complimentary carbon-fiber padel rackets and balls"
+      "Complimentary tournament-grade volleyballs and net setup"
     ],
   },
   {
@@ -175,9 +175,11 @@ export default function CourtsShowcase() {
           <div className="flex items-center justify-center gap-2 flex-wrap mt-6">
             {[
               { id: "all", label: "All Arenas (22+)" },
-              { id: "tennis", label: "🎾 Tennis" },
-              { id: "badminton", label: "🏸 Badminton & Squash" },
-              { id: "padel", label: "🎾 Padel" },
+              { id: "tennis", label: "🎾 Lawn Tennis" },
+              { id: "cricket", label: "🏏 Box Cricket" },
+              { id: "table-tennis", label: "🏓 Table Tennis" },
+              { id: "badminton", label: "🏸 Badminton" },
+              { id: "volleyball", label: "🏐 Volleyball" },
               { id: "swimming", label: "🏊‍♂️ Swimming Pool" },
             ].map((btn) => (
               <button
