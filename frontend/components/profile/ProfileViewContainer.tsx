@@ -67,8 +67,30 @@ interface ChatMessage {
 /**
  * Animated Donut Chart & Court Status Monitor for Sovereign Owner
  */
-function OwnerCourtStatusCard() {
+interface OwnerGlanceData {
+  todays_bookings_count: number;
+  pending_memberships_count: number;
+  court_status: {
+    total: number;
+    booked: number;
+    available: number;
+    maintenance: number;
+    booked_pct: number;
+    available_pct: number;
+    maintenance_pct: number;
+  };
+  today_date?: string;
+}
+
+function OwnerCourtStatusCard({
+  glanceData,
+  loading,
+}: {
+  glanceData?: OwnerGlanceData | null;
+  loading?: boolean;
+}) {
   const [animated, setAnimated] = useState(false);
+  const [useSampleData, setUseSampleData] = useState(false);
 
   useEffect(() => {
     // Initial load blossom & sweep animation
@@ -78,7 +100,19 @@ function OwnerCourtStatusCard() {
     return () => clearTimeout(timer);
   }, []);
 
-  // Total courts = 12 (Booked: 5 [42%], Available: 6 [50%], Maintenance: 1 [8%])
+  const isSample = useSampleData || !glanceData;
+  const totalCourts = isSample ? 12 : (glanceData?.court_status?.total ?? 16);
+  const bookedCount = isSample ? 5 : (glanceData?.court_status?.booked ?? 1);
+  const availableCount = isSample ? 6 : (glanceData?.court_status?.available ?? 14);
+  const maintenanceCount = isSample ? 1 : (glanceData?.court_status?.maintenance ?? 1);
+
+  const bookedPct = isSample ? 42 : (glanceData?.court_status?.booked_pct ?? Math.round((bookedCount / totalCourts) * 100));
+  const availablePct = isSample ? 50 : (glanceData?.court_status?.available_pct ?? Math.round((availableCount / totalCourts) * 100));
+  const maintenancePct = isSample ? 8 : (glanceData?.court_status?.maintenance_pct ?? Math.max(0, 100 - bookedPct - availablePct));
+
+  const todaysBookings = isSample ? "5" : (loading ? "…" : glanceData?.todays_bookings_count?.toString() ?? "0");
+  const pendingMemberships = isSample ? "2" : (loading ? "…" : glanceData?.pending_memberships_count?.toString() ?? "0");
+
   const size = 160;
   const strokeWidth = 24;
   const center = size / 2; // 80
@@ -86,9 +120,41 @@ function OwnerCourtStatusCard() {
   const circumference = 2 * Math.PI * radius; // 326.726
 
   // Segment arc lengths
-  const blueLen = circumference * 0.4167; // ~136.15 (42%)
-  const greenLen = circumference * 0.50; // ~163.36 (50%)
-  const orangeLen = circumference * 0.0833; // ~27.22 (8%)
+  const blueLen = circumference * (bookedPct / 100);
+  const greenLen = circumference * (availablePct / 100);
+  const orangeLen = circumference * (maintenancePct / 100);
+
+  // Boundary angles in degrees clockwise from 12 o'clock
+  const a0 = 0;
+  const a1 = (bookedPct / 100) * 360;
+  const a2 = a1 + (availablePct / 100) * 360;
+  const a3 = 360;
+
+  // Midpoint angles for percentages
+  const midBlue = (a0 + a1) / 2;
+  const midGreen = (a1 + a2) / 2;
+  const midOrange = (a2 + a3) / 2;
+
+  const toXY = (deg: number, r: number) => {
+    const rad = (deg * Math.PI) / 180;
+    return {
+      x: Math.round((center + r * Math.sin(rad)) * 10) / 10,
+      y: Math.round((center - r * Math.cos(rad)) * 10) / 10,
+    };
+  };
+
+  const bluePos = toXY(midBlue, radius);
+  const greenPos = toXY(midGreen, radius);
+  const orangePos = toXY(midOrange, radius);
+
+  const div1Start = toXY(a0, radius - strokeWidth / 2);
+  const div1End = toXY(a0, radius + strokeWidth / 2);
+
+  const div2Start = toXY(a1, radius - strokeWidth / 2);
+  const div2End = toXY(a1, radius + strokeWidth / 2);
+
+  const div3Start = toXY(a2, radius - strokeWidth / 2);
+  const div3End = toXY(a2, radius + strokeWidth / 2);
 
   return (
     <div className="flex flex-col h-full justify-between gap-4">
@@ -101,14 +167,27 @@ function OwnerCourtStatusCard() {
           <button
             type="button"
             title="Real-time court allocation and capacity monitor"
-            className="text-slate-400 hover:text-slate-600 transition-colors p-0.5 rounded-full"
+            className="text-slate-400 hover:text-slate-600 transition-colors p-0.5 rounded-full cursor-help"
           >
             <Info className="w-4 h-4" />
           </button>
         </div>
-        <span className="text-[10px] font-black uppercase tracking-wider text-slate-500 bg-slate-100 px-2.5 py-1 rounded-lg">
-          SAMPLE DATA
-        </span>
+        <button
+          type="button"
+          onClick={() => setUseSampleData((prev) => !prev)}
+          title="Click to toggle between Live and Sample data"
+          className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all cursor-pointer select-none"
+          style={{
+            backgroundColor: isSample ? "#f1f5f9" : "#ecfdf5",
+            color: isSample ? "#64748b" : "#047857",
+            border: isSample ? "1px solid #e2e8f0" : "1px solid #a7f3d0",
+          }}
+        >
+          {!isSample && (
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+          )}
+          <span>{isSample ? "SAMPLE DATA" : "LIVE DATA"}</span>
+        </button>
       </div>
 
       {/* Middle: Animated Donut Chart + Legend */}
@@ -127,7 +206,7 @@ function OwnerCourtStatusCard() {
             }}
           >
             <g transform="rotate(-90 80 80)">
-              {/* Blue Arc (Booked: 42%) */}
+              {/* Blue Arc (Booked) */}
               <circle
                 cx={center}
                 cy={center}
@@ -142,7 +221,7 @@ function OwnerCourtStatusCard() {
                 }}
               />
 
-              {/* Green Arc (Available: 50%) */}
+              {/* Green Arc (Available) */}
               <circle
                 cx={center}
                 cy={center}
@@ -157,7 +236,7 @@ function OwnerCourtStatusCard() {
                 }}
               />
 
-              {/* Orange Arc (Maintenance: 8%) */}
+              {/* Orange Arc (Maintenance) */}
               <circle
                 cx={center}
                 cy={center}
@@ -180,77 +259,86 @@ function OwnerCourtStatusCard() {
                 transition: "opacity 0.4s ease 0.6s",
               }}
             >
-              {/* 1. Divider between Orange & Blue (at 12 o'clock / 0 deg) */}
-              <line x1="80" y1="40" x2="80" y2="16" stroke="white" strokeWidth="2.5" strokeLinecap="round" />
-              {/* 2. Divider between Blue & Green (at 150 deg / ~5 o'clock) */}
-              <line x1="99.5" y1="113.8" x2="112.5" y2="136.3" stroke="white" strokeWidth="2.5" strokeLinecap="round" />
-              {/* 3. Divider between Green & Orange (at 330 deg / ~11 o'clock) */}
-              <line x1="60.5" y1="46.2" x2="47.5" y2="23.7" stroke="white" strokeWidth="2.5" strokeLinecap="round" />
+              {/* Divider 1: between Orange & Blue */}
+              {bookedPct > 0 && maintenancePct > 0 && (
+                <line x1={div1Start.x} y1={div1Start.y} x2={div1End.x} y2={div1End.y} stroke="white" strokeWidth="2.5" strokeLinecap="round" />
+              )}
+              {/* Divider 2: between Blue & Green */}
+              {bookedPct > 0 && availablePct > 0 && (
+                <line x1={div2Start.x} y1={div2Start.y} x2={div2End.x} y2={div2End.y} stroke="white" strokeWidth="2.5" strokeLinecap="round" />
+              )}
+              {/* Divider 3: between Green & Orange */}
+              {availablePct > 0 && maintenancePct > 0 && (
+                <line x1={div3Start.x} y1={div3Start.y} x2={div3End.x} y2={div3End.y} stroke="white" strokeWidth="2.5" strokeLinecap="round" />
+              )}
             </g>
 
             {/* Percentage Labels Inside the Arcs */}
-            {/* 42% (Blue Arc Midpoint: 75 deg from top) */}
-            <text
-              x="130"
-              y="67"
-              fill="white"
-              fontSize="10"
-              fontWeight="900"
-              textAnchor="middle"
-              dominantBaseline="central"
-              className="font-sans select-none pointer-events-none"
-              style={{
-                opacity: animated ? 1 : 0,
-                transform: animated ? "scale(1)" : "scale(0.5)",
-                transformOrigin: "130px 67px",
-                transition: "opacity 0.6s ease-out 0.7s, transform 0.6s ease-out 0.7s",
-              }}
-            >
-              42%
-            </text>
+            {bookedPct >= 6 && (
+              <text
+                x={bluePos.x}
+                y={bluePos.y}
+                fill="white"
+                fontSize="10"
+                fontWeight="900"
+                textAnchor="middle"
+                dominantBaseline="central"
+                className="font-sans select-none pointer-events-none"
+                style={{
+                  opacity: animated ? 1 : 0,
+                  transform: animated ? "scale(1)" : "scale(0.5)",
+                  transformOrigin: `${bluePos.x}px ${bluePos.y}px`,
+                  transition: "opacity 0.6s ease-out 0.7s, transform 0.6s ease-out 0.7s",
+                }}
+              >
+                {bookedPct}%
+              </text>
+            )}
 
-            {/* 50% (Green Arc Midpoint: 245 deg from top) */}
-            <text
-              x="31"
-              y="96"
-              fill="white"
-              fontSize="10"
-              fontWeight="900"
-              textAnchor="middle"
-              dominantBaseline="central"
-              className="font-sans select-none pointer-events-none"
-              style={{
-                opacity: animated ? 1 : 0,
-                transform: animated ? "scale(1)" : "scale(0.5)",
-                transformOrigin: "31px 96px",
-                transition: "opacity 0.6s ease-out 0.7s, transform 0.6s ease-out 0.7s",
-              }}
-            >
-              50%
-            </text>
+            {availablePct >= 6 && (
+              <text
+                x={greenPos.x}
+                y={greenPos.y}
+                fill="white"
+                fontSize="10"
+                fontWeight="900"
+                textAnchor="middle"
+                dominantBaseline="central"
+                className="font-sans select-none pointer-events-none"
+                style={{
+                  opacity: animated ? 1 : 0,
+                  transform: animated ? "scale(1)" : "scale(0.5)",
+                  transformOrigin: `${greenPos.x}px ${greenPos.y}px`,
+                  transition: "opacity 0.6s ease-out 0.7s, transform 0.6s ease-out 0.7s",
+                }}
+              >
+                {availablePct}%
+              </text>
+            )}
 
-            {/* 8% (Orange Arc Midpoint: 345 deg from top) */}
-            <text
-              x="67"
-              y="30"
-              fill="white"
-              fontSize="9"
-              fontWeight="900"
-              textAnchor="middle"
-              dominantBaseline="central"
-              className="font-sans select-none pointer-events-none"
-              style={{
-                opacity: animated ? 1 : 0,
-                transform: animated ? "scale(1)" : "scale(0.5)",
-                transformOrigin: "67px 30px",
-                transition: "opacity 0.6s ease-out 0.7s, transform 0.6s ease-out 0.7s",
-              }}
-            >
-              8%
-            </text>
+            {maintenancePct >= 6 && (
+              <text
+                x={orangePos.x}
+                y={orangePos.y}
+                fill="white"
+                fontSize="9"
+                fontWeight="900"
+                textAnchor="middle"
+                dominantBaseline="central"
+                className="font-sans select-none pointer-events-none"
+                style={{
+                  opacity: animated ? 1 : 0,
+                  transform: animated ? "scale(1)" : "scale(0.5)",
+                  transformOrigin: `${orangePos.x}px ${orangePos.y}px`,
+                  transition: "opacity 0.6s ease-out 0.7s, transform 0.6s ease-out 0.7s",
+                }}
+              >
+                {maintenancePct}%
+              </text>
+            )}
           </svg>
 
-          {/* Center Hole Content: 12 courts total */}
+          {/* Center Hole Content */}
           <div
             className="absolute inset-0 flex flex-col items-center justify-center text-center pointer-events-none select-none"
             style={{
@@ -260,7 +348,7 @@ function OwnerCourtStatusCard() {
             }}
           >
             <span className="text-2xl font-black text-slate-900 leading-none font-[family-name:var(--font-outfit)]">
-              12
+              {totalCourts}
             </span>
             <span className="text-[10px] text-slate-500 font-bold leading-tight mt-0.5">
               courts
@@ -279,7 +367,7 @@ function OwnerCourtStatusCard() {
               <span className="w-3.5 h-3.5 rounded-full bg-[#0070f3] shrink-0" />
               <span className="text-xs font-bold text-slate-700">Booked</span>
             </div>
-            <span className="text-sm font-black text-slate-900 font-mono">5</span>
+            <span className="text-sm font-black text-slate-900 font-mono">{bookedCount}</span>
           </div>
 
           {/* Available */}
@@ -288,7 +376,7 @@ function OwnerCourtStatusCard() {
               <span className="w-3.5 h-3.5 rounded-full bg-[#10b981] shrink-0" />
               <span className="text-xs font-bold text-slate-700">Available</span>
             </div>
-            <span className="text-sm font-black text-slate-900 font-mono">6</span>
+            <span className="text-sm font-black text-slate-900 font-mono">{availableCount}</span>
           </div>
 
           {/* Maintenance */}
@@ -297,7 +385,7 @@ function OwnerCourtStatusCard() {
               <span className="w-3.5 h-3.5 rounded-full bg-[#f97316] shrink-0" />
               <span className="text-xs font-bold text-slate-700">Maintenance</span>
             </div>
-            <span className="text-sm font-black text-slate-900 font-mono">1</span>
+            <span className="text-sm font-black text-slate-900 font-mono">{maintenanceCount}</span>
           </div>
         </div>
       </div>
@@ -305,25 +393,35 @@ function OwnerCourtStatusCard() {
       {/* Bottom Rows */}
       <div className="space-y-2.5 pt-1">
         {/* Today's bookings */}
-        <div className="pt-2.5 border-t border-slate-100 flex items-center justify-between text-xs">
-          <div className="flex items-center gap-2 text-slate-600 font-semibold">
-            <Calendar className="w-4 h-4 text-slate-400 shrink-0" />
+        <Link
+          href="/bookings"
+          className="pt-2.5 border-t border-slate-100 flex items-center justify-between text-xs hover:bg-slate-50/70 -mx-1 px-1 rounded transition-colors group cursor-pointer"
+        >
+          <div className="flex items-center gap-2 text-slate-600 font-semibold group-hover:text-sky-600 transition-colors">
+            <Calendar className="w-4 h-4 text-slate-400 group-hover:text-sky-500 shrink-0" />
             <span>Today&apos;s bookings</span>
           </div>
-          <span className="text-slate-400 font-bold text-sm">&mdash;</span>
-        </div>
+          <span className="text-slate-900 font-black text-sm font-mono">
+            {todaysBookings}
+          </span>
+        </Link>
 
         {/* Pending memberships */}
-        <div className="pt-2.5 border-t border-slate-100 flex items-center justify-between text-xs">
-          <div className="flex items-center gap-2 text-slate-600 font-semibold">
-            <svg className="w-4 h-4 text-slate-400 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <Link
+          href="/memberships"
+          className="pt-2.5 border-t border-slate-100 flex items-center justify-between text-xs hover:bg-slate-50/70 -mx-1 px-1 rounded transition-colors group cursor-pointer"
+        >
+          <div className="flex items-center gap-2 text-slate-600 font-semibold group-hover:text-emerald-600 transition-colors">
+            <svg className="w-4 h-4 text-slate-400 group-hover:text-emerald-500 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <rect width="18" height="18" x="3" y="3" rx="4" />
               <path d="m9 12 2 2 4-4" />
             </svg>
             <span>Pending memberships</span>
           </div>
-          <span className="text-slate-400 font-bold text-sm">&mdash;</span>
-        </div>
+          <span className="text-slate-900 font-black text-sm font-mono">
+            {pendingMemberships}
+          </span>
+        </Link>
 
         {/* Manage club link */}
         <div className="pt-2.5 border-t border-slate-100 flex items-center justify-between">
@@ -344,7 +442,16 @@ function OwnerCourtStatusCard() {
 /**
  * Club at a Glance Overview Card for Sovereign Owner (Matches User Attached Reference)
  */
-function OwnerClubGlanceCard() {
+function OwnerClubGlanceCard({
+  glanceData,
+  loading,
+}: {
+  glanceData?: OwnerGlanceData | null;
+  loading?: boolean;
+}) {
+  const todaysBookings = glanceData?.todays_bookings_count;
+  const pendingMemberships = glanceData?.pending_memberships_count;
+
   return (
     <div className="lg:col-span-7 p-6 rounded-3xl bg-white border border-slate-200/90 shadow-sm flex flex-col justify-between gap-6">
       {/* Top Header */}
@@ -363,8 +470,11 @@ function OwnerClubGlanceCard() {
       {/* 3 Metric Columns */}
       <div className="grid grid-cols-3 gap-4 my-auto py-6">
         {/* Col 1: Today's bookings */}
-        <div className="flex flex-col items-center text-center">
-          <div className="w-14 h-14 rounded-full bg-sky-50 text-sky-500 flex items-center justify-center mb-3">
+        <Link
+          href="/bookings"
+          className="flex flex-col items-center text-center group cursor-pointer"
+        >
+          <div className="w-14 h-14 rounded-full bg-sky-50 text-sky-500 group-hover:bg-sky-100 group-hover:scale-105 flex items-center justify-center mb-3 transition-all">
             <svg className="w-6 h-6 text-sky-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M8 2v4" />
               <path d="M16 2v4" />
@@ -373,17 +483,26 @@ function OwnerClubGlanceCard() {
               <path d="m8 15 2 2 3-3 3 2" />
             </svg>
           </div>
-          <p className="text-xs font-black text-slate-900 leading-snug">
+          <p className="text-xs font-black text-slate-900 leading-snug group-hover:text-sky-600 transition-colors">
             Today&apos;s bookings
           </p>
-          <p className="text-lg font-black text-slate-900 mt-2 font-mono">
-            &mdash;
+          <p className="text-xl font-black text-slate-900 mt-2 font-mono">
+            {loading ? (
+              <span className="inline-block w-4 h-4 border-2 border-sky-400 border-t-transparent rounded-full animate-spin" />
+            ) : todaysBookings !== undefined ? (
+              todaysBookings
+            ) : (
+              "—"
+            )}
           </p>
-        </div>
+        </Link>
 
         {/* Col 2: Pending memberships */}
-        <div className="flex flex-col items-center text-center">
-          <div className="w-14 h-14 rounded-full bg-emerald-50 text-emerald-500 flex items-center justify-center mb-3">
+        <Link
+          href="/memberships"
+          className="flex flex-col items-center text-center group cursor-pointer"
+        >
+          <div className="w-14 h-14 rounded-full bg-emerald-50 text-emerald-500 group-hover:bg-emerald-100 group-hover:scale-105 flex items-center justify-center mb-3 transition-all">
             <svg className="w-6 h-6 text-emerald-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
               <circle cx="9" cy="7" r="4" />
@@ -391,13 +510,19 @@ function OwnerClubGlanceCard() {
               <path d="M16 3.13a4 4 0 0 1 0 7.75" />
             </svg>
           </div>
-          <p className="text-xs font-black text-slate-900 leading-snug">
+          <p className="text-xs font-black text-slate-900 leading-snug group-hover:text-emerald-600 transition-colors">
             Pending memberships
           </p>
-          <p className="text-lg font-black text-slate-900 mt-2 font-mono">
-            &mdash;
+          <p className="text-xl font-black text-slate-900 mt-2 font-mono">
+            {loading ? (
+              <span className="inline-block w-4 h-4 border-2 border-emerald-400 border-t-transparent rounded-full animate-spin" />
+            ) : pendingMemberships !== undefined ? (
+              pendingMemberships
+            ) : (
+              "—"
+            )}
           </p>
-        </div>
+        </Link>
 
         {/* Col 3: Court status */}
         <div className="flex flex-col items-center text-center">
@@ -453,6 +578,26 @@ export default function ProfileViewContainer({ forcedMode }: ProfileViewContaine
   const [cancelReason, setCancelReason] = useState<string>("");
   const [cancelSubmitting, setCancelSubmitting] = useState<boolean>(false);
   const [cancelFeedback, setCancelFeedback] = useState<{ type: "success" | "error"; message: string } | null>(null);
+
+  // Owner Club at a Glance State
+  const [glanceData, setGlanceData] = useState<OwnerGlanceData | null>(null);
+  const [glanceLoading, setGlanceLoading] = useState(false);
+
+  const fetchGlanceData = useCallback(async () => {
+    try {
+      setGlanceLoading(true);
+      const res = await apiClient.get<any>("/reports/club-glance");
+      if (res && res.data) {
+        setGlanceData(res.data);
+      } else if (res && typeof res.todays_bookings_count === "number") {
+        setGlanceData(res);
+      }
+    } catch (err) {
+      console.warn("Could not fetch club glance summary:", err);
+    } finally {
+      setGlanceLoading(false);
+    }
+  }, []);
 
   const fetchLiveMemberData = useCallback(async () => {
     try {
@@ -526,7 +671,8 @@ export default function ProfileViewContainer({ forcedMode }: ProfileViewContaine
 
   useEffect(() => {
     fetchLiveMemberData();
-  }, [fetchLiveMemberData, user?.id]);
+    fetchGlanceData();
+  }, [fetchLiveMemberData, fetchGlanceData, user?.id]);
 
   const activeUser: AuthUserProfile = {
     id: user?.id || 1,
@@ -1520,7 +1666,7 @@ export default function ProfileViewContainer({ forcedMode }: ProfileViewContaine
                   {/* Left: Owner Club at a Glance Card OR Member Active Club Membership Card */}
                   {isSuperOwner || activeUser.role === "OWNER" || activeUser.role === "ADMIN" || forcedMode === "owner" ? (
                     // Owner Club at a Glance Card (Matches Reference Image)
-                    <OwnerClubGlanceCard />
+                    <OwnerClubGlanceCard glanceData={glanceData} loading={glanceLoading} />
                   ) : (
                     // Member Active Club Membership Card
                     <div className="lg:col-span-7 p-6 rounded-3xl bg-white border border-slate-200/90 shadow-sm flex flex-col gap-5">
@@ -1598,7 +1744,7 @@ export default function ProfileViewContainer({ forcedMode }: ProfileViewContaine
                   <div className="lg:col-span-5 p-6 rounded-3xl bg-white border border-slate-200/90 shadow-sm flex flex-col justify-between">
                     {isSuperOwner || activeUser.role === "OWNER" || activeUser.role === "ADMIN" || forcedMode === "owner" ? (
                       // Owner Court Status Donut Card (Matches User Attached Design with Initial Animation)
-                      <OwnerCourtStatusCard />
+                      <OwnerCourtStatusCard glanceData={glanceData} loading={glanceLoading} />
                     ) : nextBooking ? (
                       // Confirmed Next Booking State (Matches User Reference Image 2)
                       <div className="flex flex-col h-full justify-between">

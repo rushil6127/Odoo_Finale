@@ -9,7 +9,7 @@ frontend dashboards can directly consume and render.
 from datetime import date, datetime
 from typing import Optional, Tuple
 from flask import Blueprint, request, send_file
-from flask_jwt_extended import current_user, verify_jwt_in_request, decode_token
+from flask_jwt_extended import current_user, verify_jwt_in_request, decode_token, jwt_required
 
 from backend.app.extensions import db
 from backend.app.auth.models import User
@@ -26,6 +26,7 @@ from backend.app.reports.services import (
     get_membership_revenue_report,
     get_operational_summary,
     get_period_boundaries,
+    get_club_glance_summary,
 )
 from backend.app.tasks.jobs import export_data_to_excel_task
 from backend.app.reports.exports import generate_excel_workbook
@@ -282,6 +283,24 @@ def get_operations():
         message="Operational summary retrieved successfully",
         status_code=200,
     )
+
+
+@reports_bp.route("/club-glance", methods=["GET"])
+@jwt_required(optional=True)
+def get_club_glance_route():
+    """
+    Real-time overview metrics for owner/admin glance bar:
+    - Today's confirmed court bookings count
+    - Pending membership requests count
+    - Court allocation and occupancy breakdown
+    """
+    glance_data = get_club_glance_summary()
+    return success_response(
+        data=glance_data,
+        message="Club glance overview retrieved successfully",
+        status_code=200,
+    )
+
 
 
 @reports_bp.route("/export", methods=["POST"])
