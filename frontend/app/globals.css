@@ -1,0 +1,174 @@
+@import "tailwindcss";
+
+/* ============================================================
+   The Champions Club — Elite Sports & Country Club
+   Theme Design Tokens & Utilities
+   ============================================================ */
+
+:root {
+  /* ---- Sky Blue / Electric Sports Blue ---- */
+  --cc-sky-50: #F0F9FF;
+  --cc-sky-100: #E0F2FE;
+  --cc-sky-200: #BAE6FD;
+  --cc-sky-400: #38BDF8;
+  --cc-sky-500: #0EA5E9;
+  --cc-sky-600: #0284C7;
+  --cc-sky-700: #0369A1;
+  --cc-blue-deep: #0F2D59;
+  --cc-blue-navy: #0A192F;
+
+  /* ---- Lawn Green & Tennis Ball Vibrant Green ---- */
+  --cc-grass-light: #ECFDF5;
+  --cc-tennis-lime: #CCFF00;
+  --cc-tennis-lime-dark: #A3E635;
+  --cc-grass-lime: #84CC16;
+  --cc-grass-green: #22C55E;
+  --cc-grass-deep: #15803D;
+  --cc-green-emerald: #059669;
+
+  /* ---- Pure White & Clean Neutrals ---- */
+  --cc-white: #FFFFFF;
+  --cc-white-soft: #F8FAFC;
+  --cc-white-warm: #FBFDFB;
+  --cc-slate-50: #F8FAFC;
+  --cc-slate-100: #F1F5F9;
+  --cc-slate-200: #E2E8F0;
+  --cc-slate-300: #CBD5E1;
+  --cc-slate-400: #94A3B8;
+  --cc-slate-500: #64748B;
+  --cc-slate-700: #334155;
+  --cc-slate-900: #0F172A;
+
+  /* ---- Semantic ---- */
+  --cc-success: #10B981;
+  --cc-warning: #F59E0B;
+  --cc-error: #EF4444;
+  --cc-info: #0EA5E9;
+
+  /* ---- Typography ---- */
+  --cc-font-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --cc-font-display: "Outfit", "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+@theme inline {
+  --color-sky-50: var(--cc-sky-50);
+  --color-sky-100: var(--cc-sky-100);
+  --color-sky-200: var(--cc-sky-200);
+  --color-sky-400: var(--cc-sky-400);
+  --color-sky-500: var(--cc-sky-500);
+  --color-sky-600: var(--cc-sky-600);
+  --color-sky-700: var(--cc-sky-700);
+  --color-blue-deep: var(--cc-blue-deep);
+  --color-blue-navy: var(--cc-blue-navy);
+
+  --color-tennis-lime: var(--cc-tennis-lime);
+  --color-tennis-lime-dark: var(--cc-tennis-lime-dark);
+  --color-grass-lime: var(--cc-grass-lime);
+  --color-grass-green: var(--cc-grass-green);
+  --color-grass-deep: var(--cc-grass-deep);
+
+  --color-club-white: var(--cc-white);
+  --color-club-slate-50: var(--cc-slate-50);
+  --color-club-slate-100: var(--cc-slate-100);
+  --color-club-slate-200: var(--cc-slate-200);
+  --color-club-slate-300: var(--cc-slate-300);
+  --color-club-slate-500: var(--cc-slate-500);
+  --color-club-slate-700: var(--cc-slate-700);
+  --color-club-slate-900: var(--cc-slate-900);
+
+  --font-sans: var(--cc-font-sans);
+  --font-display: var(--cc-font-display);
+}
+
+/* ---- Base Styles ---- */
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background-color: #FFFFFF;
+  color: #0F172A;
+  font-family: var(--cc-font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+}
+
+/* ---- Custom Pill Navbar Floating Shadow ---- */
+.pill-navbar-shadow {
+  box-shadow: 0 10px 30px -5px rgba(2, 132, 199, 0.08), 0 4px 12px -2px rgba(15, 23, 42, 0.05);
+}
+
+.pill-navbar-glass {
+  background: rgba(255, 255, 255, 0.88);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(226, 232, 240, 0.85);
+}
+
+/* ---- Gradient Glows & Subtle Glass Cards ---- */
+.glass-card {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(226, 232, 240, 0.9);
+  box-shadow: 0 10px 25px -5px rgba(2, 132, 199, 0.06), 0 4px 10px -2px rgba(0, 0, 0, 0.03);
+}
+
+.glass-card-hover {
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.glass-card-hover:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 20px 35px -8px rgba(2, 132, 199, 0.12), 0 8px 16px -4px rgba(0, 0, 0, 0.04);
+  border-color: rgba(56, 189, 248, 0.5);
+}
+
+/* ---- Subtle Animated Background Gradient ---- */
+.hero-gradient-bg {
+  background: radial-gradient(circle at 15% 20%, rgba(224, 242, 254, 0.8) 0%, transparent 45%),
+              radial-gradient(circle at 85% 30%, rgba(217, 249, 157, 0.5) 0%, transparent 40%),
+              radial-gradient(circle at 50% 80%, rgba(240, 249, 255, 0.9) 0%, transparent 60%),
+              #FFFFFF;
+}
+
+/* ---- Infinite Marquee / Gallery Scroll ---- */
+@keyframes marquee-scroll {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.animate-marquee {
+  display: flex;
+  width: max-content;
+  animation: marquee-scroll 45s linear infinite;
+}
+
+.animate-marquee:hover {
+  animation-play-state: paused;
+}
+
+/* ---- Custom Selection ---- */
+::selection {
+  background: #BAE6FD;
+  color: #0369A1;
+}
+
+/* ---- Scrollbar Styling ---- */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #F8FAFC;
+}
+::-webkit-scrollbar-thumb {
+  background: #CBD5E1;
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #94A3B8;
+}
