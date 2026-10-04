@@ -56,6 +56,14 @@ export default function ReportsPage() {
   const [auditLogs, setAuditLogs] = useState<AuditEntry[]>([]);
   const [loading, setLoading] = useState(false);
   const [exporting, setExporting] = useState(false);
+  const [chartAnimated, setChartAnimated] = useState(false);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setChartAnimated(true);
+    }, 100);
+    return () => clearTimeout(timer);
+  }, []);
 
   const fetchReports = useCallback(async () => {
     try {
@@ -235,7 +243,15 @@ export default function ReportsPage() {
           {/* Left: Sharp Circular Donut Chart (5 cols) */}
           <div className="lg:col-span-5 flex flex-col items-center justify-center p-6 rounded-2xl bg-slate-50/80 border border-slate-200/80">
             <div className="relative w-48 h-48 shrink-0 flex items-center justify-center">
-              <svg className="w-full h-full -rotate-90 transform" viewBox="0 0 128 128">
+              <svg
+                className="w-full h-full transform select-none"
+                viewBox="0 0 128 128"
+                style={{
+                  transform: chartAnimated ? "rotate(-90deg) scale(1)" : "rotate(-140deg) scale(0.85)",
+                  opacity: chartAnimated ? 1 : 0.2,
+                  transition: "transform 1.2s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.8s ease",
+                }}
+              >
                 {/* Outer Precision Track Ring */}
                 <circle
                   cx="64"
@@ -264,10 +280,13 @@ export default function ReportsPage() {
                   r="50"
                   stroke="#10b981"
                   strokeWidth="12"
-                  strokeDasharray="100.19 314.16"
+                  strokeDasharray={chartAnimated ? "100.19 314.16" : "0 314.16"}
                   strokeDashoffset="0"
                   strokeLinecap="butt"
                   fill="none"
+                  style={{
+                    transition: "stroke-dasharray 1.1s cubic-bezier(0.16, 1, 0.3, 1) 0.05s",
+                  }}
                 />
 
                 {/* Segment 2: Lawn Tennis (24.50% -> 76.97 arc) */}
@@ -277,10 +296,13 @@ export default function ReportsPage() {
                   r="50"
                   stroke="#0ea5e9"
                   strokeWidth="12"
-                  strokeDasharray="76.97 314.16"
+                  strokeDasharray={chartAnimated ? "76.97 314.16" : "0 314.16"}
                   strokeDashoffset="-100.19"
                   strokeLinecap="butt"
                   fill="none"
+                  style={{
+                    transition: "stroke-dasharray 1.1s cubic-bezier(0.16, 1, 0.3, 1) 0.2s",
+                  }}
                 />
 
                 {/* Segment 3: Sports Bar & Cafe (17.44% -> 54.79 arc) */}
@@ -290,10 +312,13 @@ export default function ReportsPage() {
                   r="50"
                   stroke="#f59e0b"
                   strokeWidth="12"
-                  strokeDasharray="54.79 314.16"
+                  strokeDasharray={chartAnimated ? "54.79 314.16" : "0 314.16"}
                   strokeDashoffset="-177.16"
                   strokeLinecap="butt"
                   fill="none"
+                  style={{
+                    transition: "stroke-dasharray 1.1s cubic-bezier(0.16, 1, 0.3, 1) 0.35s",
+                  }}
                 />
 
                 {/* Segment 4: Olympic Aquatics (12.04% -> 37.83 arc) */}
@@ -303,10 +328,13 @@ export default function ReportsPage() {
                   r="50"
                   stroke="#06b6d4"
                   strokeWidth="12"
-                  strokeDasharray="37.83 314.16"
+                  strokeDasharray={chartAnimated ? "37.83 314.16" : "0 314.16"}
                   strokeDashoffset="-231.95"
                   strokeLinecap="butt"
                   fill="none"
+                  style={{
+                    transition: "stroke-dasharray 1.1s cubic-bezier(0.16, 1, 0.3, 1) 0.5s",
+                  }}
                 />
 
                 {/* Segment 5: Pro Shop (8.14% -> 25.57 arc) */}
@@ -316,10 +344,13 @@ export default function ReportsPage() {
                   r="50"
                   stroke="#8b5cf6"
                   strokeWidth="12"
-                  strokeDasharray="25.57 314.16"
+                  strokeDasharray={chartAnimated ? "25.57 314.16" : "0 314.16"}
                   strokeDashoffset="-269.78"
                   strokeLinecap="butt"
                   fill="none"
+                  style={{
+                    transition: "stroke-dasharray 1.1s cubic-bezier(0.16, 1, 0.3, 1) 0.65s",
+                  }}
                 />
 
                 {/* Segment 6: Box Cricket (5.98% -> 18.79 arc) */}
@@ -329,10 +360,13 @@ export default function ReportsPage() {
                   r="50"
                   stroke="#ec4899"
                   strokeWidth="12"
-                  strokeDasharray="18.79 314.16"
+                  strokeDasharray={chartAnimated ? "18.79 314.16" : "0 314.16"}
                   strokeDashoffset="-295.35"
                   strokeLinecap="butt"
                   fill="none"
+                  style={{
+                    transition: "stroke-dasharray 1.1s cubic-bezier(0.16, 1, 0.3, 1) 0.8s",
+                  }}
                 />
 
                 {/* Inner Precision Hairline Ring */}
@@ -347,7 +381,14 @@ export default function ReportsPage() {
               </svg>
 
               {/* Center Metrics (Sharp Technical Monospace Typography) */}
-              <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+              <div
+                className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none"
+                style={{
+                  opacity: chartAnimated ? 1 : 0,
+                  transform: chartAnimated ? "scale(1)" : "scale(0.8)",
+                  transition: "opacity 0.6s ease-out 0.4s, transform 0.6s ease-out 0.4s",
+                }}
+              >
                 <span className="text-2xl font-black text-slate-900 tracking-tight font-mono leading-none">
                   ₹1.20M
                 </span>
