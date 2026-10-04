@@ -242,23 +242,26 @@ def test_adjacent_bookings_succeed(app, db_session, seed_data, gold_member_user)
     assert b2.status == BookingStatus.CONFIRMED
 
 
-def test_daily_booking_limit_third_fails(app, db_session, seed_data, gold_member_user):
-    """Member cannot exceed 2 confirmed bookings on the same date."""
+def test_daily_booking_limit_sixth_fails(app, db_session, seed_data, gold_member_user):
+    """Member cannot exceed 5 confirmed bookings on the same date."""
     user, member = gold_member_user
     court1 = seed_data["tennis"]
     court2 = seed_data["padel"]
     d = date(2026, 10, 10)
 
-    # 1st booking on day D
+    # 1st to 5th booking on day D
     create_booking(court_id=court1.id, start_time=datetime(2026, 10, 10, 8, 0, 0), user_id=user.id, member_id=member.id)
-    # 2nd booking on day D
-    create_booking(court_id=court1.id, start_time=datetime(2026, 10, 10, 10, 0, 0), user_id=user.id, member_id=member.id)
+    create_booking(court_id=court1.id, start_time=datetime(2026, 10, 10, 9, 30, 0), user_id=user.id, member_id=member.id)
+    create_booking(court_id=court1.id, start_time=datetime(2026, 10, 10, 11, 0, 0), user_id=user.id, member_id=member.id)
+    create_booking(court_id=court1.id, start_time=datetime(2026, 10, 10, 12, 30, 0), user_id=user.id, member_id=member.id)
+    create_booking(court_id=court2.id, start_time=datetime(2026, 10, 10, 14, 0, 0), user_id=user.id, member_id=member.id)
 
-    # 3rd booking on day D must fail with daily limit error
+    # 6th booking on day D must fail with daily limit error
     from backend.app.common.errors import ValidationException
     with pytest.raises(ValidationException) as exc_info:
-        create_booking(court_id=court2.id, start_time=datetime(2026, 10, 10, 14, 0, 0), user_id=user.id, member_id=member.id)
+        create_booking(court_id=court2.id, start_time=datetime(2026, 10, 10, 15, 30, 0), user_id=user.id, member_id=member.id)
     assert "Daily booking limit" in str(exc_info.value)
+    assert "maximum of 5 slots per day" in str(exc_info.value)
 
     # Booking on the next day D+1 must succeed
     b_next = create_booking(court_id=court1.id, start_time=datetime(2026, 10, 11, 8, 0, 0), user_id=user.id, member_id=member.id)
@@ -826,40 +829,41 @@ def test_booking_cancellation_restrictions(client, seed_data, gold_member_user, 
     assert res_completed.get_json()["error"]["code"] == "CANNOT_CANCEL_COMPLETED"
 
 
-def test_third_daily_booking_rejection_exact_message(client, seed_data, gold_member_user):
-    """Attempting a 3rd booking on the same day is rejected with exact daily limit message."""
+def test_sixth_daily_booking_rejection_exact_message(client, seed_data, gold_member_user):
+    """Attempting a 6th booking on the same day is rejected with exact daily limit message."""
     user, member = gold_member_user
     tennis = seed_data["tennis"]
+    padel = seed_data["padel"]
     cricket = seed_data["cricket"]
     d = (datetime.now() + timedelta(days=6)).replace(minute=0, second=0, microsecond=0)
 
-    # 1st booking
-    r1 = client.post(
-        "/api/v1/bookings",
-        headers=auth_header(user),
-        json={"court_id": tennis.id, "start_time": d.replace(hour=8).isoformat()},
-    )
-    assert r1.status_code == 201
+    # 1st to 5th bookings
+    slots = [
+        (tennis.id, 8),
+        (tennis.id, 9),
+        (padel.id, 10),
+        (padel.id, 11),
+        (cricket.id, 12),
+    ]
+    for court_id, h in slots:
+        r = client.post(
+            "/api/v1/bookings",
+            headers=auth_header(user),
+            json={"court_id": court_id, "start_time": d.replace(hour=h).isoformat()},
+        )
+        assert r.status_code == 201
 
-    # 2nd booking
-    r2 = client.post(
-        "/api/v1/bookings",
-        headers=auth_header(user),
-        json={"court_id": tennis.id, "start_time": d.replace(hour=10).isoformat()},
-    )
-    assert r2.status_code == 201
-
-    # 3rd booking on same day
-    r3 = client.post(
+    # 6th booking on same day
+    r6 = client.post(
         "/api/v1/bookings",
         headers=auth_header(user),
         json={"court_id": cricket.id, "start_time": d.replace(hour=14).isoformat()},
     )
-    assert r3.status_code == 422
-    body = r3.get_json()
+    assert r6.status_code == 422
+    body = r6.get_json()
     assert body["success"] is False
     assert body["error"]["code"] == "DAILY_LIMIT_EXCEEDED"
-    assert body["error"]["message"] == "Daily booking limit reached. You can book a maximum of 2 slots per day."
+    assert body["error"]["message"] == "Daily booking limit reached. You can book a maximum of 5 slots per day."
 
 
 

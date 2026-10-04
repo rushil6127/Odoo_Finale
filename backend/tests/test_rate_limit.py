@@ -170,8 +170,8 @@ def test_standard_error_envelope_on_429(client):
     pytest.fail("Failed to trigger 429 to verify JSON error envelope.")
 
 
-def test_daily_booking_limit_third_slot_rejection(client, test_member_user, test_court):
-    """A member attempting a 3rd booking on the same day is rejected with exact message."""
+def test_daily_booking_limit_sixth_slot_rejection(client, test_member_user, test_court):
+    """A member attempting a 6th booking on the same day is rejected with exact message."""
     limiter.reset()
     user, member = test_member_user
     token = create_access_token(
@@ -181,34 +181,31 @@ def test_daily_booking_limit_third_slot_rejection(client, test_member_user, test
     headers = {"Authorization": f"Bearer {token}"}
 
     test_day = (datetime.now() + timedelta(days=5)).replace(minute=0, second=0, microsecond=0)
-    slot1 = test_day.replace(hour=8)
-    slot2 = test_day.replace(hour=10)
-    slot3 = test_day.replace(hour=14)
+    slots = [
+        test_day.replace(hour=8),
+        test_day.replace(hour=9),
+        test_day.replace(hour=10),
+        test_day.replace(hour=11),
+        test_day.replace(hour=12),
+    ]
 
-    # 1st booking on test_day
-    r1 = client.post(
+    # 1st to 5th bookings on test_day
+    for s in slots:
+        r = client.post(
+            "/api/v1/bookings",
+            headers=headers,
+            json={"court_id": test_court.id, "start_time": s.isoformat()},
+        )
+        assert r.status_code == 201
+
+    # 6th booking on test_day MUST FAIL
+    r6 = client.post(
         "/api/v1/bookings",
         headers=headers,
-        json={"court_id": test_court.id, "start_time": slot1.isoformat()},
+        json={"court_id": test_court.id, "start_time": test_day.replace(hour=14).isoformat()},
     )
-    assert r1.status_code == 201
-
-    # 2nd booking on test_day
-    r2 = client.post(
-        "/api/v1/bookings",
-        headers=headers,
-        json={"court_id": test_court.id, "start_time": slot2.isoformat()},
-    )
-    assert r2.status_code == 201
-
-    # 3rd booking on test_day MUST FAIL
-    r3 = client.post(
-        "/api/v1/bookings",
-        headers=headers,
-        json={"court_id": test_court.id, "start_time": slot3.isoformat()},
-    )
-    assert r3.status_code in (400, 422)
-    err = r3.get_json()
+    assert r6.status_code in (400, 422)
+    err = r6.get_json()
     assert err["success"] is False
     assert err["error"]["code"] == "DAILY_LIMIT_EXCEEDED"
-    assert "Daily booking limit reached. You can book a maximum of 2 slots per day." in err["error"]["message"]
+    assert "Daily booking limit reached. You can book a maximum of 5 slots per day." in err["error"]["message"]

@@ -14,6 +14,8 @@ from backend.app.common.errors import (
 from backend.app.courts.models import Court, CourtStatus, SportType
 from backend.app.courts.services import parse_time_str
 from backend.app.members.models import Member
+from backend.app.auth.models import User
+from backend.app.common.permissions import RoleEnum
 from backend.app.bookings.models import (
     Booking,
     BookingStatus,
@@ -179,10 +181,38 @@ def check_daily_booking_limit(
     member_id: Optional[int],
     booking_date: date,
     is_social_play: bool = False,
+    user_id: Optional[int] = None,
 ) -> None:
-    """Verify that a member does not exceed the maximum allowed active bookings per day."""
+    """Verify that a member does not exceed the maximum allowed active bookings per day.
+    
+    Owners and Admins have unlimited bookings (no daily limit applied).
+    Members can book up to the configured daily limit (default 5 slots per day).
+    """
     if not member_id:
         return
+
+    # 1. Check if user or member is an Owner/Admin - owners have unlimited booking privileges
+    if user_id:
+        user = db.session.get(User, user_id)
+        if user:
+            role_val = user.role.value if hasattr(user.role, "value") else str(user.role)
+            if role_val in (RoleEnum.OWNER.value, RoleEnum.ADMIN.value, "OWNER", "ADMIN"):
+                return
+
+    member = db.session.get(Member, member_id)
+    if member and member.user:
+        role_val = member.user.role.value if hasattr(member.user.role, "value") else str(member.user.role)
+        if role_val in (RoleEnum.OWNER.value, RoleEnum.ADMIN.value, "OWNER", "ADMIN"):
+            return
+
+    try:
+        from flask_jwt_extended import current_user
+        if current_user:
+            role_val = current_user.role.value if hasattr(current_user.role, "value") else str(current_user.role)
+            if role_val in (RoleEnum.OWNER.value, RoleEnum.ADMIN.value, "OWNER", "ADMIN"):
+                return
+    except Exception:
+        pass
 
     config = current_app.config if current_app else {}
     social_counts = config.get("SOCIAL_PLAY_COUNTS_TOWARDS_DAILY_LIMIT", False)
@@ -190,7 +220,7 @@ def check_daily_booking_limit(
     if is_social_play and not social_counts:
         return
 
-    max_limit = int(config.get("MAX_DAILY_BOOKINGS_PER_MEMBER", 2))
+    max_limit = int(config.get("MAX_DAILY_BOOKINGS_PER_MEMBER", 5))
 
     # Count CONFIRMED bookings for this member on the given booking_date
     query = Booking.query.filter(
@@ -211,6 +241,7 @@ def check_daily_booking_limit(
                 "max_limit": max_limit,
             },
         )
+
 
 
 # ---------------------------------------------------------
@@ -273,6 +304,7 @@ def create_booking(
                 member_id=member_id,
                 booking_date=booking_date,
                 is_social_play=is_social_play,
+                user_id=user_id,
             )
 
         # 4. Calculate pricing snapshot
