@@ -304,6 +304,43 @@
   transform: scale(1.08);
 }
 
+/* Password visibility toggle — override .form form button rules */
+.form form .pw-toggle-btn,
+.pw-toggle-btn {
+  width: auto !important;
+  height: auto !important;
+  min-width: unset !important;
+  min-height: unset !important;
+  padding: 4px !important;
+  margin: 0 !important;
+  background: none !important;
+  border: none !important;
+  border-radius: 6px !important;
+  box-shadow: none !important;
+  letter-spacing: normal !important;
+  text-transform: none !important;
+  font-weight: normal !important;
+  color: #94a3b8;
+  cursor: pointer;
+  transition: color 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.form form .pw-toggle-btn:hover,
+.pw-toggle-btn:hover {
+  color: #0284c7 !important;
+  background: none !important;
+  transform: translateY(-50%) !important;
+  box-shadow: none !important;
+}
+
+.password-input-wrapper {
+  position: relative;
+  width: 100%;
+}
+
 /* Responsive adjustments */
 @media (max-width: 768px) {
   .card {

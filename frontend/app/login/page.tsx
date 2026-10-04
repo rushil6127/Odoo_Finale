@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, Loader2, AlertCircle, Crown, ShieldAlert } from "lucide-react";
+import PasswordInput from "@/components/ui/PasswordInput";
 import {
   setStoredUser,
   setStoredToken,
@@ -333,14 +334,14 @@ export default function LoginPage() {
               required
               disabled={regLoading || googleLoading}
             />
-            <input
-              type="password"
+            <PasswordInput
               placeholder="Password (min. 6 characters)"
               value={regPassword}
               onChange={(e) => setRegPassword(e.target.value)}
               required
               minLength={6}
               disabled={regLoading || googleLoading}
+              id="reg-password"
             />
             <button type="submit" disabled={regLoading || googleLoading} className="flex items-center justify-center gap-2">
               {regLoading ? (
@@ -402,13 +403,13 @@ export default function LoginPage() {
               required
               disabled={loginLoading || googleLoading}
             />
-            <input
-              type="password"
+            <PasswordInput
               placeholder="Password"
               value={loginPassword}
               onChange={(e) => setLoginPassword(e.target.value)}
               required
               disabled={loginLoading || googleLoading}
+              id="login-password"
             />
             <button type="submit" disabled={loginLoading || googleLoading} className="flex items-center justify-center gap-2">
               {loginLoading ? (
