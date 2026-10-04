@@ -21,6 +21,7 @@ from backend.app.memberships.services import (
     get_membership_history,
     assign_membership,
     change_membership_plan,
+    update_membership_plan,
 )
 
 membership_plans_bp = Blueprint("membership_plans", __name__, url_prefix="/api/v1/membership-plans")
@@ -56,6 +57,43 @@ def list_plans():
     plans = get_all_plans(active_only=True)
     return success_response(
         data={"plans": [p.to_dict() for p in plans]},
+        status_code=200,
+    )
+
+
+@membership_plans_bp.route("/<int:plan_id>", methods=["PUT", "PATCH"])
+@roles_required(RoleEnum.OWNER)
+def update_plan_endpoint(plan_id: int):
+    """
+    Owner-exclusive endpoint to edit membership plan price, benefits, and attributes.
+    Strictly restricted to OWNER role. Persists directly into the database in real time.
+    """
+    from flask import request
+    data = request.get_json(silent=True) or {}
+
+    price = data.get("displayed_monthly_price")
+    features = data.get("features")
+    if features is None and isinstance(data.get("benefits"), dict):
+        features = data["benefits"].get("features")
+
+    name = data.get("name")
+    description = data.get("description")
+    duration_months = data.get("duration_months")
+    complimentary_months = data.get("complimentary_months")
+
+    plan = update_membership_plan(
+        plan_id=plan_id,
+        displayed_monthly_price=price,
+        features=features,
+        name=name,
+        description=description,
+        duration_months=duration_months,
+        complimentary_months=complimentary_months,
+    )
+
+    return success_response(
+        data={"plan": plan.to_dict()},
+        message=f"Plan '{plan.name}' updated successfully.",
         status_code=200,
     )
 

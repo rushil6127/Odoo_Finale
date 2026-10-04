@@ -21,7 +21,10 @@ import {
   Sparkles,
   Trophy,
   ArrowRight,
-  Filter
+  Filter,
+  Pencil,
+  Trash2,
+  Plus
 } from "lucide-react";
 import { apiClient } from "@/lib/api/client";
 import { getStoredUser, AuthUser } from "@/lib/auth";
@@ -98,6 +101,66 @@ export default function MembershipsPage() {
   const [searchQuery, setSearchQuery] = useState("");
 
   const isAdminOrOwner = currentUser?.role === "OWNER" || currentUser?.role === "ADMIN";
+  const isOwner = currentUser?.role === "OWNER";
+
+  // Owner Edit Plan Modal State
+  const [isEditPlanModalOpen, setIsEditPlanModalOpen] = useState(false);
+  const [editingPlan, setEditingPlan] = useState<Plan | null>(null);
+  const [editMonthlyPrice, setEditMonthlyPrice] = useState<number | string>(0);
+  const [editFeatures, setEditFeatures] = useState<string[]>([]);
+  const [newFeatureInput, setNewFeatureInput] = useState("");
+  const [savingPlan, setSavingPlan] = useState(false);
+
+  const handleOpenEditPlan = (plan: Plan) => {
+    setEditingPlan(plan);
+    setEditMonthlyPrice(plan.displayed_monthly_price);
+    setEditFeatures([...(plan.benefits?.features || [])]);
+    setNewFeatureInput("");
+    setIsEditPlanModalOpen(true);
+  };
+
+  const handleAddFeature = () => {
+    if (!newFeatureInput.trim()) return;
+    setEditFeatures((prev) => [...prev, newFeatureInput.trim()]);
+    setNewFeatureInput("");
+  };
+
+  const handleDeleteFeature = (idx: number) => {
+    setEditFeatures((prev) => prev.filter((_, i) => i !== idx));
+  };
+
+  const handleSavePlan = async () => {
+    if (!editingPlan) return;
+    const priceNum = Number(editMonthlyPrice);
+    if (isNaN(priceNum) || priceNum < 0) {
+      setError("Please enter a valid non-negative monthly price.");
+      return;
+    }
+    if (editFeatures.length === 0) {
+      setError("Please provide at least one benefit feature for this tier.");
+      return;
+    }
+
+    try {
+      setSavingPlan(true);
+      setError(null);
+      const res = await apiClient.put<{ plan: Plan }>(`/membership-plans/${editingPlan.id}`, {
+        displayed_monthly_price: priceNum,
+        features: editFeatures,
+      });
+
+      setPlans((prev) => prev.map((p) => (p.id === editingPlan.id ? res.plan : p)));
+      setSuccess(`Plan "${res.plan.name}" updated successfully! Database and site updated in real-time.`);
+      setIsEditPlanModalOpen(false);
+      setEditingPlan(null);
+      setTimeout(() => setSuccess(null), 5000);
+      await fetchPlans();
+    } catch (err: any) {
+      setError(err?.message || "Failed to update membership plan.");
+    } finally {
+      setSavingPlan(false);
+    }
+  };
 
   const fetchPlans = async () => {
     try {
@@ -343,9 +406,22 @@ export default function MembershipsPage() {
                     <span className="px-3 py-1 rounded-full bg-sky-50 text-sky-800 text-[11px] font-extrabold border border-sky-100">
                       {plan.code} PLAN
                     </span>
-                    <span className="text-[11px] font-bold text-slate-400">
-                      {plan.duration_months} Months
-                    </span>
+                    <div className="flex items-center gap-2">
+                      {isOwner && (
+                        <button
+                          type="button"
+                          onClick={() => handleOpenEditPlan(plan)}
+                          className="px-2.5 py-1 rounded-lg bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-200 text-[11px] font-black inline-flex items-center gap-1.5 transition-all shadow-2xs hover:scale-105 active:scale-95 cursor-pointer"
+                          title="Owner Exclusive: Edit Price & Benefits"
+                        >
+                          <Pencil className="w-3 h-3 text-amber-700" />
+                          <span>Edit Tier</span>
+                        </button>
+                      )}
+                      <span className="text-[11px] font-bold text-slate-400">
+                        {plan.duration_months} Months
+                      </span>
+                    </div>
                   </div>
 
                   <h3 className="text-xl font-black text-slate-900 mb-1 font-[family-name:var(--font-outfit)]">
@@ -367,6 +443,19 @@ export default function MembershipsPage() {
 
                   {/* Benefits */}
                   <div className="space-y-2.5 mb-6 text-xs text-slate-600">
+                    <div className="flex items-center justify-between text-[11px] font-extrabold text-slate-400 uppercase tracking-wider mb-2">
+                      <span>Included Privileges ({plan.benefits?.features?.length || 0})</span>
+                      {isOwner && (
+                        <button
+                          type="button"
+                          onClick={() => handleOpenEditPlan(plan)}
+                          className="text-amber-700 hover:text-amber-800 font-bold inline-flex items-center gap-1 text-[11px] hover:underline cursor-pointer"
+                        >
+                          <Plus className="w-3 h-3" />
+                          <span>Add/Edit</span>
+                        </button>
+                      )}
+                    </div>
                     {(plan.benefits?.features || [
                       "Full access to 22+ championship venues",
                       "Priority court match reservation window",
@@ -374,7 +463,7 @@ export default function MembershipsPage() {
                     ]).map((feat, idx) => (
                       <div key={idx} className="flex items-start gap-2">
                         <Check className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
-                        <span>{feat}</span>
+                        <span className="leading-snug">{feat}</span>
                       </div>
                     ))}
                   </div>
@@ -865,6 +954,177 @@ export default function MembershipsPage() {
                   </div>
                 )}
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* OWNER EDIT PLAN MODAL */}
+      {isEditPlanModalOpen && editingPlan && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-xs animate-in fade-in duration-200">
+          <div className="bg-white rounded-3xl max-w-xl w-full p-6 sm:p-8 shadow-2xl border border-slate-200 space-y-6 max-h-[90vh] overflow-y-auto">
+            {/* Modal Header */}
+            <div className="flex items-start justify-between gap-4 pb-4 border-b border-slate-100">
+              <div className="flex items-center gap-3">
+                <span className="p-3 rounded-2xl bg-amber-50 text-amber-700 border border-amber-200 shadow-2xs">
+                  <Pencil className="w-5 h-5" />
+                </span>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h3 className="text-xl font-black text-slate-900 font-[family-name:var(--font-outfit)]">
+                      Edit Plan: {editingPlan.name}
+                    </h3>
+                    <span className="px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 text-[10px] font-black uppercase tracking-wider">
+                      Owner Console
+                    </span>
+                  </div>
+                  <p className="text-xs text-slate-500 mt-0.5">
+                    Modify monthly fee and live benefits for {editingPlan.code} plan. Updates database in real-time.
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsEditPlanModalOpen(false)}
+                className="p-2 rounded-xl text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Price Edit Section */}
+            <div className="space-y-3">
+              <label className="block text-xs font-black text-slate-800 uppercase tracking-wider">
+                Monthly Membership Fee (INR ₹)
+              </label>
+              <div className="relative">
+                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-base font-black text-slate-400">
+                  ₹
+                </span>
+                <input
+                  type="number"
+                  min="0"
+                  step="1"
+                  value={editMonthlyPrice}
+                  onChange={(e) => setEditMonthlyPrice(e.target.value)}
+                  className="w-full pl-9 pr-4 py-3 rounded-2xl bg-slate-50 border border-slate-200 text-lg font-black text-slate-900 focus:bg-white focus:border-amber-400 focus:ring-2 focus:ring-amber-100 outline-none transition-all"
+                  placeholder="e.g. 2999"
+                />
+              </div>
+
+              {/* Real-time Annual Math Indicator */}
+              <div className="p-3.5 rounded-2xl bg-emerald-50 border border-emerald-200/80 flex items-center justify-between text-xs font-bold text-emerald-800">
+                <div className="flex items-center gap-2">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                  <span>Effective Annual Billing:</span>
+                </div>
+                <div className="text-right">
+                  <span className="text-sm font-black text-emerald-900">
+                    ₹{(Math.max(0, Number(editMonthlyPrice) || 0) * 10).toLocaleString("en-IN")}
+                  </span>
+                  <span className="text-[10px] text-emerald-600 font-semibold block">
+                    (10 Billed Months + 2 Complimentary)
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Benefits Manager Section */}
+            <div className="space-y-3 pt-2">
+              <div className="flex items-center justify-between">
+                <div>
+                  <label className="block text-xs font-black text-slate-800 uppercase tracking-wider">
+                    Plan Privileges &amp; Inclusions ({editFeatures.length})
+                  </label>
+                  <p className="text-[11px] text-slate-400 mt-0.5">
+                    Add or remove perks displayed to club members and the public.
+                  </p>
+                </div>
+              </div>
+
+              {/* Add Benefit Input Bar */}
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={newFeatureInput}
+                  onChange={(e) => setNewFeatureInput(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      handleAddFeature();
+                    }
+                  }}
+                  placeholder="Type new benefit (e.g. 2x free personal trainer sessions)..."
+                  className="flex-1 px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-800 focus:bg-white focus:border-amber-400 outline-none"
+                />
+                <button
+                  type="button"
+                  onClick={handleAddFeature}
+                  className="px-4 py-2.5 rounded-xl bg-slate-900 hover:bg-amber-600 text-white text-xs font-bold transition-colors inline-flex items-center gap-1.5 shrink-0 cursor-pointer shadow-2xs"
+                >
+                  <Plus className="w-4 h-4" />
+                  <span>Add Perk</span>
+                </button>
+              </div>
+
+              {/* Current Benefits List */}
+              <div className="space-y-2 max-h-56 overflow-y-auto pr-1">
+                {editFeatures.length === 0 ? (
+                  <div className="p-6 rounded-2xl bg-slate-50 border border-dashed border-slate-200 text-center text-xs text-slate-400">
+                    No benefits added yet. Type a benefit above and click &quot;Add Perk&quot;.
+                  </div>
+                ) : (
+                  editFeatures.map((feat, idx) => (
+                    <div
+                      key={idx}
+                      className="p-3 rounded-xl bg-slate-50 border border-slate-200/80 hover:border-slate-300 flex items-center justify-between gap-3 text-xs text-slate-700 transition-colors group"
+                    >
+                      <div className="flex items-start gap-2.5 min-w-0">
+                        <Check className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+                        <span className="leading-snug break-words">{feat}</span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => handleDeleteFeature(idx)}
+                        className="p-1.5 rounded-lg text-slate-400 hover:text-red-600 hover:bg-red-50 transition-colors shrink-0 cursor-pointer"
+                        title="Delete this benefit"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+
+            {/* Modal Actions */}
+            <div className="pt-4 border-t border-slate-100 flex items-center justify-between gap-3">
+              <button
+                type="button"
+                onClick={() => setIsEditPlanModalOpen(false)}
+                className="px-5 py-2.5 rounded-xl text-xs font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 transition-colors cursor-pointer"
+              >
+                Cancel
+              </button>
+
+              <button
+                type="button"
+                disabled={savingPlan}
+                onClick={handleSavePlan}
+                className="px-6 py-2.5 rounded-xl text-xs font-black text-slate-950 bg-[#CCFF00] hover:bg-[#b8e600] transition-colors shadow-md flex items-center gap-2 cursor-pointer disabled:opacity-50"
+              >
+                {savingPlan ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin text-slate-950" />
+                    <span>Saving to Database...</span>
+                  </>
+                ) : (
+                  <>
+                    <Check className="w-4 h-4 text-slate-950" />
+                    <span>Save &amp; Update in Database</span>
+                  </>
+                )}
+              </button>
             </div>
           </div>
         </div>

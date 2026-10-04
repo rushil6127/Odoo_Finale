@@ -541,3 +541,55 @@ def reject_membership_request(
     db.session.commit()
     return req
 
+
+def update_membership_plan(
+    plan_id: int,
+    displayed_monthly_price: Optional[float] = None,
+    features: Optional[List[str]] = None,
+    name: Optional[str] = None,
+    description: Optional[str] = None,
+    duration_months: Optional[int] = None,
+    complimentary_months: Optional[int] = None,
+) -> MembershipPlan:
+    """
+    Update a membership plan's monthly pricing, benefits features, and configuration.
+    Strictly persists to the database and flags JSON attributes as modified.
+    """
+    from sqlalchemy.orm.attributes import flag_modified
+
+    plan = db.session.get(MembershipPlan, plan_id)
+    if not plan:
+        raise NotFoundException(f"Membership plan with ID {plan_id} not found.")
+
+    if displayed_monthly_price is not None:
+        try:
+            val = float(displayed_monthly_price)
+            if val < 0:
+                raise ValidationException("Membership price cannot be negative.")
+            plan.displayed_monthly_price = round(val, 2)
+        except (ValueError, TypeError):
+            raise ValidationException("Invalid price value provided.")
+
+    if features is not None:
+        current_benefits = dict(plan.benefits or {})
+        cleaned_features = [str(f).strip() for f in features if str(f).strip()]
+        current_benefits["features"] = cleaned_features
+        plan.benefits = current_benefits
+        flag_modified(plan, "benefits")
+
+    if name is not None and name.strip():
+        plan.name = name.strip()
+
+    if description is not None:
+        plan.description = description.strip()
+
+    if duration_months is not None and duration_months > 0:
+        plan.duration_months = int(duration_months)
+
+    if complimentary_months is not None and complimentary_months >= 0:
+        plan.complimentary_months = int(complimentary_months)
+
+    plan.updated_at = utc_now()
+    db.session.commit()
+    return plan
+
