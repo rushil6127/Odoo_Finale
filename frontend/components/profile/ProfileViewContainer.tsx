@@ -533,9 +533,9 @@ export default function ProfileViewContainer({ forcedMode }: ProfileViewContaine
     email: user?.email || "member@championsclub.in",
     phone: memberProfileData?.phone || user?.phone || "+91 98765 43210",
     role: user?.role || "MEMBER",
-    membershipPlan: memberProfileData?.active_membership?.plan_code || user?.membershipPlan || "GOLD",
-    membershipStatus: memberProfileData?.is_active ? "ACTIVE" : (user?.membershipStatus || "ACTIVE"),
-    membershipExpiry: memberProfileData?.active_membership?.end_date ? new Date(memberProfileData.active_membership.end_date).toLocaleDateString() : "Active Member",
+    membershipPlan: memberProfileData?.active_membership?.plan_code || user?.membershipPlan || "",
+    membershipStatus: memberProfileData ? (memberProfileData.active_membership ? "ACTIVE" : "INACTIVE") : (user?.membershipStatus || "INACTIVE"),
+    membershipExpiry: memberProfileData?.active_membership?.end_date ? new Date(memberProfileData.active_membership.end_date).toLocaleDateString() : (user?.membershipExpiry || "No Active Plan"),
     joinDate: memberProfileData?.created_at ? new Date(memberProfileData.created_at).toLocaleDateString() : (user?.joinDate || "Jan 2024"),
     walletBalance: Number(memberProfileData?.wallet_balance ?? user?.walletBalance ?? 0),
     clubTabsOutstanding: Number(user?.clubTabsOutstanding ?? 0),
@@ -729,35 +729,42 @@ export default function ProfileViewContainer({ forcedMode }: ProfileViewContaine
     fetchMembershipStatus();
   }, []);
 
-  const currentPlan = (
+  const rawPlan = (
     liveMembershipData?.plan?.code ||
     activeUser.membership_plan ||
     activeUser.membershipPlan ||
-    "GOLD"
+    ""
   ).toUpperCase();
 
-  const planDisplayName =
-    liveMembershipData?.plan?.name ||
-    (currentPlan === "GOLD"
-      ? "Gold Champion"
-      : currentPlan === "SILVER"
-      ? "Silver Tier"
-      : currentPlan === "JUNIOR"
-      ? "Junior Academy"
-      : `${currentPlan} Member`);
+  const hasActiveMembership =
+    !!rawPlan &&
+    (liveMembershipData ? liveMembershipData.is_active : activeUser.membershipStatus === "ACTIVE");
+
+  const currentPlan = hasActiveMembership ? rawPlan : "";
+
+  const planDisplayName = hasActiveMembership
+    ? (liveMembershipData?.plan?.name ||
+      (currentPlan === "GOLD"
+        ? "Gold Champion"
+        : currentPlan === "SILVER"
+        ? "Silver Tier"
+        : currentPlan === "JUNIOR"
+        ? "Junior Academy"
+        : `${currentPlan} Member`))
+    : "No Active Membership";
 
   const membershipStartDate =
     liveMembershipData?.start_date ||
     activeUser.membership_start_date ||
     activeUser.membershipStartDate ||
     activeUser.joinDate ||
-    "October 3, 2026";
+    "";
 
   const membershipEndDate =
     liveMembershipData?.end_date ||
     activeUser.membership_end_date ||
     activeUser.membershipExpiry ||
-    "October 2, 2027";
+    "";
 
   const formatProfileDate = (dateStr?: string) => {
     if (!dateStr) return "N/A";
@@ -1805,7 +1812,7 @@ export default function ProfileViewContainer({ forcedMode }: ProfileViewContaine
                   {isSuperOwner || activeUser.role === "OWNER" || activeUser.role === "ADMIN" || forcedMode === "owner" ? (
                     // Owner Club at a Glance Card (Matches Reference Image)
                     <OwnerClubGlanceCard glanceData={glanceData} loading={glanceLoading} />
-                  ) : (
+                  ) : hasActiveMembership ? (
                     // Member Active Club Membership Card
                     <div className="lg:col-span-7 p-6 rounded-3xl bg-white border border-slate-200/90 shadow-sm flex flex-col gap-5">
 
@@ -1875,6 +1882,60 @@ export default function ProfileViewContainer({ forcedMode }: ProfileViewContaine
                         <ArrowRight className="w-4 h-4" />
                       </Link>
 
+                    </div>
+                  ) : (
+                    // Member Inactive / No Active Membership Card
+                    <div className="lg:col-span-7 p-6 rounded-3xl bg-white border border-slate-200/90 shadow-sm flex flex-col gap-5">
+                      {/* Tier label + Status badge */}
+                      <div className="flex items-start justify-between">
+                        <div>
+                          <p className="text-[10px] font-black uppercase tracking-[0.12em] text-slate-400 mb-1">
+                            Membership Status
+                          </p>
+                          <h3 className="text-3xl sm:text-4xl font-black text-slate-900 font-[family-name:var(--font-outfit)] leading-none">
+                            No Active Plan
+                          </h3>
+                        </div>
+                        <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold bg-slate-100 text-slate-600 border border-slate-200 whitespace-nowrap">
+                          <span className="w-2 h-2 rounded-full bg-slate-400" />
+                          No Active Membership
+                        </span>
+                      </div>
+
+                      {/* Divider */}
+                      <div className="border-t border-slate-100" />
+
+                      {/* Description */}
+                      <div>
+                        <p className="text-sm text-slate-600 leading-relaxed">
+                          You do not have an active membership tier. Purchase a membership plan to unlock full court booking privileges, Pro Shop discounts, guest passes, and coaching clinics.
+                        </p>
+                      </div>
+
+                      {/* Benefits preview */}
+                      <div>
+                        <p className="text-[10px] font-black uppercase tracking-[0.12em] text-slate-400 mb-2.5">Available Tier Benefits</p>
+                        <div className="flex flex-wrap gap-2">
+                          {["Grass & Padel Court Access", "Up to 20% Shop Discount", "Guest Passes & Clinics", "Club Charging Tab"].map((benefit) => (
+                            <span
+                              key={benefit}
+                              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-50 border border-slate-200 text-xs font-semibold text-slate-600"
+                            >
+                              <CheckCircle2 className="w-3.5 h-3.5 text-sky-500 shrink-0" />
+                              {benefit}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Full-width CTA button */}
+                      <Link
+                        href="/membership"
+                        className="w-full inline-flex items-center justify-center gap-2 px-5 py-3.5 rounded-2xl bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-600 hover:to-blue-700 text-white font-extrabold text-sm shadow-md shadow-sky-500/25 transition-all mt-auto"
+                      >
+                        <span>Choose a Membership Plan</span>
+                        <ArrowRight className="w-4 h-4" />
+                      </Link>
                     </div>
                   )}
 

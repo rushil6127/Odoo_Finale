@@ -9,9 +9,9 @@
    Enums / Union Types
    ============================================================ */
 
-export type MembershipPlan = "GOLD" | "SILVER" | "JUNIOR";
+export type MembershipPlan = "GOLD" | "SILVER" | "JUNIOR" | "NONE" | "";
 
-export type MembershipStatus = "ACTIVE" | "EXPIRED" | "SUSPENDED";
+export type MembershipStatus = "ACTIVE" | "EXPIRED" | "SUSPENDED" | "INACTIVE" | "NONE";
 
 export type BookingStatus = "CONFIRMED" | "CANCELLED" | "COMPLETED";
 

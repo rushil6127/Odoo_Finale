@@ -340,8 +340,7 @@ export default function CourtsShowcase() {
   const effectiveTier = useMemo(() => {
     if (!isAuthenticated || !user) return "WALK_IN";
     if (user.membershipPlan) return user.membershipPlan.toUpperCase();
-    if (user.role === "MEMBER") return "GOLD";
-    return "GOLD"; // Staff/Coaches get Gold privileges
+    return "WALK_IN";
   }, [isAuthenticated, user]);
 
   // Courts matching the currently selected facility

@@ -74,10 +74,12 @@ export default function MembersPage() {
       const list = Array.isArray(res) ? res : res?.members || res?.data || [];
       if (list && list.length > 0) {
         const mapped: MemberRecord[] = list.map((m: any, idx: number) => {
-          const planCode = m.active_membership?.plan_code || m.membership?.plan_code || "GOLD";
-          let tier: MemberRecord["tier"] = "GOLD";
+          const planCode = (m.active_membership?.plan_code || m.membership?.plan_code || "").toUpperCase();
+          const hasPlan = !!(m.active_membership || m.membership);
+          let tier: MemberRecord["tier"] = "STANDARD";
           if (planCode.includes("BLACK") || planCode.includes("VIP")) tier = "BLACK_CARD";
           else if (planCode.includes("PLATINUM")) tier = "PLATINUM";
+          else if (planCode.includes("GOLD")) tier = "GOLD";
           else if (planCode.includes("SILVER") || planCode.includes("STANDARD")) tier = "STANDARD";
 
           return {
@@ -87,9 +89,9 @@ export default function MembersPage() {
             email: m.user?.email || "member@championsclub.in",
             phone: m.phone || "+91 98765 00000",
             tier: tier,
-            status: m.is_active ? "ACTIVE" : "PENDING_VERIFICATION",
+            status: hasPlan && m.is_active ? "ACTIVE" : (m.is_active ? "PENDING_VERIFICATION" : "SUSPENDED"),
             joinedDate: m.created_at ? new Date(m.created_at).toLocaleDateString() : "Jan 2024",
-            expiresDate: m.active_membership?.end_date ? new Date(m.active_membership.end_date).toLocaleDateString() : "1 Year Active",
+            expiresDate: m.active_membership?.end_date ? new Date(m.active_membership.end_date).toLocaleDateString() : "No Active Plan",
             totalSpend: Number(m.total_spend || 0),
             totalBookings: Number(m.total_bookings || 0),
             avatarBg: "bg-slate-900",

@@ -121,16 +121,21 @@ export default function UserProfileModal({
 
               <div>
                 <div className="flex items-center gap-2.5 flex-wrap">
-                  <h2 className="text-xl sm:text-2xl font-black tracking-tight text-white">
-                    {user.name}
-                  </h2>
-                  <span className={`px-3 py-0.5 rounded-full text-[11px] font-extrabold uppercase border shadow-sm bg-gradient-to-r ${getTierColor(user.membershipPlan)}`}>
-                    <Crown className="w-3 h-3 inline mr-1 -mt-0.5" />
-                    {user.membershipPlan} Member
-                  </span>
-                  <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-green-500/20 text-green-400 border border-green-500/30">
-                    {user.membershipStatus}
-                  </span>
+                  {user.membershipPlan ? (
+                    <>
+                      <span className={`px-3 py-0.5 rounded-full text-[11px] font-extrabold uppercase border shadow-sm bg-gradient-to-r ${getTierColor(user.membershipPlan)}`}>
+                        <Crown className="w-3 h-3 inline mr-1 -mt-0.5" />
+                        {user.membershipPlan} Member
+                      </span>
+                      <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-green-500/20 text-green-400 border border-green-500/30">
+                        {user.membershipStatus || "ACTIVE"}
+                      </span>
+                    </>
+                  ) : (
+                    <span className="px-3 py-0.5 rounded-full text-[11px] font-bold border border-white/20 bg-white/10 text-slate-300">
+                      No Active Membership
+                    </span>
+                  )}
                 </div>
 
                 <div className="flex items-center gap-4 text-xs text-slate-300 mt-2 flex-wrap">
@@ -249,26 +254,41 @@ export default function UserProfileModal({
               <div className="p-5 rounded-2xl bg-slate-50 border border-slate-200">
                 <h3 className="text-sm font-extrabold text-slate-900 mb-3 flex items-center gap-2">
                   <Sparkles className="w-4 h-4 text-sky-600" />
-                  <span>Your {user.membershipPlan} Tier Privileges</span>
+                  <span>{user.membershipPlan ? `Your ${user.membershipPlan} Tier Privileges` : "Club Membership Privileges"}</span>
                 </h3>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs text-slate-700">
-                  <div className="flex items-center gap-2">
-                    <CheckCircle2 className="w-4 h-4 text-green-600 shrink-0" />
-                    <span>Priority booking on all 4 Wimbledon Natural Grass Courts</span>
+                {user.membershipPlan ? (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs text-slate-700">
+                    <div className="flex items-center gap-2">
+                      <CheckCircle2 className="w-4 h-4 text-green-600 shrink-0" />
+                      <span>Priority booking on all 4 Wimbledon Natural Grass Courts</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <CheckCircle2 className="w-4 h-4 text-green-600 shrink-0" />
+                      <span>20% Member Discount at Pro Shop & 24hr Stringing</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <CheckCircle2 className="w-4 h-4 text-green-600 shrink-0" />
+                      <span>Complimentary Heated Olympic Pool & Lounger Access</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <CheckCircle2 className="w-4 h-4 text-green-600 shrink-0" />
+                      <span>Flexible Monthly Charge Tab at Champions Lounge Café</span>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <CheckCircle2 className="w-4 h-4 text-green-600 shrink-0" />
-                    <span>20% Member Discount at Pro Shop & 24hr Stringing</span>
+                ) : (
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 p-3 bg-white rounded-xl border border-slate-200/80">
+                    <p className="text-xs text-slate-600">
+                      You currently have no active membership. Subscribe to a tier to unlock court reservations, discounts, and exclusive events.
+                    </p>
+                    <Link
+                      href="/membership"
+                      onClick={onClose}
+                      className="px-4 py-2 rounded-xl bg-sky-600 hover:bg-sky-700 text-white font-bold text-xs shrink-0 whitespace-nowrap shadow-sm"
+                    >
+                      Choose a Plan
+                    </Link>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <CheckCircle2 className="w-4 h-4 text-green-600 shrink-0" />
-                    <span>Complimentary Heated Olympic Pool & Lounger Access</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <CheckCircle2 className="w-4 h-4 text-green-600 shrink-0" />
-                    <span>Flexible Monthly Charge Tab at Champions Lounge Café</span>
-                  </div>
-                </div>
+                )}
               </div>
 
               {/* Quick Action Shortcuts */}

@@ -21,7 +21,7 @@ interface NavLink {
 const navLinks: NavLink[] = [
   { name: "Home", href: "/" },
   { name: "Courts", href: "/#courts" },
-  { name: "Memberships", href: "/membership" },
+  { name: "Memberships", href: "/#memberships" },
   { name: "Facilities", href: "/#facilities" },
   { name: "Gallery", href: "/#gallery" },
   { name: "Pro Shop", href: "/shop" },
@@ -32,7 +32,7 @@ const navLinks: NavLink[] = [
 export default function Navbar() {
   const pathname = usePathname();
   const [activeSection, setActiveSection] = useState(
-    pathname === "/membership" ? "Memberships" : pathname === "/shop" ? "Pro Shop" : pathname === "/cafe" ? "Café" : "Home"
+    pathname === "/shop" ? "Pro Shop" : pathname === "/cafe" ? "Café" : "Home"
   );
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -46,10 +46,6 @@ export default function Navbar() {
       setIsLoggedIn(!!localStorage.getItem("cc_token"));
     }
 
-    if (pathname === "/membership") {
-      setActiveSection("Memberships");
-      return;
-    }
     if (pathname === "/shop") {
       setActiveSection("Pro Shop");
       return;
@@ -66,6 +62,7 @@ export default function Navbar() {
       const sectionMap: Record<string, string> = {
         hero: "Home",
         courts: "Courts",
+        memberships: "Memberships",
         facilities: "Facilities",
         gallery: "Gallery",
         shop: "Pro Shop",
@@ -73,7 +70,7 @@ export default function Navbar() {
         contact: "Contact",
       };
 
-      const keys = ["hero", "courts", "facilities", "gallery", "shop", "cafe", "contact"];
+      const keys = ["hero", "courts", "memberships", "facilities", "gallery", "shop", "cafe", "contact"];
       const current = keys.find((key) => {
         const el = document.getElementById(key);
         if (el) {
@@ -161,10 +158,16 @@ export default function Navbar() {
                     <span className="text-xs font-extrabold text-slate-900 group-hover:text-sky-700 leading-tight">
                       {user.name.split(" ")[0]}
                     </span>
-                    <span className="text-[9px] font-bold text-amber-600 flex items-center gap-0.5 uppercase tracking-tight">
-                      <Crown className="w-2.5 h-2.5 text-amber-500 inline" />
-                      {user.membershipPlan}
-                    </span>
+                    {user.membershipPlan ? (
+                      <span className="text-[9px] font-bold text-amber-600 flex items-center gap-0.5 uppercase tracking-tight">
+                        <Crown className="w-2.5 h-2.5 text-amber-500 inline" />
+                        {user.membershipPlan}
+                      </span>
+                    ) : (
+                      <span className="text-[9px] font-medium text-slate-500 flex items-center gap-0.5 tracking-tight">
+                        Member
+                      </span>
+                    )}
                   </div>
                   <ChevronDown className="w-3.5 h-3.5 text-slate-400 group-hover:text-sky-600 transition-transform group-hover:translate-y-0.5" />
                 </Link>
@@ -244,7 +247,9 @@ export default function Navbar() {
                       </div>
                       <div className="text-left">
                         <div className="text-xs font-extrabold text-slate-900">{user.name}</div>
-                        <div className="text-[10px] text-sky-700 font-bold">{user.membershipPlan} Member &bull; Open Full Portal</div>
+                        <div className="text-[10px] text-sky-700 font-bold">
+                          {user.membershipPlan ? `${user.membershipPlan} Member` : "Member"} &bull; Open Full Portal
+                        </div>
                       </div>
                     </div>
                     <span className="text-xs font-bold text-sky-600">Open &rarr;</span>

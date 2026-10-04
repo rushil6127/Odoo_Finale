@@ -163,7 +163,7 @@ export default function MembershipPlans({ initialPlans }: MembershipPlansProps) 
   }, []);
 
   return (
-    <section id="memberships" className="py-20 bg-slate-50 relative overflow-hidden">
+    <section id="memberships" className="py-20 bg-slate-50 relative overflow-hidden scroll-mt-24">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
         <div className="text-center max-w-3xl mx-auto mb-12">

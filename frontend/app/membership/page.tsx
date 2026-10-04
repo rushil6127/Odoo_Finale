@@ -242,10 +242,12 @@ function MembershipContent() {
           const s = await apiClient.get<{ active_membership: ActiveMembershipData | null }>(
             "/membership-plans/my-status"
           );
-          if (s?.active_membership) setActiveMembership(s.active_membership);
+          setActiveMembership(s?.active_membership || null);
         } catch {
-          if (user?.active_membership) setActiveMembership(user.active_membership);
+          setActiveMembership(user?.active_membership || null);
         }
+      } else {
+        setActiveMembership(null);
       }
     } catch (e: any) {
       setError(e?.message || "Failed to load.");
@@ -260,9 +262,7 @@ function MembershipContent() {
 
   const currentPlanCode = (
     activeMembership?.plan?.code ||
-    user?.membership_plan ||
-    user?.membershipPlan ||
-    ""
+    (activeMembership ? (user?.membership_plan || user?.membershipPlan || "") : "")
   ).toUpperCase();
 
   const fmt = (d?: string) => {
