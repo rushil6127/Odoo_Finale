@@ -141,7 +141,7 @@ def api_update_table(table_id: int):
 # ---------------------------------------------------------
 
 @pos_bp.route("/menu/categories", methods=["GET"])
-@jwt_required()
+@jwt_required(optional=True)
 def api_list_categories():
     """List menu categories."""
     categories = list_menu_categories()
@@ -171,7 +171,7 @@ def api_create_category():
 
 
 @pos_bp.route("/menu", methods=["GET"])
-@jwt_required()
+@jwt_required(optional=True)
 def api_list_menu():
     """List menu items with categories and filters."""
     cat_id = request.args.get("category_id", type=int)

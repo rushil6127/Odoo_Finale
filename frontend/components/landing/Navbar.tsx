@@ -24,14 +24,16 @@ const navLinks: NavLink[] = [
   { name: "Memberships", href: "/membership" },
   { name: "Facilities", href: "/#facilities" },
   { name: "Gallery", href: "/#gallery" },
-  { name: "Pro Shop", href: "/#shop" },
-  { name: "Café", href: "/#cafe" },
+  { name: "Pro Shop", href: "/shop" },
+  { name: "Café", href: "/cafe" },
   { name: "Contact", href: "/#contact" },
 ];
 
 export default function Navbar() {
   const pathname = usePathname();
-  const [activeSection, setActiveSection] = useState(pathname === "/membership" ? "Memberships" : "Home");
+  const [activeSection, setActiveSection] = useState(
+    pathname === "/membership" ? "Memberships" : pathname === "/shop" ? "Pro Shop" : pathname === "/cafe" ? "Café" : "Home"
+  );
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -46,6 +48,14 @@ export default function Navbar() {
 
     if (pathname === "/membership") {
       setActiveSection("Memberships");
+      return;
+    }
+    if (pathname === "/shop") {
+      setActiveSection("Pro Shop");
+      return;
+    }
+    if (pathname === "/cafe") {
+      setActiveSection("Café");
       return;
     }
 
