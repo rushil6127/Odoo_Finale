@@ -4,14 +4,33 @@ from flask_migrate import Migrate
 from flask_jwt_extended import JWTManager
 from werkzeug.security import generate_password_hash, check_password_hash
 
+import bcrypt as pybcrypt
+
 class Bcrypt:
     def init_app(self, app): pass
     def generate_password_hash(self, password):
-        return generate_password_hash(password).encode('utf-8')
+        if isinstance(password, str):
+            password_bytes = password.encode('utf-8')
+        else:
+            password_bytes = password
+        return pybcrypt.hashpw(password_bytes, pybcrypt.gensalt())
     def check_password_hash(self, hashed, password):
         if isinstance(hashed, bytes):
             hashed = hashed.decode('utf-8')
-        return check_password_hash(hashed, password)
+        if isinstance(password, str):
+            password_bytes = password.encode('utf-8')
+        else:
+            password_bytes = password
+        if hashed.startswith('$2b$') or hashed.startswith('$2a$') or hashed.startswith('$2y$'):
+            try:
+                return pybcrypt.checkpw(password_bytes, hashed.encode('utf-8'))
+            except Exception:
+                return False
+        try:
+            pw_str = password_bytes.decode('utf-8')
+            return check_password_hash(hashed, pw_str)
+        except Exception:
+            return False
 from flask_marshmallow import Marshmallow
 from flask_cors import CORS
 
