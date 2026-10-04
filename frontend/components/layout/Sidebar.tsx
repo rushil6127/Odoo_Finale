@@ -64,10 +64,8 @@ const navigation: NavGroup[] = [
   {
     title: "Commerce & Hospitality",
     items: [
-      { label: "Sports Bar & POS", href: "/pos", icon: UtensilsCrossed },
-      { label: "Pro Shop Merchandise", href: "/shop", icon: ShoppingBag },
-      { label: "Equipment Inventory", href: "/inventory", icon: Boxes },
-      { label: "Leads & CRM Funnel", href: "/crm", icon: TrendingUp },
+      { label: "Pro Shop", href: "/inventory", icon: ShoppingBag, badge: "Stock & Rev", badgeColor: "bg-indigo-500/20 text-indigo-400" },
+      { label: "Café Bar", href: "/pos", icon: UtensilsCrossed, badge: "POS & Sales", badgeColor: "bg-teal-500/20 text-teal-400" },
     ],
   },
 ];

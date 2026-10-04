@@ -306,7 +306,7 @@ export default function DashboardPage() {
             </div>
           </Link>
 
-          {/* Card 4: POS & Sports Bar */}
+          {/* Card 4: Café Bar */}
           <Link
             href="/pos"
             className="group bg-white rounded-2xl p-5 border border-slate-200/90 hover:border-teal-400 shadow-sm hover:shadow-md transition-all flex flex-col justify-between"
@@ -317,20 +317,20 @@ export default function DashboardPage() {
                   <UtensilsCrossed className="w-5 h-5 text-teal-600" />
                 </div>
                 <span className="text-[10px] font-black uppercase px-2.5 py-1 rounded-full bg-teal-50 text-teal-700 border border-teal-200/80 tracking-wider">
-                  POS
+                  POS &amp; Sales
                 </span>
               </div>
               <h3 className="text-base sm:text-lg font-black text-slate-900 mt-4 group-hover:text-teal-600 transition-colors font-[family-name:var(--font-outfit)] leading-snug">
-                Sports Bar &amp; Café POS
+                Café Bar &amp; Lounge
               </h3>
             </div>
             <div className="mt-6 py-2.5 px-4 rounded-xl bg-teal-50/70 group-hover:bg-teal-100/90 border border-teal-200/80 shadow-xs group-hover:shadow-sm flex items-center justify-between text-xs sm:text-sm font-bold text-teal-700 transition-all">
-              <span>Launch POS Terminal</span>
+              <span>Open Café Bar</span>
               <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
             </div>
           </Link>
 
-          {/* Card 5: Pro Shop & Inventory */}
+          {/* Card 5: Pro Shop */}
           <Link
             href="/inventory"
             className="group bg-white rounded-2xl p-5 border border-slate-200/90 hover:border-indigo-400 shadow-sm hover:shadow-md transition-all flex flex-col justify-between"
@@ -338,18 +338,18 @@ export default function DashboardPage() {
             <div>
               <div className="flex items-center justify-between">
                 <div className="w-11 h-11 rounded-xl bg-indigo-50 text-indigo-600 border border-indigo-200/60 flex items-center justify-center">
-                  <Boxes className="w-5 h-5 text-indigo-600" />
+                  <ShoppingBag className="w-5 h-5 text-indigo-600" />
                 </div>
                 <span className="text-[10px] font-black uppercase px-2.5 py-1 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200/80 tracking-wider">
-                  Stock
+                  Stock &amp; Rev
                 </span>
               </div>
               <h3 className="text-base sm:text-lg font-black text-slate-900 mt-4 group-hover:text-indigo-600 transition-colors font-[family-name:var(--font-outfit)] leading-snug">
-                Equipment &amp; Pro Shop
+                Pro Shop &amp; Equipment
               </h3>
             </div>
             <div className="mt-6 py-2.5 px-4 rounded-xl bg-indigo-50/70 group-hover:bg-indigo-100/90 border border-indigo-200/80 shadow-xs group-hover:shadow-sm flex items-center justify-between text-xs sm:text-sm font-bold text-indigo-700 transition-all">
-              <span>Open Inventory</span>
+              <span>Open Pro Shop</span>
               <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
             </div>
           </Link>
