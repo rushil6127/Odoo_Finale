@@ -862,7 +862,6 @@ export function hasRole(user: AuthUserProfile | AuthUser | null, roles: UserRole
 
 export function isStaffOrAdmin(user: AuthUserProfile | AuthUser | null): boolean {
   if (!user) return false;
-  if (user.email === "pushplamba104@gmail.com") return true;
   const role = (user.role || "").toString().toUpperCase();
   return ["OWNER", "ADMIN", "MANAGER", "FRONT_DESK", "STAFF", "SHOP_STAFF", "BAR_STAFF", "COACH", "TRAINER", "INSTRUCTOR", "MAINTENANCE"].includes(role);
 }
@@ -870,7 +869,7 @@ export function isStaffOrAdmin(user: AuthUserProfile | AuthUser | null): boolean
 export function isOwner(user: AuthUserProfile | AuthUser | null): boolean {
   if (!user) return false;
   const role = (user.role || "").toString().toUpperCase();
-  return role === "OWNER" || user.email === "pushplamba104@gmail.com";
+  return role === "OWNER";
 }
 
 /**

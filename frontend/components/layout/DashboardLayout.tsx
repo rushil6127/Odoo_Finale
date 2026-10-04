@@ -92,7 +92,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
               <span>Owner Access Policy</span>
             </div>
             <p className="text-[11px] text-slate-400">
-              Administrative console dashboards are restricted strictly to the Super Owner (<strong className="text-slate-200">pushplamba104@gmail.com</strong>).
+              Administrative console dashboards are restricted strictly to authenticated Club Owners.
             </p>
           </div>
         </div>

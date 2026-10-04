@@ -206,8 +206,7 @@ export default function BookingsPage() {
 
   const isOwnerOrAdmin =
     currentUser?.role === "OWNER" ||
-    currentUser?.role === "ADMIN" ||
-    currentUser?.email === "pushplamba104@gmail.com";
+    currentUser?.role === "ADMIN";
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto pb-12">

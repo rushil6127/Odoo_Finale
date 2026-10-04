@@ -78,7 +78,7 @@ export default function Sidebar() {
     setCurrentUser(getStoredUser());
   }, []);
 
-  const isOwner = currentUser?.role === "OWNER" || currentUser?.email === "pushplamba104@gmail.com";
+  const isOwner = currentUser?.role === "OWNER";
 
   return (
     <aside className="w-64 h-screen bg-slate-950 border-r border-slate-800 text-slate-200 flex flex-col shrink-0 overflow-y-auto z-40 select-none">

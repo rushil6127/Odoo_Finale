@@ -124,7 +124,7 @@ export default function DashboardPage() {
     fetchDashboardData();
   }, []);
 
-  const isOwner = currentUser?.role === "OWNER" || currentUser?.email === "pushplamba104@gmail.com";
+  const isOwner = currentUser?.role === "OWNER";
   return (
     <div className="space-y-6 max-w-7xl mx-auto pb-12">
       {/* 1. EXECUTIVE WELCOME BANNER */}
