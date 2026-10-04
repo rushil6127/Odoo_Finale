@@ -17,7 +17,7 @@ import {
   ShieldCheck,
   Truck,
 } from "lucide-react";
-import type { BackendProduct } from "./ProductCard";
+import { type BackendProduct, getProductImage } from "./ProductCard";
 import type { AuthUser } from "@/lib/auth";
 
 interface ProductDetailModalProps {
@@ -39,6 +39,7 @@ export default function ProductDetailModal({
 }: ProductDetailModalProps) {
   const [quantity, setQuantity] = useState(1);
   const [justAdded, setJustAdded] = useState(false);
+  const [imgError, setImgError] = useState(false);
 
   if (!isOpen || !product) return null;
 
@@ -98,11 +99,13 @@ export default function ProductDetailModal({
           {/* Left Media Column */}
           <div className="space-y-3">
             <div className="relative w-full h-64 sm:h-72 rounded-2xl overflow-hidden bg-slate-50 border border-slate-200 flex items-center justify-center shadow-inner">
-              {product.image_url ? (
+              {getProductImage(product) && !imgError ? (
                 <Image
-                  src={product.image_url}
+                  src={getProductImage(product)!}
                   alt={product.name}
                   fill
+                  unoptimized
+                  onError={() => setImgError(true)}
                   sizes="(max-width: 768px) 100vw, 50vw"
                   className="object-cover"
                 />

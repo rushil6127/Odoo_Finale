@@ -101,6 +101,39 @@ function renderProductPlaceholder(categorySlug?: string) {
   );
 }
 
+export const DEFAULT_PRODUCT_IMAGES: Record<string, string> = {
+  "SHOE-ASI-RES8": "/images/products/asics-gel-resolution.jpg",
+  "RCK-BAB-AER": "/images/products/babolat-pure-aero.jpg",
+  "APP-CHAMP-POLO": "/images/products/champions-club-polo.jpg",
+  "BAL-HEAD-PRO": "/images/products/head-padel-pro.jpg",
+  "RCK-WIL-PRO97": "/images/products/wilson-pro-staff.jpg",
+  "BAL-WIL-US3": "/images/products/wilson-us-open-balls.jpg",
+  "ACC-YON-OVER3": "/images/products/yonex-super-grap.jpg",
+};
+
+export function getProductImage(product?: { sku?: string; name?: string; image_url?: string | null } | null): string | null {
+  if (!product) return null;
+  if (product.image_url && typeof product.image_url === "string" && product.image_url.trim().length > 0) {
+    return product.image_url.trim();
+  }
+
+  const sku = (product.sku || "").toUpperCase();
+  if (sku && DEFAULT_PRODUCT_IMAGES[sku]) {
+    return DEFAULT_PRODUCT_IMAGES[sku];
+  }
+
+  const nameLower = (product.name || "").toLowerCase();
+  if (nameLower.includes("asics") || nameLower.includes("gel resolution")) return "/images/products/asics-gel-resolution.jpg";
+  if (nameLower.includes("babolat") || nameLower.includes("pure aero")) return "/images/products/babolat-pure-aero.jpg";
+  if (nameLower.includes("polo") || nameLower.includes("dri-fit") || nameLower.includes("champions club")) return "/images/products/champions-club-polo.jpg";
+  if (nameLower.includes("padel pro") || (nameLower.includes("head") && nameLower.includes("padel"))) return "/images/products/head-padel-pro.jpg";
+  if (nameLower.includes("pro staff") || (nameLower.includes("wilson") && nameLower.includes("97"))) return "/images/products/wilson-pro-staff.jpg";
+  if (nameLower.includes("us open") || (nameLower.includes("wilson") && nameLower.includes("ball"))) return "/images/products/wilson-us-open-balls.jpg";
+  if (nameLower.includes("super grap") || nameLower.includes("yonex") || nameLower.includes("overgrip")) return "/images/products/yonex-super-grap.jpg";
+
+  return null;
+}
+
 export default function ProductCard({
   product,
   currentUser,
@@ -109,6 +142,7 @@ export default function ProductCard({
 }: ProductCardProps) {
   const [quantity, setQuantity] = useState(1);
   const [justAdded, setJustAdded] = useState(false);
+  const [imgError, setImgError] = useState(false);
 
   const isOutOfStock = product.stock_quantity <= 0;
   const isLowStock =
@@ -117,6 +151,7 @@ export default function ProductCard({
 
   const categoryName = product.category?.name || "Equipment";
   const categorySlug = product.category?.slug || "";
+  const imageUrl = getProductImage(product);
 
   // Member tier discount evaluation
   const planName = (currentUser as any)?.membershipPlan || null;
@@ -165,11 +200,13 @@ export default function ProductCard({
       <div>
         {/* Visual Media Container */}
         <div className="relative w-full h-48 sm:h-52 rounded-2xl overflow-hidden bg-slate-100 border border-slate-200/80 mb-4 shadow-inner">
-          {product.image_url ? (
+          {imageUrl && !imgError ? (
             <Image
-              src={product.image_url}
+              src={imageUrl}
               alt={product.name}
               fill
+              unoptimized
+              onError={() => setImgError(true)}
               sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
               className="object-cover group-hover:scale-105 transition-transform duration-500"
             />

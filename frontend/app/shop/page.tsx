@@ -26,7 +26,7 @@ import { useCart } from "@/lib/cart/useCart";
 import Navbar from "@/components/landing/Navbar";
 import Footer from "@/components/landing/Footer";
 import CategoryFilterBar, { CategoryOption } from "@/components/shop/CategoryFilterBar";
-import ProductCard, { BackendProduct } from "@/components/shop/ProductCard";
+import ProductCard, { BackendProduct, getProductImage } from "@/components/shop/ProductCard";
 import ProductDetailModal from "@/components/shop/ProductDetailModal";
 import CartDrawer from "@/components/shop/CartDrawer";
 import CheckoutModal, { CreatedOrderResponse } from "@/components/shop/CheckoutModal";
@@ -126,7 +126,7 @@ export default function ProShopPage() {
         low_stock_threshold: p.low_stock_threshold || 5,
         description: p.description,
         barcode: p.barcode,
-        image_url: p.image_url || null,
+        image_url: p.image_url || getProductImage(p),
         is_active: p.is_active ?? true,
         is_low_stock: (p.stock_quantity ?? 0) <= (p.low_stock_threshold || 5) && (p.stock_quantity ?? 0) > 0,
         is_out_of_stock: (p.stock_quantity ?? 0) <= 0,
@@ -197,7 +197,7 @@ export default function ProShopPage() {
         sku: product.sku,
         price: product.price,
         stockQuantity: product.stock_quantity,
-        imageUrl: product.image_url,
+        imageUrl: getProductImage(product),
       },
       quantity
     );

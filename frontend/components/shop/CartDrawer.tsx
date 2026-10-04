@@ -19,6 +19,7 @@ import {
 import Image from "next/image";
 import type { CartItem, QuoteData } from "@/lib/cart/useCart";
 import type { AuthUser } from "@/lib/auth";
+import { DEFAULT_PRODUCT_IMAGES, getProductImage } from "./ProductCard";
 
 interface CartDrawerProps {
   isOpen: boolean;
@@ -125,8 +126,14 @@ export default function CartDrawer({
                   <div key={item.productId} className="pt-3.5 first:pt-0 flex gap-3.5 items-start group">
                     {/* Item Thumbnail */}
                     <div className="relative w-16 h-16 rounded-xl overflow-hidden bg-slate-50 border border-slate-200 shrink-0 shadow-inner flex items-center justify-center">
-                      {item.imageUrl ? (
-                        <Image src={item.imageUrl} alt={item.name} fill className="object-cover" />
+                      {getProductImage({ sku: item.sku, name: item.name, image_url: item.imageUrl }) ? (
+                        <Image
+                          src={getProductImage({ sku: item.sku, name: item.name, image_url: item.imageUrl })!}
+                          alt={item.name}
+                          fill
+                          unoptimized
+                          className="object-cover"
+                        />
                       ) : (
                         <ShoppingBag className="w-6 h-6 text-sky-600" />
                       )}

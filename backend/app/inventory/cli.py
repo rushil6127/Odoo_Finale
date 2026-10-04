@@ -44,6 +44,7 @@ SAMPLE_PRODUCTS = [
         "low_stock_threshold": 3,
         "description": "Precision and feel for advanced players. 315g unstrung.",
         "barcode": "887768991011",
+        "image_url": "/images/products/wilson-pro-staff.jpg",
     },
     {
         "sku": "RCK-BAB-AER",
@@ -55,6 +56,7 @@ SAMPLE_PRODUCTS = [
         "low_stock_threshold": 3,
         "description": "Maximum spin and power. Rafael Nadal edition.",
         "barcode": "887768991012",
+        "image_url": "/images/products/babolat-pure-aero.jpg",
     },
     {
         "sku": "BAL-WIL-US3",
@@ -66,6 +68,7 @@ SAMPLE_PRODUCTS = [
         "low_stock_threshold": 25,
         "description": "Official ball of the US Open. Premium woven felt.",
         "barcode": "887768991021",
+        "image_url": "/images/products/wilson-us-open-balls.jpg",
     },
     {
         "sku": "BAL-HEAD-PRO",
@@ -77,6 +80,7 @@ SAMPLE_PRODUCTS = [
         "low_stock_threshold": 15,
         "description": "Faster ball for dynamic padel rallies.",
         "barcode": "887768991022",
+        "image_url": "/images/products/head-padel-pro.jpg",
     },
     {
         "sku": "SHOE-ASI-RES8",
@@ -88,6 +92,7 @@ SAMPLE_PRODUCTS = [
         "low_stock_threshold": 5,
         "description": "Advanced stability and cushioning for competitive tennis.",
         "barcode": "887768991031",
+        "image_url": "/images/products/asics-gel-resolution.jpg",
     },
     {
         "sku": "APP-CHAMP-POLO",
@@ -99,6 +104,7 @@ SAMPLE_PRODUCTS = [
         "low_stock_threshold": 10,
         "description": "Official club crest moisture-wicking polo.",
         "barcode": "887768991041",
+        "image_url": "/images/products/champions-club-polo.jpg",
     },
     {
         "sku": "ACC-YON-OVER3",
@@ -110,6 +116,7 @@ SAMPLE_PRODUCTS = [
         "low_stock_threshold": 20,
         "description": "Tacky feel and excellent shock absorption.",
         "barcode": "887768991051",
+        "image_url": "/images/products/yonex-super-grap.jpg",
     },
 ]
 
@@ -156,6 +163,7 @@ def seed_inventory_command():
                 low_stock_threshold=p_data["low_stock_threshold"],
                 description=p_data["description"],
                 barcode=p_data["barcode"],
+                image_url=p_data.get("image_url"),
                 is_active=True,
             )
             db.session.add(prod)
