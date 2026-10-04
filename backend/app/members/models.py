@@ -63,9 +63,20 @@ class Member(db.Model):
         """Check if the member has any active membership right now."""
         return self.get_active_membership() is not None
 
-    def to_dict(self, include_membership: bool = True, include_user: bool = True) -> dict:
-        """Serialize member profile to dictionary."""
-        active_ms = self.get_active_membership() if include_membership else None
+        # Compute real total spend and bookings from database
+        from backend.app.payments.models import Payment, PaymentStatus
+        from backend.app.bookings.models import Booking, BookingStatus
+        from sqlalchemy import func
+
+        paid_spend = db.session.query(func.coalesce(func.sum(Payment.amount), 0.0)).filter(
+            (Payment.member_id == self.id) | (Payment.user_id == self.user_id),
+            Payment.status == PaymentStatus.PAID,
+        ).scalar()
+
+        bookings_count = db.session.query(func.count(Booking.id)).filter(
+            (Booking.member_id == self.id) | (Booking.user_id == self.user_id),
+            Booking.status != BookingStatus.CANCELLED,
+        ).scalar()
 
         res = {
             "id": self.id,
@@ -79,6 +90,8 @@ class Member(db.Model):
             "emergency_contact_phone": self.emergency_contact_phone,
             "has_active_membership": active_ms is not None,
             "active_membership": active_ms.to_dict(include_plan=True) if active_ms else None,
+            "total_spend": float(paid_spend or 0.0),
+            "total_bookings": int(bookings_count or 0),
             "created_at": self.created_at.isoformat() if self.created_at else None,
             "updated_at": self.updated_at.isoformat() if self.updated_at else None,
         }

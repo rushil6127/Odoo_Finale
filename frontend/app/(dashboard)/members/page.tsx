@@ -90,8 +90,8 @@ export default function MembersPage() {
             status: m.is_active ? "ACTIVE" : "PENDING_VERIFICATION",
             joinedDate: m.created_at ? new Date(m.created_at).toLocaleDateString() : "Jan 2024",
             expiresDate: m.active_membership?.end_date ? new Date(m.active_membership.end_date).toLocaleDateString() : "1 Year Active",
-            totalSpend: 35000 + idx * 12000,
-            totalBookings: 12 + idx * 5,
+            totalSpend: Number(m.total_spend || 0),
+            totalBookings: Number(m.total_bookings || 0),
             avatarBg: "bg-slate-900",
           };
         });

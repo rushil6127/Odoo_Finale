@@ -74,6 +74,7 @@ export default function ProShopPage() {
   const [activeTab, setActiveTab] = useState<"inventory" | "sales" | "revenue">("inventory");
   const [items, setItems] = useState<InventoryItem[]>(SEED_PRO_SHOP_ITEMS);
   const [sales] = useState<SaleRecord[]>(DEFAULT_SALES);
+  const [shopTotalRevenue, setShopTotalRevenue] = useState<number>(0);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCat, setSelectedCat] = useState<string>("ALL");
   const [loading, setLoading] = useState(false);
@@ -81,40 +82,53 @@ export default function ProShopPage() {
   const fetchInventory = async () => {
     try {
       setLoading(true);
-      const res = await apiClient.get<any>("/inventory/products");
-      const list = Array.isArray(res) ? res : res?.products || res?.data || [];
-      if (list && list.length > 0) {
-        const mapped: InventoryItem[] = list.map((p: any) => {
-          const qty = p.stock_quantity ?? p.stock ?? 10;
-          const minT = p.min_threshold ?? 5;
-          const price = Number(p.price || p.unit_price || 1500);
-          let cat: InventoryItem["category"] = "RACKETS";
-          const catName = (p.category?.name || p.category || "").toUpperCase();
-          if (catName.includes("SHUTTLE") || p.name?.toLowerCase().includes("ball")) {
-            cat = "SHUTTLES_BALLS";
-          } else if (catName.includes("APPAREL") || p.name?.toLowerCase().includes("shirt")) {
-            cat = "APPAREL";
-          } else if (catName.includes("STRING") || catName.includes("GRIP")) {
-            cat = "STRINGS_GRIPS";
-          } else if (catName.includes("COURT")) {
-            cat = "COURT_MAINTENANCE";
-          }
+      const [prodRes, revRes] = await Promise.allSettled([
+        apiClient.get<any>("/inventory/products"),
+        apiClient.get<any>("/reports/revenue?item_type=SHOP_ORDER&period=month"),
+      ]);
 
-          return {
-            id: p.id,
-            sku: p.sku || `PS-${p.id.toString().padStart(4, "0")}`,
-            name: p.name,
-            category: cat,
-            currentStock: qty,
-            minThreshold: minT,
-            unitPrice: price,
-            unit: p.unit || "Pcs",
-            location: p.location || "Central Pro Shop Store",
-            lastRestocked: p.updated_at ? new Date(p.updated_at).toLocaleDateString() : "Recent",
-            status: qty <= 2 ? "CRITICAL" : qty < minT ? "LOW_STOCK" : "ADEQUATE",
-          };
-        });
-        setItems(mapped);
+      if (prodRes.status === "fulfilled" && prodRes.value) {
+        const res = prodRes.value;
+        const list = Array.isArray(res) ? res : res?.products || res?.data?.products || res?.data || [];
+        if (list && list.length > 0) {
+          const mapped: InventoryItem[] = list.map((p: any) => {
+            const qty = p.stock_quantity ?? p.stock ?? 10;
+            const minT = p.min_threshold ?? p.low_stock_threshold ?? 5;
+            const price = Number(p.price || p.unit_price || 1500);
+            let cat: InventoryItem["category"] = "RACKETS";
+            const catName = (p.category?.name || p.category_name || p.category || "").toUpperCase();
+            if (catName.includes("SHUTTLE") || catName.includes("BALL") || p.name?.toLowerCase().includes("ball")) {
+              cat = "SHUTTLES_BALLS";
+            } else if (catName.includes("APPAREL") || catName.includes("SHIRT") || p.name?.toLowerCase().includes("polo") || p.name?.toLowerCase().includes("shirt")) {
+              cat = "APPAREL";
+            } else if (catName.includes("STRING") || catName.includes("GRIP") || catName.includes("GEAR") || p.name?.toLowerCase().includes("grip")) {
+              cat = "STRINGS_GRIPS";
+            } else if (catName.includes("COURT") || catName.includes("MAINTENANCE")) {
+              cat = "COURT_MAINTENANCE";
+            }
+
+            return {
+              id: p.id,
+              sku: p.sku || `PS-${p.id.toString().padStart(4, "0")}`,
+              name: p.name,
+              category: cat,
+              currentStock: qty,
+              minThreshold: minT,
+              unitPrice: price,
+              unit: p.unit || "Pcs",
+              location: p.location || "Central Pro Shop Store",
+              lastRestocked: p.updated_at ? new Date(p.updated_at).toLocaleDateString() : "Recent",
+              status: qty <= 2 ? "CRITICAL" : qty < minT ? "LOW_STOCK" : "ADEQUATE",
+            };
+          });
+          setItems(mapped);
+        }
+      }
+
+      if (revRes.status === "fulfilled" && revRes.value) {
+        const rData = revRes.value?.data || revRes.value;
+        const gross = rData?.financial_summary?.gross_revenue ?? rData?.gross_revenue ?? 0;
+        setShopTotalRevenue(Number(gross));
       }
     } catch {
       // Keep seeded fallback
@@ -138,7 +152,7 @@ export default function ProShopPage() {
   const totalStockUnits = items.reduce((sum, item) => sum + item.currentStock, 0);
   const totalStockValuation = items.reduce((sum, item) => sum + item.currentStock * item.unitPrice, 0);
   const lowStockCount = items.filter((i) => i.status !== "ADEQUATE").length;
-  const totalSalesRevenue = sales.reduce((sum, s) => sum + s.amount, 0) + 107400; // Total month to date
+  const totalSalesRevenue = shopTotalRevenue;
 
   return (
     <div className="max-w-7xl mx-auto space-y-6 pb-12">

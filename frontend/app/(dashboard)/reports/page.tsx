@@ -38,6 +38,7 @@ interface ReportSummary {
   bookings: number;
   sharePct: number;
   trend: string;
+  color?: string;
 }
 
 interface AuditEntry {
@@ -53,6 +54,14 @@ export default function ReportsPage() {
   const [selectedPeriod, setSelectedPeriod] = useState<string>("THIS_MONTH");
   const [exportSection, setExportSection] = useState<ExportSection>("all");
   const [deptRevenue, setDeptRevenue] = useState<ReportSummary[]>([]);
+  const [financialSummary, setFinancialSummary] = useState({
+    gross_revenue: 0,
+    net_revenue: 0,
+    tax_amount: 0,
+    transactions_count: 0,
+    growth_pct: 0,
+  });
+  const [activeMemberCount, setActiveMemberCount] = useState<number>(0);
   const [auditLogs, setAuditLogs] = useState<AuditEntry[]>([]);
   const [loading, setLoading] = useState(false);
   const [exporting, setExporting] = useState(false);
@@ -76,22 +85,71 @@ export default function ReportsPage() {
 
       if (reportRes.status === "fulfilled" && reportRes.value) {
         const overview = reportRes.value?.data || reportRes.value;
-        if (overview?.stream_breakdown) {
-          const streams = overview.stream_breakdown;
-          const memRev = streams.MEMBERSHIP?.total_amount || 0;
-          const courtRev = streams.COURT_BOOKING?.total_amount || 0;
-          const posRev = streams.POS_BAR_CAFE?.total_amount || 0;
-          const shopRev = streams.SHOP?.total_amount || 0;
-          const totalRev = memRev + courtRev + posRev + shopRev || 1;
+        const fin = overview?.financial_summary || {};
+        const growth = overview?.period_comparison?.growth_percentage ?? 0;
+        const activeMembers = overview?.operational_snapshot?.active_members ?? 0;
 
-          const mapped: ReportSummary[] = [
-            { department: "Membership Subscriptions", revenue: memRev, bookings: streams.MEMBERSHIP?.transaction_count || 0, sharePct: Math.round((memRev / totalRev) * 100), trend: "+22%" },
-            { department: "Court Booking Reservations", revenue: courtRev, bookings: streams.COURT_BOOKING?.transaction_count || 0, sharePct: Math.round((courtRev / totalRev) * 100), trend: "+15%" },
-            { department: "Sports Bar & Café POS", revenue: posRev, bookings: streams.POS_BAR_CAFE?.transaction_count || 0, sharePct: Math.round((posRev / totalRev) * 100), trend: "+25%" },
-            { department: "Pro Shop & Restringing", revenue: shopRev, bookings: streams.SHOP?.transaction_count || 0, sharePct: Math.round((shopRev / totalRev) * 100), trend: "+10%" },
-          ];
-          setDeptRevenue(mapped);
-        }
+        setFinancialSummary({
+          gross_revenue: Number(fin.gross_revenue ?? overview?.total_revenue ?? 0),
+          net_revenue: Number(fin.net_revenue ?? 0),
+          tax_amount: Number(fin.tax_amount ?? 0),
+          transactions_count: Number(fin.transactions_count ?? 0),
+          growth_pct: Number(growth),
+        });
+        setActiveMemberCount(Number(activeMembers));
+
+        const streams = overview?.stream_breakdown || {};
+        const grandTotal = Number(fin.gross_revenue ?? overview?.total_revenue ?? 0);
+
+        const courtGross = Number(streams.courts?.gross_revenue ?? 0);
+        const memGross = Number(streams.memberships?.gross_revenue ?? 0);
+        const barGross = Number(streams.bar?.gross_revenue ?? 0);
+        const shopGross = Number(streams.shop?.gross_revenue ?? 0);
+        const invGross = Number(streams.invoices?.gross_revenue ?? 0);
+
+        const mapped: ReportSummary[] = [
+          {
+            department: "Court Bookings & Arenas",
+            revenue: courtGross,
+            bookings: streams.courts?.transactions_count || 0,
+            sharePct: grandTotal > 0 ? Math.round((courtGross / grandTotal) * 100) : 0,
+            trend: "+15%",
+            color: "bg-emerald-500",
+          },
+          {
+            department: "Membership Subscriptions",
+            revenue: memGross,
+            bookings: streams.memberships?.transactions_count || 0,
+            sharePct: grandTotal > 0 ? Math.round((memGross / grandTotal) * 100) : 0,
+            trend: "+22%",
+            color: "bg-sky-500",
+          },
+          {
+            department: "Sports Bar & Café POS",
+            revenue: barGross,
+            bookings: streams.bar?.transactions_count || 0,
+            sharePct: grandTotal > 0 ? Math.round((barGross / grandTotal) * 100) : 0,
+            trend: "+25%",
+            color: "bg-amber-500",
+          },
+          {
+            department: "Pro Shop & Merchandise",
+            revenue: shopGross,
+            bookings: streams.shop?.transactions_count || 0,
+            sharePct: grandTotal > 0 ? Math.round((shopGross / grandTotal) * 100) : 0,
+            trend: "+10%",
+            color: "bg-purple-500",
+          },
+          ...(invGross > 0 ? [{
+            department: "Corporate Invoices & Events",
+            revenue: invGross,
+            bookings: streams.invoices?.transactions_count || 0,
+            sharePct: grandTotal > 0 ? Math.round((invGross / grandTotal) * 100) : 0,
+            trend: "+12%",
+            color: "bg-pink-500",
+          }] : []),
+        ];
+        setDeptRevenue(mapped);
       } else {
         setDeptRevenue([]);
       }
@@ -134,8 +192,9 @@ export default function ReportsPage() {
     }
   };
 
-  const totalGrossRevenue = deptRevenue.reduce((acc, r) => acc + r.revenue, 0);
-  const totalBookings = deptRevenue.reduce((acc, r) => acc + r.bookings, 0);
+  const totalGrossRevenue = financialSummary.gross_revenue;
+  const totalBookings = financialSummary.transactions_count || deptRevenue.reduce((acc, r) => acc + r.bookings, 0);
+  const topDept = deptRevenue.length > 0 ? [...deptRevenue].sort((a, b) => b.revenue - a.revenue)[0] : null;
 
   return (
     <div className="max-w-7xl mx-auto space-y-6 pb-12">
@@ -199,27 +258,31 @@ export default function ReportsPage() {
       {/* Financial KPIs */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
-          <p className="text-xs font-bold text-slate-500 uppercase">Gross Club Revenue (MTD)</p>
-          <p className="text-2xl font-black text-slate-900 mt-1">₹{totalGrossRevenue.toLocaleString()}</p>
-          <p className="text-[11px] text-emerald-600 font-bold mt-1">+21.4% vs previous month</p>
+          <p className="text-xs font-bold text-slate-500 uppercase">Gross Club Revenue ({selectedPeriod.replace('_', ' ')})</p>
+          <p className="text-2xl font-black text-slate-900 mt-1">₹{totalGrossRevenue.toLocaleString("en-IN")}</p>
+          <p className="text-[11px] text-emerald-600 font-bold mt-1">
+            {financialSummary.growth_pct >= 0 ? `+${financialSummary.growth_pct}%` : `${financialSummary.growth_pct}%`} vs prior period
+          </p>
         </div>
 
         <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
-          <p className="text-xs font-bold text-slate-500 uppercase">Total Reservations Filled</p>
-          <p className="text-2xl font-black text-sky-600 mt-1">{totalBookings} Slots</p>
-          <p className="text-[11px] text-slate-500 mt-1">Across 18 courts & arenas</p>
+          <p className="text-xs font-bold text-slate-500 uppercase">Total Transactions Settled</p>
+          <p className="text-2xl font-black text-sky-600 mt-1">{totalBookings} Transactions</p>
+          <p className="text-[11px] text-slate-500 mt-1">Across all revenue streams</p>
         </div>
 
         <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
-          <p className="text-xs font-bold text-slate-500 uppercase">GST & Hospitality Tax Accrued</p>
-          <p className="text-2xl font-black text-slate-900 mt-1">₹{Math.round(totalGrossRevenue * 0.05).toLocaleString()}</p>
-          <p className="text-[11px] text-slate-500 mt-1">5% GST rate compliant</p>
+          <p className="text-xs font-bold text-slate-500 uppercase">GST &amp; Statutory Tax Accrued</p>
+          <p className="text-2xl font-black text-slate-900 mt-1">₹{financialSummary.tax_amount.toLocaleString("en-IN")}</p>
+          <p className="text-[11px] text-slate-500 mt-1">Statutory tax compliant (5% &amp; 18%)</p>
         </div>
 
         <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
           <p className="text-xs font-bold text-slate-500 uppercase">Avg Spend Per Active Member</p>
-          <p className="text-2xl font-black text-purple-600 mt-1">₹14,250</p>
-          <p className="text-[11px] text-emerald-600 font-bold mt-1">+9.8% member retention</p>
+          <p className="text-2xl font-black text-purple-600 mt-1">
+            ₹{activeMemberCount > 0 ? Math.round(totalGrossRevenue / activeMemberCount).toLocaleString("en-IN") : totalGrossRevenue.toLocaleString("en-IN")}
+          </p>
+          <p className="text-[11px] text-emerald-600 font-bold mt-1">{activeMemberCount} Active Members</p>
         </div>
       </div>
 
@@ -229,13 +292,13 @@ export default function ReportsPage() {
           <div>
             <h3 className="text-base font-black text-slate-900 font-[family-name:var(--font-outfit)] flex items-center gap-2">
               <PieChart className="w-4 h-4 text-emerald-600" />
-              <span>Department Revenue & Stream Performance</span>
+              <span>Department Revenue &amp; Stream Performance</span>
             </h3>
             <p className="text-xs text-slate-500 mt-0.5">Real-time revenue reconciliation and volume share across all club wings</p>
           </div>
           <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-50 text-emerald-800 border border-emerald-200 self-start sm:self-auto">
             <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-            6 Revenue Streams Synced
+            {deptRevenue.length} Revenue Streams Synced
           </span>
         </div>
 
@@ -273,101 +336,35 @@ export default function ReportsPage() {
                   fill="none"
                 />
 
-                {/* Segment 1: Badminton (31.89% -> 100.19 arc) */}
-                <circle
-                  cx="64"
-                  cy="64"
-                  r="50"
-                  stroke="#10b981"
-                  strokeWidth="12"
-                  strokeDasharray={chartAnimated ? "100.19 314.16" : "0 314.16"}
-                  strokeDashoffset="0"
-                  strokeLinecap="butt"
-                  fill="none"
-                  style={{
-                    transition: "stroke-dasharray 1.1s cubic-bezier(0.16, 1, 0.3, 1) 0.05s",
-                  }}
-                />
-
-                {/* Segment 2: Lawn Tennis (24.50% -> 76.97 arc) */}
-                <circle
-                  cx="64"
-                  cy="64"
-                  r="50"
-                  stroke="#0ea5e9"
-                  strokeWidth="12"
-                  strokeDasharray={chartAnimated ? "76.97 314.16" : "0 314.16"}
-                  strokeDashoffset="-100.19"
-                  strokeLinecap="butt"
-                  fill="none"
-                  style={{
-                    transition: "stroke-dasharray 1.1s cubic-bezier(0.16, 1, 0.3, 1) 0.2s",
-                  }}
-                />
-
-                {/* Segment 3: Sports Bar & Cafe (17.44% -> 54.79 arc) */}
-                <circle
-                  cx="64"
-                  cy="64"
-                  r="50"
-                  stroke="#f59e0b"
-                  strokeWidth="12"
-                  strokeDasharray={chartAnimated ? "54.79 314.16" : "0 314.16"}
-                  strokeDashoffset="-177.16"
-                  strokeLinecap="butt"
-                  fill="none"
-                  style={{
-                    transition: "stroke-dasharray 1.1s cubic-bezier(0.16, 1, 0.3, 1) 0.35s",
-                  }}
-                />
-
-                {/* Segment 4: Olympic Aquatics (12.04% -> 37.83 arc) */}
-                <circle
-                  cx="64"
-                  cy="64"
-                  r="50"
-                  stroke="#06b6d4"
-                  strokeWidth="12"
-                  strokeDasharray={chartAnimated ? "37.83 314.16" : "0 314.16"}
-                  strokeDashoffset="-231.95"
-                  strokeLinecap="butt"
-                  fill="none"
-                  style={{
-                    transition: "stroke-dasharray 1.1s cubic-bezier(0.16, 1, 0.3, 1) 0.5s",
-                  }}
-                />
-
-                {/* Segment 5: Pro Shop (8.14% -> 25.57 arc) */}
-                <circle
-                  cx="64"
-                  cy="64"
-                  r="50"
-                  stroke="#8b5cf6"
-                  strokeWidth="12"
-                  strokeDasharray={chartAnimated ? "25.57 314.16" : "0 314.16"}
-                  strokeDashoffset="-269.78"
-                  strokeLinecap="butt"
-                  fill="none"
-                  style={{
-                    transition: "stroke-dasharray 1.1s cubic-bezier(0.16, 1, 0.3, 1) 0.65s",
-                  }}
-                />
-
-                {/* Segment 6: Box Cricket (5.98% -> 18.79 arc) */}
-                <circle
-                  cx="64"
-                  cy="64"
-                  r="50"
-                  stroke="#ec4899"
-                  strokeWidth="12"
-                  strokeDasharray={chartAnimated ? "18.79 314.16" : "0 314.16"}
-                  strokeDashoffset="-295.35"
-                  strokeLinecap="butt"
-                  fill="none"
-                  style={{
-                    transition: "stroke-dasharray 1.1s cubic-bezier(0.16, 1, 0.3, 1) 0.8s",
-                  }}
-                />
+                {/* Dynamic Segments */}
+                {(() => {
+                  const CIRCUMFERENCE = 314.16;
+                  let accum = 0;
+                  return deptRevenue.map((dept, idx) => {
+                    const segLength = (dept.sharePct / 100) * CIRCUMFERENCE;
+                    const offset = -accum;
+                    accum += segLength;
+                    const colors = ["#10b981", "#0ea5e9", "#f59e0b", "#8b5cf6", "#ec4899", "#06b6d4"];
+                    const strokeColor = colors[idx % colors.length];
+                    return (
+                      <circle
+                        key={dept.department}
+                        cx="64"
+                        cy="64"
+                        r="50"
+                        stroke={strokeColor}
+                        strokeWidth="12"
+                        strokeDasharray={chartAnimated ? `${segLength.toFixed(2)} ${CIRCUMFERENCE}` : `0 ${CIRCUMFERENCE}`}
+                        strokeDashoffset={offset.toFixed(2)}
+                        strokeLinecap="butt"
+                        fill="none"
+                        style={{
+                          transition: `stroke-dasharray 1.1s cubic-bezier(0.16, 1, 0.3, 1) ${(idx * 0.15).toFixed(2)}s`,
+                        }}
+                      />
+                    );
+                  });
+                })()}
 
                 {/* Inner Precision Hairline Ring */}
                 <circle
@@ -389,14 +386,18 @@ export default function ReportsPage() {
                   transition: "opacity 0.6s ease-out 0.4s, transform 0.6s ease-out 0.4s",
                 }}
               >
-                <span className="text-2xl font-black text-slate-900 tracking-tight font-mono leading-none">
-                  ₹1.20M
+                <span className="text-xl font-black text-slate-900 tracking-tight font-mono leading-none">
+                  {totalGrossRevenue >= 1000000
+                    ? `₹${(totalGrossRevenue / 1000000).toFixed(2)}M`
+                    : totalGrossRevenue >= 1000
+                    ? `₹${(totalGrossRevenue / 1000).toFixed(1)}K`
+                    : `₹${totalGrossRevenue.toLocaleString("en-IN")}`}
                 </span>
                 <span className="text-[9px] font-black uppercase tracking-widest text-slate-400 font-mono mt-1">
-                  GROSS MTD
+                  GROSS {selectedPeriod.replace('_', ' ')}
                 </span>
                 <span className="text-[8px] font-bold uppercase tracking-wider text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded-sm border border-emerald-200 mt-1 font-mono">
-                  +21.4% GROWTH
+                  {financialSummary.growth_pct >= 0 ? `+${financialSummary.growth_pct}%` : `${financialSummary.growth_pct}%`} GROWTH
                 </span>
               </div>
             </div>
@@ -404,39 +405,32 @@ export default function ReportsPage() {
             {/* Subtitle / Top Contributing Department */}
             <div className="mt-4 pt-3 border-t border-slate-200/80 w-full text-center">
               <p className="text-[11px] font-bold text-slate-500">
-                Top Contributor: <strong className="text-slate-800">Badminton (32%)</strong>
+                Top Contributor: <strong className="text-slate-800">{topDept ? `${topDept.department} (${topDept.sharePct}%)` : "All Streams Active"}</strong>
               </p>
             </div>
           </div>
 
           {/* Right: Department Performance List (7 cols) */}
           <div className="lg:col-span-7 space-y-3.5">
-            {[
-              { department: "Badminton Pavilion (6 Courts)", revenue: 384000, bookings: 420, sharePct: 32, trend: "+18%", color: "bg-emerald-500" },
-              { department: "Lawn Tennis Arenas (Grass & Clay)", revenue: 295000, bookings: 195, sharePct: 24, trend: "+12%", color: "bg-sky-500" },
-              { department: "Sports Bar & Café POS", revenue: 210000, bookings: 540, sharePct: 18, trend: "+25%", color: "bg-amber-500" },
-              { department: "Olympic Aquatic Pavilion", revenue: 145000, bookings: 280, sharePct: 12, trend: "+8%", color: "bg-cyan-500" },
-              { department: "Pro Shop & Restringing Services", revenue: 98000, bookings: 85, sharePct: 8, trend: "+15%", color: "bg-purple-500" },
-              { department: "Box Cricket Astroturf", revenue: 72000, bookings: 64, sharePct: 6, trend: "+30%", color: "bg-pink-500" },
-            ].map((dept) => (
+            {deptRevenue.map((dept) => (
               <div key={dept.department} className="p-3 rounded-xl bg-slate-50/70 border border-slate-200/80 space-y-2 hover:bg-slate-50 transition-colors">
                 <div className="flex items-center justify-between text-xs">
                   <div className="flex items-center gap-2">
-                    <span className={`w-2.5 h-2.5 rounded-sm ${dept.color} shrink-0`} />
+                    <span className={`w-2.5 h-2.5 rounded-sm ${dept.color || "bg-emerald-500"} shrink-0`} />
                     <span className="font-bold text-slate-800 text-xs">{dept.department}</span>
                   </div>
                   <div className="flex items-center gap-3 font-mono text-xs">
-                    <span className="text-slate-400 hidden sm:inline">{dept.bookings} sessions</span>
-                    <span className="font-black text-slate-900">₹{dept.revenue.toLocaleString()}</span>
+                    <span className="text-slate-400 hidden sm:inline">{dept.bookings} transactions</span>
+                    <span className="font-black text-slate-900">₹{dept.revenue.toLocaleString("en-IN")}</span>
                     <span className="text-emerald-700 bg-emerald-50 border border-emerald-200 px-1.5 py-0.5 rounded-sm text-[10px] font-bold">
-                      {dept.trend}
+                      {dept.sharePct}%
                     </span>
                   </div>
                 </div>
 
                 <div className="w-full h-2 rounded-full bg-slate-200/70 overflow-hidden">
                   <div
-                    className={`h-full rounded-full ${dept.color} transition-all duration-500`}
+                    className={`h-full rounded-full ${dept.color || "bg-emerald-500"} transition-all duration-500`}
                     style={{ width: `${dept.sharePct}%` }}
                   />
                 </div>

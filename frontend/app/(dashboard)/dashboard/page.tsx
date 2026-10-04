@@ -76,12 +76,12 @@ const LIVE_COURTS: CourtStat[] = [
 
 export default function DashboardPage() {
   const [currentUser, setCurrentUser] = useState<AuthUser | null>(null);
-  const [userCount, setUserCount] = useState<number>(18);
-  const [activeStaffCount, setActiveStaffCount] = useState<number>(6);
-  const [todayRevenue, setTodayRevenue] = useState<number>(84500);
-  const [activeBookingsToday, setActiveBookingsToday] = useState<number>(24);
-  const [courtOccupancyPct, setCourtOccupancyPct] = useState<number>(78);
-  const [pendingApprovals, setPendingApprovals] = useState<number>(3);
+  const [userCount, setUserCount] = useState<number>(0);
+  const [activeStaffCount, setActiveStaffCount] = useState<number>(0);
+  const [todayRevenue, setTodayRevenue] = useState<number>(0);
+  const [activeBookingsToday, setActiveBookingsToday] = useState<number>(0);
+  const [courtOccupancyPct, setCourtOccupancyPct] = useState<number>(0);
+  const [pendingApprovals, setPendingApprovals] = useState<number>(0);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -102,20 +102,28 @@ export default function DashboardPage() {
           if (list && list.length > 0) {
             setUserCount(list.length);
             const staff = list.filter((u: any) => u.role !== "MEMBER");
-            setActiveStaffCount(staff.length || 6);
+            setActiveStaffCount(staff.length);
           }
         }
 
         if (reportRes.status === "fulfilled" && reportRes.value) {
-          const rep = reportRes.value?.executive_kpis || reportRes.value?.data?.executive_kpis || reportRes.value;
-          if (rep) {
-            if (rep.total_revenue) setTodayRevenue(Number(rep.total_revenue));
-            if (rep.active_bookings_today) setActiveBookingsToday(Number(rep.active_bookings_today));
-            if (rep.court_occupancy_pct) setCourtOccupancyPct(Math.round(Number(rep.court_occupancy_pct)));
+          const rep = reportRes.value?.data || reportRes.value;
+          const grossRev = rep?.financial_summary?.gross_revenue ?? rep?.executive_kpis?.total_revenue ?? rep?.total_revenue ?? 0;
+          setTodayRevenue(Number(grossRev));
+
+          const bookingsToday = rep?.operational_snapshot?.bookings_today ?? rep?.executive_kpis?.active_bookings_today;
+          if (bookingsToday !== undefined) {
+            setActiveBookingsToday(Number(bookingsToday));
+            const totalCourts = 18;
+            setCourtOccupancyPct(Math.min(100, Math.round((Number(bookingsToday) / totalCourts) * 100)));
+          }
+
+          if (rep?.operational_snapshot?.pending_follow_ups !== undefined) {
+            setPendingApprovals(Number(rep.operational_snapshot.pending_follow_ups));
           }
         }
       } catch (err) {
-        console.log("Using seeded fallback dashboard KPIs:", err);
+        console.log("Error loading live dashboard KPIs:", err);
       } finally {
         setLoading(false);
       }

@@ -34,6 +34,13 @@ from backend.app.reports.exports import generate_excel_workbook
 reports_bp = Blueprint("reports", __name__, url_prefix="/api/v1/reports")
 
 
+ADMIN_REPORT_ROLES = (
+    RoleEnum.OWNER,
+    RoleEnum.ADMIN,
+)
+
+
+
 def _authenticate_export_user(allowed_roles=(RoleEnum.OWNER, RoleEnum.ADMIN, RoleEnum.FRONT_DESK)):
     """Authenticate caller via Bearer header or query param 'token', enforcing allowed roles."""
     token = request.args.get("token")
@@ -103,10 +110,10 @@ def _parse_date_params() -> Tuple[Optional[date], Optional[date]]:
 
 @reports_bp.route("/overview", methods=["GET"])
 @reports_bp.route("/dashboard", methods=["GET"])
-@roles_required(RoleEnum.OWNER, RoleEnum.ADMIN)
+@roles_required(*ADMIN_REPORT_ROLES)
 def get_overview():
     """
-    Owner dashboard main overview.
+    Owner and staff dashboard main overview.
     Supports today, week, month, or custom date ranges.
     Returns executive KPIs, stream breakdown, payment method shares,
     period comparison with growth %, daily time series, and operational snapshot.
@@ -125,7 +132,7 @@ def get_overview():
 
 
 @reports_bp.route("/revenue", methods=["GET"])
-@roles_required(RoleEnum.OWNER, RoleEnum.ADMIN)
+@roles_required(*ADMIN_REPORT_ROLES)
 def get_revenue():
     """
     Comprehensive financial revenue breakdown.
@@ -197,7 +204,7 @@ def get_revenue():
 
 
 @reports_bp.route("/courts", methods=["GET"])
-@roles_required(RoleEnum.OWNER, RoleEnum.ADMIN)
+@roles_required(*ADMIN_REPORT_ROLES)
 def get_courts_report():
     """Court revenue, booking volume, sport distribution, and utilization report."""
     period = request.args.get("period", "month")
@@ -214,7 +221,7 @@ def get_courts_report():
 
 
 @reports_bp.route("/shop", methods=["GET"])
-@roles_required(RoleEnum.OWNER, RoleEnum.ADMIN)
+@roles_required(*ADMIN_REPORT_ROLES)
 def get_shop_report():
     """Pro shop merchandise sales, order channels (online/counter), and top products."""
     period = request.args.get("period", "month")
@@ -231,7 +238,7 @@ def get_shop_report():
 
 
 @reports_bp.route("/bar", methods=["GET"])
-@roles_required(RoleEnum.OWNER, RoleEnum.ADMIN)
+@roles_required(*ADMIN_REPORT_ROLES)
 def get_bar_report():
     """Bar and cafeteria POS sales, tab statistics, discounts, and menu popularity."""
     period = request.args.get("period", "month")
@@ -248,7 +255,7 @@ def get_bar_report():
 
 
 @reports_bp.route("/memberships", methods=["GET"])
-@roles_required(RoleEnum.OWNER, RoleEnum.ADMIN)
+@roles_required(*ADMIN_REPORT_ROLES)
 def get_memberships_report():
     """Membership subscription revenue, plan distribution, and renewals/expiries."""
     period = request.args.get("period", "month")
@@ -265,7 +272,7 @@ def get_memberships_report():
 
 
 @reports_bp.route("/operations", methods=["GET"])
-@roles_required(RoleEnum.OWNER, RoleEnum.ADMIN)
+@roles_required(*ADMIN_REPORT_ROLES)
 def get_operations():
     """
     Real-time operational dashboard summary:
