@@ -143,6 +143,11 @@ class Product(db.Model):
             "category_id": self.category_id,
             "category_name": self.category.name if self.category else None,
             "category_slug": self.category.slug if self.category else None,
+            "category": {
+                "id": self.category.id,
+                "name": self.category.name,
+                "slug": self.category.slug,
+            } if self.category else None,
             "price": float(self.price) if self.price is not None else 0.0,
             "stock_quantity": self.stock_quantity,
             "low_stock_threshold": self.low_stock_threshold,
