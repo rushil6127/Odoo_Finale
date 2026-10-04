@@ -24,7 +24,7 @@ import {
   ArrowRight,
   Check
 } from "lucide-react";
-import { isOwner, type AuthUserProfile, getAvatarImageUrl } from "@/lib/auth";
+import { isOwner, getUserRoleLabel, getAvatarImageUrl, type AuthUserProfile } from "@/lib/auth";
 
 interface UserProfileModalProps {
   isOpen: boolean;
@@ -134,9 +134,9 @@ export default function UserProfileModal({
                 </div>
 
                 <div className="flex items-center gap-4 text-xs text-slate-300 mt-2 flex-wrap">
-                  <span className="flex items-center gap-1 font-mono text-sky-300">
+                  <span className="flex items-center gap-1.5 font-bold text-sky-300">
                     <ShieldCheck className="w-3.5 h-3.5" />
-                    {user.memberCode}
+                    {getUserRoleLabel(user)}
                   </span>
                   <span className="flex items-center gap-1 text-slate-400">
                     <Mail className="w-3.5 h-3.5 text-slate-400" />

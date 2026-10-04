@@ -55,6 +55,7 @@ import {
   setStoredUser,
   isStaffOrAdmin,
   isOwner,
+  getUserRoleLabel,
   DEFAULT_COACH_EMPLOYEE_DATA,
   type AuthUserProfile,
   uploadUserAvatar,
@@ -510,7 +511,7 @@ export default function ProfileViewContainer({ forcedMode }: ProfileViewContaine
 
   const activeUser: AuthUserProfile = {
     id: user?.id || 1,
-    memberCode: memberProfileData?.membership_number || `CC-MEM-${user?.id || 101}`,
+    memberCode: getUserRoleLabel(user || memberProfileData),
     name: user?.name || user?.full_name || (user?.first_name ? `${user.first_name} ${user.last_name || ""}`.trim() : "Club Member"),
     email: user?.email || "member@championsclub.in",
     phone: memberProfileData?.phone || user?.phone || "+91 98765 43210",
@@ -1478,9 +1479,9 @@ export default function ProfileViewContainer({ forcedMode }: ProfileViewContaine
                   </div>
 
                   <div className="flex items-center gap-3 sm:gap-4 text-xs text-slate-300 mt-2 flex-wrap font-medium">
-                    <span className="flex items-center gap-1 font-mono text-sky-300 font-bold bg-sky-950/60 px-2 py-0.5 rounded border border-sky-800">
+                    <span className="flex items-center gap-1.5 text-sky-300 font-bold bg-sky-950/60 px-2.5 py-0.5 rounded-lg border border-sky-800 shadow-2xs">
                       <ShieldCheck className="w-3.5 h-3.5 text-sky-400" />
-                      {activeUser.memberCode}
+                      {getUserRoleLabel(user || activeUser)}
                     </span>
                     <span className="flex items-center gap-1 text-slate-300">
                       <Mail className="w-3.5 h-3.5 text-slate-400" />

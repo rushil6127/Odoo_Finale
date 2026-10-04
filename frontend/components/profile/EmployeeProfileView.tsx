@@ -43,12 +43,13 @@ import {
   Menu,
   X
 } from "lucide-react";
-import {
+import { 
+  getUserRoleLabel,
   getAvatarImageUrl,
   type AuthUserProfile, 
   type EmployeeCourtSlot, 
   type EmployeeTrainee, 
-  type EmployeeMaintenanceTask
+  type EmployeeMaintenanceTask 
 } from "@/lib/auth";
 
 type EmployeeTabType = "emp_overview" | "emp_calendar" | "emp_trainees" | "emp_maintenance" | "emp_inquiries" | "emp_settings";
@@ -377,9 +378,9 @@ export default function EmployeeProfileView({
                   </div>
 
                   <div className="flex items-center gap-3 sm:gap-4 text-xs text-slate-300 mt-2 flex-wrap font-medium">
-                    <span className="flex items-center gap-1 font-mono text-sky-200 font-bold bg-white/10 px-2.5 py-0.5 rounded border border-white/15">
+                    <span className="flex items-center gap-1.5 font-bold text-sky-200 bg-white/10 px-2.5 py-0.5 rounded-lg border border-white/15 shadow-2xs">
                       <ShieldCheck className="w-3.5 h-3.5 text-sky-400" />
-                      {empData.employeeId}
+                      {getUserRoleLabel(user)}
                     </span>
                     <span className="flex items-center gap-1.5 text-slate-300 font-semibold bg-white/10 px-2 py-0.5 rounded border border-white/10">
                       <Activity className="w-3.5 h-3.5 text-sky-400" />

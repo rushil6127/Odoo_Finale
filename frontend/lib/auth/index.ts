@@ -651,7 +651,9 @@ export function enrichUserProfile(parsed: any): (AuthUserProfile & AuthUser) | n
   if (!parsed.name) {
     parsed.name = parsed.full_name || (parsed.email ? parsed.email.split("@")[0] : "Member");
   }
-  if (!parsed.memberCode) parsed.memberCode = `CC-${(parsed.role || "MEM").toUpperCase()}-${parsed.id || 101}`;
+  if (!parsed.memberCode || parsed.memberCode.startsWith("CC-")) {
+    parsed.memberCode = getUserRoleLabel(parsed);
+  }
   if (!parsed.phone) parsed.phone = "+91 98765 43210";
   // Dynamic membership plan binding
   if (parsed.membership_plan) {
@@ -954,5 +956,27 @@ export function getRoleProfilePath(user: AuthUserProfile | AuthUser | null | und
     return "/profile/employee";
   }
   return "/profile/member";
+}
+
+/**
+ * Returns clean user role label:
+ * - Owner -> "Owner"
+ * - Coach / Trainer / Instructor -> "Coach"
+ * - Staff / Front Desk / Employee / Admin / Manager -> "Employee"
+ * - Member / Default -> "Member"
+ */
+export function getUserRoleLabel(user?: { role?: string; email?: string } | null): string {
+  if (!user) return "Member";
+  const role = (user.role || "").toString().toUpperCase();
+  if (isOwner(user as any) || role === "OWNER") {
+    return "Owner";
+  }
+  if (["COACH", "TRAINER", "INSTRUCTOR"].includes(role)) {
+    return "Coach";
+  }
+  if (["ADMIN", "MANAGER", "FRONT_DESK", "STAFF", "SHOP_STAFF", "BAR_STAFF", "EMPLOYEE", "MAINTENANCE"].includes(role)) {
+    return "Employee";
+  }
+  return "Member";
 }
 
