@@ -206,16 +206,15 @@ function MembershipContent() {
     if (error && error.toLowerCase().includes("date of birth")) {
       setDobCountdown(3);
       const interval = setInterval(() => {
-        setDobCountdown((prev) => {
-          if (prev === null || prev <= 1) {
-            clearInterval(interval);
-            router.push("/profile?tab=settings&focus=dob");
-            return 0;
-          }
-          return prev - 1;
-        });
+        setDobCountdown((prev) => (prev !== null && prev > 1 ? prev - 1 : 0));
       }, 1000);
-      return () => clearInterval(interval);
+      const timeout = setTimeout(() => {
+        router.push("/profile?tab=settings&focus=dob");
+      }, 3000);
+      return () => {
+        clearInterval(interval);
+        clearTimeout(timeout);
+      };
     } else {
       setDobCountdown(null);
     }
