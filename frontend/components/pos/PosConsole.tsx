@@ -25,11 +25,7 @@ export default function PosConsole() {
   const [activeShift, setActiveShift] = useState<any>(null);
   const [dailySales, setDailySales] = useState<any>(null);
 
-  useEffect(() => {
-    fetchInitialData();
-  }, []);
-
-  const fetchInitialData = async () => {
+  async function fetchInitialData() {
     try {
       setIsLoading(true);
       const [tablesData, catData, menuData, shiftData, salesData] = await Promise.all([
@@ -49,7 +45,11 @@ export default function PosConsole() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }
+
+  useEffect(() => {
+    fetchInitialData();
+  }, []);
 
   const refreshTables = async () => {
     try {
