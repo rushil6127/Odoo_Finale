@@ -69,9 +69,10 @@ def get_pricing_rules_route():
         },
         "friday_social_play": {
             "enabled": config.get("FRIDAY_SOCIAL_PLAY_ENABLED", True),
-            "base_rate": config.get("FRIDAY_SOCIAL_PLAY_BASE_RATE", 200.0),
-            "start_time": config.get("FRIDAY_SOCIAL_PLAY_START_TIME", "18:00"),
-            "end_time": config.get("FRIDAY_SOCIAL_PLAY_END_TIME", "21:00"),
+            "base_rate": config.get("FRIDAY_SOCIAL_PLAY_BASE_RATE", 300.0),
+            "start_time": config.get("FRIDAY_SOCIAL_PLAY_START_TIME", "19:00"),
+            "end_time": config.get("FRIDAY_SOCIAL_PLAY_END_TIME", "22:00"),
+            "max_users_per_court": config.get("FRIDAY_SOCIAL_PLAY_MAX_USERS_PER_COURT", 8),
         },
     })
 
@@ -110,7 +111,7 @@ def calculate_price_route():
     if tier_override and tier_override in ("GOLD", "SILVER", "JUNIOR", "WALK_IN"):
         config = current_app.config if current_app else {}
         if is_social:
-            base_rate = float(config.get("FRIDAY_SOCIAL_PLAY_BASE_RATE", 200.0))
+            base_rate = float(config.get("FRIDAY_SOCIAL_PLAY_BASE_RATE", 300.0))
             rate_source = "FRIDAY_SOCIAL_PLAY_BASE_RATE"
         else:
             sport_rates = config.get("DEFAULT_SPORT_RATES", {})

@@ -3006,3 +3006,22 @@ The system enforces 7 distinct hierarchical roles:
 ```
 
 
+
+---
+
+## Reports Endpoints (`/api/v1/reports`)
+
+### Get Club Glance Route
+- **Endpoint:** `GET /api/v1/reports/club-glance`
+- **Authentication:** Required
+- **Role Requirement:** (TODO: Fill role)
+- **Query Parameters:** (TODO: Fill params)
+- **Success Response:**
+```json
+{
+  "success": true,
+  "data": {}
+}
+```
+- **Business Rules:** (TODO: Add rules)
+

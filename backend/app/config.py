@@ -13,6 +13,52 @@ default_sqlite_path = os.path.join(
 ).replace("\\", "/")
 
 
+class RequiredProdEnv:
+    """Descriptor to enforce required non-empty environment variables in production."""
+
+    def __init__(self, env_var: str, error_msg: str, transform=None):
+        self.env_var = env_var
+        self.error_msg = error_msg
+        self.transform = transform
+
+    def __get__(self, instance, owner=None):
+        val = os.getenv(self.env_var)
+        if not val or not val.strip():
+            raise ValueError(self.error_msg)
+        val = val.strip()
+        if self.transform:
+            return self.transform(val)
+        return val
+
+
+class RequiredProdAnyEnv:
+    """Descriptor to enforce at least one of multiple environment variables in production."""
+
+    def __init__(self, env_vars: list, error_msg: str, transform=None):
+        self.env_vars = env_vars
+        self.error_msg = error_msg
+        self.transform = transform
+
+    def __get__(self, instance, owner=None):
+        for var in self.env_vars:
+            val = os.getenv(var)
+            if val and val.strip():
+                val = val.strip()
+                if self.transform:
+                    return self.transform(val)
+                return val
+        raise ValueError(self.error_msg)
+
+
+def _parse_prod_cors(val: str):
+    origins = [origin.strip() for origin in val.split(",") if origin.strip()]
+    if not origins:
+        raise ValueError(
+            "CORS_ORIGINS environment variable must contain at least one valid origin URL in production."
+        )
+    return origins
+
+
 class BaseConfig:
     """Base application configuration."""
 
@@ -36,12 +82,12 @@ class BaseConfig:
 
     # Court Base Hourly Rates by Sport (INR)
     DEFAULT_SPORT_RATES = {
-    "LAWN_TENNIS": float(os.getenv("RATE_LAWN_TENNIS", 800.0)),
-    "SWIMMING_POOL": float(os.getenv("RATE_SWIMMING_POOL", 500.0)),
-    "BADMINTON": float(os.getenv("RATE_BADMINTON", 400.0)),
-    "BOX_CRICKET": float(os.getenv("RATE_BOX_CRICKET", 1500.0)),
-    "TABLE_TENNIS": float(os.getenv("RATE_TABLE_TENNIS", 300.0)),
-    "VOLLEYBALL": float(os.getenv("RATE_VOLLEYBALL", 600.0)),
+        "LAWN_TENNIS": float(os.getenv("RATE_LAWN_TENNIS", 800.0)),
+        "SWIMMING_POOL": float(os.getenv("RATE_SWIMMING_POOL", 500.0)),
+        "BADMINTON": float(os.getenv("RATE_BADMINTON", 400.0)),
+        "BOX_CRICKET": float(os.getenv("RATE_BOX_CRICKET", 1500.0)),
+        "TABLE_TENNIS": float(os.getenv("RATE_TABLE_TENNIS", 300.0)),
+        "VOLLEYBALL": float(os.getenv("RATE_VOLLEYBALL", 600.0)),
     }
 
     # Member Discounts by Plan Code (percentage)
@@ -53,9 +99,10 @@ class BaseConfig:
 
     # Friday Social Play Settings
     FRIDAY_SOCIAL_PLAY_ENABLED = os.getenv("FRIDAY_SOCIAL_PLAY_ENABLED", "True").lower() in ("true", "1", "yes")
-    FRIDAY_SOCIAL_PLAY_BASE_RATE = float(os.getenv("FRIDAY_SOCIAL_PLAY_BASE_RATE", 200.0))
-    FRIDAY_SOCIAL_PLAY_START_TIME = os.getenv("FRIDAY_SOCIAL_PLAY_START_TIME", "18:00")
-    FRIDAY_SOCIAL_PLAY_END_TIME = os.getenv("FRIDAY_SOCIAL_PLAY_END_TIME", "21:00")
+    FRIDAY_SOCIAL_PLAY_BASE_RATE = float(os.getenv("FRIDAY_SOCIAL_PLAY_BASE_RATE", 300.0))
+    FRIDAY_SOCIAL_PLAY_START_TIME = os.getenv("FRIDAY_SOCIAL_PLAY_START_TIME", "19:00")
+    FRIDAY_SOCIAL_PLAY_END_TIME = os.getenv("FRIDAY_SOCIAL_PLAY_END_TIME", "22:00")
+    FRIDAY_SOCIAL_PLAY_MAX_USERS_PER_COURT = int(os.getenv("FRIDAY_SOCIAL_PLAY_MAX_USERS_PER_COURT", 8))
     SOCIAL_PLAY_COUNTS_TOWARDS_DAILY_LIMIT = os.getenv("SOCIAL_PLAY_COUNTS_TOWARDS_DAILY_LIMIT", "False").lower() in ("true", "1", "yes")
 
     # Razorpay Payment Gateway Configuration
@@ -126,11 +173,44 @@ class ProductionConfig(BaseConfig):
 
     DEBUG = False
     TESTING = False
-    SQLALCHEMY_DATABASE_URI = os.getenv(
-        "DATABASE_URL", "postgresql://localhost:5432/champions_club_prod"
+    SQLALCHEMY_DATABASE_URI = RequiredProdEnv(
+        "DATABASE_URL",
+        "DATABASE_URL environment variable is required in production.",
     )
-    RATELIMIT_STORAGE_URI = os.getenv(
-        "RATELIMIT_STORAGE_URI", os.getenv("REDIS_URL", "redis://localhost:6379/0")
+
+    # Required production secrets - must NOT silently fall back to hardcoded defaults
+    SECRET_KEY = RequiredProdEnv(
+        "SECRET_KEY",
+        "SECRET_KEY environment variable is required in production.",
+    )
+    JWT_SECRET_KEY = RequiredProdEnv(
+        "JWT_SECRET_KEY",
+        "JWT_SECRET_KEY environment variable is required in production.",
+    )
+
+    # Required production CORS - must come from CORS_ORIGINS without localhost fallback
+    CORS_ORIGINS = RequiredProdEnv(
+        "CORS_ORIGINS",
+        "CORS_ORIGINS environment variable is required in production (e.g. 'https://club.example.com').",
+        transform=_parse_prod_cors,
+    )
+
+    # Rate limiting & Redis - must use configured Redis URL via env var without local fallback
+    RATELIMIT_STORAGE_URI = RequiredProdAnyEnv(
+        ["RATELIMIT_STORAGE_URI", "REDIS_URL"],
+        "RATELIMIT_STORAGE_URI or REDIS_URL environment variable is required in production for rate limiting.",
+    )
+    REDIS_URL = RequiredProdEnv(
+        "REDIS_URL",
+        "REDIS_URL environment variable is required in production.",
+    )
+    CELERY_BROKER_URL = RequiredProdAnyEnv(
+        ["CELERY_BROKER_URL", "REDIS_URL"],
+        "CELERY_BROKER_URL or REDIS_URL environment variable is required in production.",
+    )
+    CELERY_RESULT_BACKEND = RequiredProdAnyEnv(
+        ["CELERY_RESULT_BACKEND", "REDIS_URL"],
+        "CELERY_RESULT_BACKEND or REDIS_URL environment variable is required in production.",
     )
 
 

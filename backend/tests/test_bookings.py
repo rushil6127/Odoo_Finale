@@ -385,8 +385,8 @@ def test_friday_social_play(app, db_session, seed_data, gold_member_user):
     user, member = gold_member_user
     tennis = seed_data["tennis"]
 
-    # 2026-10-09 is a Friday. Time 18:00 is within 18:00-21:00.
-    friday_social = datetime(2026, 10, 9, 18, 0, 0)
+    # 2026-10-09 is a Friday. Time 19:00 is within 19:00-22:00.
+    friday_social = datetime(2026, 10, 9, 19, 0, 0)
     assert friday_social.weekday() == 4
 
     booking = create_booking(
@@ -397,11 +397,11 @@ def test_friday_social_play(app, db_session, seed_data, gold_member_user):
         is_social_play=True,
     )
     assert booking.is_social_play is True
-    assert booking.base_price == 200.0
+    assert booking.base_price == 300.0
     assert booking.final_price == 0.0  # Gold member gets 100% off social play
 
     # Non-Friday social play attempt (2026-10-10 is Saturday)
-    saturday_social = datetime(2026, 10, 10, 18, 0, 0)
+    saturday_social = datetime(2026, 10, 10, 19, 0, 0)
     from backend.app.common.errors import ValidationException
     with pytest.raises(ValidationException) as exc_info:
         create_booking(

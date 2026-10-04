@@ -330,21 +330,6 @@ def seed_core_demo() -> Dict[str, Any]:
     today = date.today()
 
     member_definitions = [
-        # Gold Champion Member (Quick Login Seed)
-        {
-            "email": "gold.member@championsclub.in",
-            "first_name": "Rohan",
-            "last_name": "Bopanna",
-            "phone": "+91 98765 43210",
-            "dob": today - timedelta(days=365 * 34),
-            "gender": "MALE",
-            "address": "101 Palm Grove, Indiranagar, Bengaluru",
-            "plan_code": "GOLD",
-            "start_date": today - timedelta(days=90),
-            "duration_months": 12,
-            "price_paid": 50000.00,
-            "password": "Member@12345",
-        },
         # Gold Champion Member
         {
             "email": "gold.member@championsclub.example.com",
@@ -506,7 +491,7 @@ def seed_core_demo() -> Dict[str, Any]:
                     member_id=m_profile.id,
                     notes=f"Annual membership fee for {plan_target.name}",
                 )
-                ord_id = p.gateway_order_id or "order_seed_ms"
+                ord_id = p.gateway_order_id or f"order_seed_ms_{ms.id}"
                 p_id = f"pay_seed_ms_{ms.id}"
                 fake_prov.payments[p_id] = {
                     "id": p_id,
@@ -617,7 +602,7 @@ def seed_core_demo() -> Dict[str, Any]:
                 notes=f"Payment for {court.name} reservation",
             )
             if pay_method == "ONLINE":
-                bk_ord_id = pay.gateway_order_id or "order_seed_bk"
+                bk_ord_id = pay.gateway_order_id or f"order_seed_bk_{b.id}"
                 bk_pay_id = f"pay_seed_bk_{b.id}"
                 fake_prov.payments[bk_pay_id] = {
                     "id": bk_pay_id,
@@ -715,7 +700,7 @@ def seed_core_demo() -> Dict[str, Any]:
 
     seed_safe_booking(
         court=centre_court,
-        booking_dt=datetime.combine(last_friday, datetime.min.time()).replace(hour=18, minute=0),
+        booking_dt=datetime.combine(last_friday, datetime.min.time()).replace(hour=19, minute=0),
         user=silver_user,
         member=silver_member,
         is_social_play=True,
@@ -723,7 +708,7 @@ def seed_core_demo() -> Dict[str, Any]:
     )
     seed_safe_booking(
         court=centre_court,
-        booking_dt=datetime.combine(last_friday, datetime.min.time()).replace(hour=19, minute=0),
+        booking_dt=datetime.combine(last_friday, datetime.min.time()).replace(hour=20, minute=0),
         user=junior_user,
         member=junior_member,
         is_social_play=True,

@@ -90,8 +90,8 @@ def validate_slot_timing(
                 f"Social Play sessions are only held on Fridays (requested day is {start_time.strftime('%A')}).",
                 code="INVALID_SOCIAL_PLAY_DAY",
             )
-        social_start = parse_time_str(config.get("FRIDAY_SOCIAL_PLAY_START_TIME", "18:00"))
-        social_end = parse_time_str(config.get("FRIDAY_SOCIAL_PLAY_END_TIME", "21:00"))
+        social_start = parse_time_str(config.get("FRIDAY_SOCIAL_PLAY_START_TIME", "19:00"))
+        social_end = parse_time_str(config.get("FRIDAY_SOCIAL_PLAY_END_TIME", "22:00"))
         if start_t < social_start or end_t > social_end:
             raise ValidationException(
                 f"Friday Social Play is only scheduled between {social_start.strftime('%H:%M')} and {social_end.strftime('%H:%M')}.",
@@ -121,7 +121,7 @@ def calculate_booking_price(
 
     # 1. Determine base rate
     if is_social_play:
-        base_rate = float(config.get("FRIDAY_SOCIAL_PLAY_BASE_RATE", 200.0))
+        base_rate = float(config.get("FRIDAY_SOCIAL_PLAY_BASE_RATE", 300.0))
         rate_source = "FRIDAY_SOCIAL_PLAY_BASE_RATE"
     else:
         sport_rates = config.get("DEFAULT_SPORT_RATES", {
