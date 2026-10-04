@@ -64,8 +64,8 @@ const navigation: NavGroup[] = [
   {
     title: "Commerce & Hospitality",
     items: [
-      { label: "Pro Shop", href: "/inventory", icon: ShoppingBag, badge: "Stock & Rev", badgeColor: "bg-indigo-500/20 text-indigo-400" },
-      { label: "Café Bar", href: "/pos", icon: UtensilsCrossed, badge: "POS & Sales", badgeColor: "bg-teal-500/20 text-teal-400" },
+      { label: "Pro Shop", href: "/inventory", icon: ShoppingBag },
+      { label: "Café Bar", href: "/pos", icon: UtensilsCrossed },
     ],
   },
 ];
