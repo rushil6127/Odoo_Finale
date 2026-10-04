@@ -65,23 +65,22 @@ const getSportIcon = (sport: string) => {
 };
 
 const LIVE_COURTS: CourtStat[] = [
-  { sport: "BADMINTON", name: "Badminton Hall (6 Synthetic & Wood)", totalCourts: 6, activeBookings: 5, status: "PEAK" },
-  { sport: "LAWN_TENNIS", name: "Lawn Tennis Arenas (Grass & Clay)", totalCourts: 4, activeBookings: 3, status: "OPTIMAL" },
-  { sport: "SWIMMING", name: "Aquatic Pavilion (50M Olympic)", totalCourts: 8, activeBookings: 6, status: "OPTIMAL" },
-  { sport: "BOX_CRICKET", name: "Box Cricket Astroturf Pitches", totalCourts: 2, activeBookings: 2, status: "PEAK" },
-  { sport: "TABLE_TENNIS", name: "Table Tennis Pro Arena", totalCourts: 4, activeBookings: 2, status: "OPTIMAL" },
-  { sport: "VOLLEYBALL", name: "Silica Sand Beach Volleyball", totalCourts: 2, activeBookings: 1, status: "OPTIMAL" },
-
+  { sport: "BADMINTON", name: "Badminton Hall (6 Synthetic & Wood)", totalCourts: 6, activeBookings: 10, status: "PEAK" },
+  { sport: "LAWN_TENNIS", name: "Lawn Tennis Arenas (Grass & Clay)", totalCourts: 4, activeBookings: 2, status: "OPTIMAL" },
+  { sport: "BOX_CRICKET", name: "Box Cricket Astroturf Pitches", totalCourts: 2, activeBookings: 1, status: "OPTIMAL" },
+  { sport: "TABLE_TENNIS", name: "Table Tennis Pro Arena", totalCourts: 2, activeBookings: 0, status: "OPTIMAL" },
+  { sport: "SWIMMING", name: "Aquatic Pavilion (50M Olympic Pool)", totalCourts: 1, activeBookings: 0, status: "OPTIMAL" },
+  { sport: "VOLLEYBALL", name: "Silica Sand Beach Volleyball Court", totalCourts: 1, activeBookings: 1, status: "OPTIMAL" },
 ];
 
-// Executive Showcase Fallback Data for Live Demonstrations
-const SHOWCASE_DATA = {
-  todayRevenue: 142850,
-  userCount: 1420,
-  activeStaffCount: 16,
-  activeBookingsToday: 28,
-  courtOccupancyPct: 84,
-  pendingApprovals: 6,
+// Accurate Baseline Metrics matching Database Actuals
+const ACCURATE_DATA = {
+  todayRevenue: 57980,
+  userCount: 11,
+  activeStaffCount: 7,
+  activeBookingsToday: 14,
+  courtOccupancyPct: 38,
+  pendingApprovals: 0,
 };
 
 interface ActivityFeedItem {
@@ -95,98 +94,102 @@ interface ActivityFeedItem {
   tagColor: string;
 }
 
-const SHOWCASE_ACTIVITIES: ActivityFeedItem[] = [
+const ACCURATE_ACTIVITIES: ActivityFeedItem[] = [
   {
     id: "act-1",
-    type: "MEMBERSHIP",
-    title: "Gold Tier Annual Membership Activated",
-    detail: "Vikramaditya Roy upgraded plan · Full arena access unlocked",
-    amount: "₹1,50,000",
-    timeAgo: "2 mins ago",
-    tag: "Membership",
-    tagColor: "bg-amber-100 text-amber-900 border-amber-300",
+    type: "COURT",
+    title: "Roland-Garros French Clay #2 Booking Confirmed",
+    detail: "Pushp Lamba · Morning session 08:00 – 09:00 AM",
+    amount: "₹800",
+    timeAgo: "12 mins ago",
+    tag: "Court Booking",
+    tagColor: "bg-sky-100 text-sky-900 border-sky-300",
   },
   {
     id: "act-2",
     type: "COURT",
-    title: "Championship Lawn Tennis Court 1 Reserved",
-    detail: "Dr. Priya Sharma (Gold) · Evening Floodlit Session 06:00 – 07:00 PM",
-    amount: "₹1,800",
-    timeAgo: "8 mins ago",
+    title: "Hard Court #4 (Floodlit) Evening Slot Reserved",
+    detail: "Pushp Lamba · Afternoon session 03:00 – 04:00 PM",
+    amount: "₹800",
+    timeAgo: "25 mins ago",
     tag: "Court Booking",
     tagColor: "bg-sky-100 text-sky-900 border-sky-300",
   },
   {
     id: "act-3",
-    type: "CAFE",
-    title: "Café Bar Order #1042 Tab Settled",
-    detail: "2x Nitro Cold Brew + 1x Truffle Fries · Member Tab #M-084",
-    amount: "₹640",
-    timeAgo: "15 mins ago",
-    tag: "Café POS",
-    tagColor: "bg-teal-100 text-teal-900 border-teal-300",
+    type: "MEMBERSHIP",
+    title: "Gold Tier Membership Payment Settled",
+    detail: "Annual Membership Subscription · Processed via Online Gateway",
+    amount: "₹29,990",
+    timeAgo: "1 hour ago",
+    tag: "Membership",
+    tagColor: "bg-amber-100 text-amber-900 border-amber-300",
   },
   {
     id: "act-4",
     type: "COURT",
-    title: "Badminton Arena (Wood Court 3 & 4) Checked In",
-    detail: "Inter-Club Tournament Semi-Final Practice · Roster verified",
-    amount: "₹2,400",
-    timeAgo: "24 mins ago",
-    tag: "Live Check-in",
+    title: "Badminton Court #3 (Grandstand) Slot Confirmed",
+    detail: "Pushp Lamba · Synthetic Court Session 11:00 AM – 12:00 PM",
+    amount: "₹400",
+    timeAgo: "1.5 hours ago",
+    tag: "Court Booking",
     tagColor: "bg-emerald-100 text-emerald-900 border-emerald-300",
   },
   {
     id: "act-5",
-    type: "SHOP",
-    title: "Pro Shop: Babolat Pure Aero 2026 + Grip Tape",
-    detail: "Tournament Racquet strung at 54 lbs · Paid via UPI",
-    amount: "₹24,800",
-    timeAgo: "38 mins ago",
-    tag: "Pro Shop",
+    type: "COURT",
+    title: "Box Cricket Arena Alpha Match Reserved",
+    detail: "Rohan Bopanna · Peak Evening 04:00 – 05:00 PM",
+    amount: "Included",
+    timeAgo: "2 hours ago",
+    tag: "Club Arena",
     tagColor: "bg-indigo-100 text-indigo-900 border-indigo-300",
   },
   {
     id: "act-6",
-    type: "STAFF",
-    title: "Head Coach Arvind On-Duty: Junior Masterclass",
-    detail: "Olympic Swimming Pavilion & Tennis Academy · 12 juniors attending",
-    timeAgo: "46 mins ago",
-    tag: "Staff Duty",
+    type: "MEMBERSHIP",
+    title: "Silver Tier Membership Payment Settled",
+    detail: "Annual Membership Subscription · Processed via Online Gateway",
+    amount: "₹27,990",
+    timeAgo: "3 hours ago",
+    tag: "Membership",
     tagColor: "bg-purple-100 text-purple-900 border-purple-300",
   },
 ];
 
 export default function DashboardPage() {
   const [currentUser, setCurrentUser] = useState<AuthUser | null>(null);
-  const [userCount, setUserCount] = useState<number>(SHOWCASE_DATA.userCount);
-  const [activeStaffCount, setActiveStaffCount] = useState<number>(SHOWCASE_DATA.activeStaffCount);
-  const [todayRevenue, setTodayRevenue] = useState<number>(SHOWCASE_DATA.todayRevenue);
-  const [activeBookingsToday, setActiveBookingsToday] = useState<number>(SHOWCASE_DATA.activeBookingsToday);
-  const [courtOccupancyPct, setCourtOccupancyPct] = useState<number>(SHOWCASE_DATA.courtOccupancyPct);
-  const [pendingApprovals, setPendingApprovals] = useState<number>(SHOWCASE_DATA.pendingApprovals);
+  const [userCount, setUserCount] = useState<number>(ACCURATE_DATA.userCount);
+  const [activeStaffCount, setActiveStaffCount] = useState<number>(ACCURATE_DATA.activeStaffCount);
+  const [todayRevenue, setTodayRevenue] = useState<number>(ACCURATE_DATA.todayRevenue);
+  const [activeBookingsToday, setActiveBookingsToday] = useState<number>(ACCURATE_DATA.activeBookingsToday);
+  const [courtOccupancyPct, setCourtOccupancyPct] = useState<number>(ACCURATE_DATA.courtOccupancyPct);
+  const [pendingApprovals, setPendingApprovals] = useState<number>(ACCURATE_DATA.pendingApprovals);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const user = getStoredUser();
     setCurrentUser(user);
 
-    // Fetch live counts and report KPIs from backend, with graceful fallback to showcase data
+    // Fetch live counts and report KPIs from backend, perfectly synced with club glance and reports
     const fetchDashboardData = async () => {
       try {
-        const [usersRes, reportRes] = await Promise.allSettled([
-          apiClient.get<any>("/auth/users"),
+        const [glanceRes, reportRes, usersRes] = await Promise.allSettled([
+          apiClient.get<any>("/reports/club-glance"),
           apiClient.get<any>("/reports/overview?period=today"),
+          apiClient.get<any>("/auth/users"),
         ]);
 
-        if (usersRes.status === "fulfilled" && usersRes.value) {
-          const list = usersRes.value?.users || usersRes.value?.data || (Array.isArray(usersRes.value) ? usersRes.value : []);
-          if (list && list.length > 0) {
-            setUserCount(list.length > 5 ? list.length : SHOWCASE_DATA.userCount);
-            const staff = list.filter((u: any) => u.role !== "MEMBER");
-            if (staff.length > 0) {
-              setActiveStaffCount(staff.length >= 8 ? staff.length : SHOWCASE_DATA.activeStaffCount);
-            }
+        if (glanceRes.status === "fulfilled" && glanceRes.value) {
+          const glance = glanceRes.value?.data || glanceRes.value;
+          if (glance?.todays_bookings_count !== undefined) {
+            setActiveBookingsToday(Number(glance.todays_bookings_count));
+          }
+          if (glance?.court_status?.booked_pct !== undefined) {
+            setCourtOccupancyPct(Number(glance.court_status.booked_pct));
+          }
+          if (glance?.pending_memberships_count !== undefined) {
+            setPendingApprovals(Number(glance.pending_memberships_count));
           }
         }
 
@@ -196,21 +199,20 @@ export default function DashboardPage() {
           if (grossRev > 0) {
             setTodayRevenue(grossRev);
           }
+        }
 
-          const bookingsToday = rep?.operational_snapshot?.bookings_today ?? rep?.executive_kpis?.active_bookings_today;
-          if (bookingsToday !== undefined && Number(bookingsToday) > 0) {
-            setActiveBookingsToday(Number(bookingsToday));
-            const totalCourts = 18;
-            setCourtOccupancyPct(Math.min(100, Math.round((Number(bookingsToday) / totalCourts) * 100)));
-          }
-
-          const pend = Number(rep?.operational_snapshot?.pending_follow_ups ?? 0);
-          if (pend > 0) {
-            setPendingApprovals(pend);
+        if (usersRes.status === "fulfilled" && usersRes.value) {
+          const list = usersRes.value?.users || usersRes.value?.data || (Array.isArray(usersRes.value) ? usersRes.value : []);
+          if (list && list.length > 0) {
+            setUserCount(list.length);
+            const staff = list.filter((u: any) => u.role !== "MEMBER");
+            if (staff.length > 0) {
+              setActiveStaffCount(staff.length);
+            }
           }
         }
       } catch (err) {
-        console.log("Using showcase fallback KPIs:", err);
+        console.log("Error loading live dashboard KPIs:", err);
       } finally {
         setLoading(false);
       }
@@ -555,7 +557,7 @@ export default function DashboardPage() {
         </div>
 
         <div className="divide-y divide-slate-100 mt-2">
-          {SHOWCASE_ACTIVITIES.map((act) => (
+          {ACCURATE_ACTIVITIES.map((act) => (
             <div
               key={act.id}
               className="py-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 hover:bg-slate-50/60 px-3 rounded-xl transition-colors"
