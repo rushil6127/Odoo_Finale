@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Plus } from "lucide-react";
+import { Plus, Search } from "lucide-react";
 import { PosMenuCategory, PosMenuItem } from "./types";
 
 interface MenuCatalogueProps {
@@ -22,24 +22,25 @@ export default function MenuCatalogue({ categories, menuItems, onAddItem, disabl
   });
 
   return (
-    <div className="space-y-4">
-      <div className="bg-white p-2 rounded-2xl border border-slate-200 shadow-sm flex items-center">
+    <div className="space-y-5">
+      <div className="glass-card p-3 rounded-2xl flex items-center shadow-sm">
+        <Search className="w-5 h-5 text-sky-400 ml-2" />
         <input 
           type="text" 
           placeholder="Search food, drinks or snacks..." 
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          className="w-full bg-transparent border-none focus:outline-none focus:ring-0 text-sm px-3 py-1.5"
+          className="w-full bg-transparent border-none focus:outline-none focus:ring-0 text-sm px-4 py-2 font-medium"
         />
       </div>
 
-      <div className="flex flex-wrap gap-2">
+      <div className="flex flex-wrap gap-2.5">
         <button
           onClick={() => setSelectedCatId("ALL")}
-          className={`px-3.5 py-2 rounded-2xl text-xs font-black transition-all ${
+          className={`px-4 py-2.5 rounded-2xl text-xs font-black transition-all transform hover:-translate-y-0.5 ${
             selectedCatId === "ALL"
-              ? "bg-sky-600 text-white shadow-md shadow-sky-600/25"
-              : "bg-white border border-slate-200 text-slate-700 hover:bg-slate-50"
+              ? "bg-sky-600 text-white shadow-lg shadow-sky-600/30 border border-sky-500"
+              : "glass-card text-slate-600 hover:text-sky-600 hover:border-sky-300"
           }`}
         >
           🌟 All Items
@@ -48,10 +49,10 @@ export default function MenuCatalogue({ categories, menuItems, onAddItem, disabl
           <button
             key={cat.id}
             onClick={() => setSelectedCatId(cat.id)}
-            className={`px-3.5 py-2 rounded-2xl text-xs font-black transition-all ${
+            className={`px-4 py-2.5 rounded-2xl text-xs font-black transition-all transform hover:-translate-y-0.5 ${
               selectedCatId === cat.id
-                ? "bg-sky-600 text-white shadow-md shadow-sky-600/25"
-                : "bg-white border border-slate-200 text-slate-700 hover:bg-slate-50"
+                ? "bg-sky-600 text-white shadow-lg shadow-sky-600/30 border border-sky-500"
+                : "glass-card text-slate-600 hover:text-sky-600 hover:border-sky-300"
             }`}
           >
             {cat.name}
@@ -60,11 +61,12 @@ export default function MenuCatalogue({ categories, menuItems, onAddItem, disabl
       </div>
 
       {filteredItems.length === 0 ? (
-        <div className="text-center py-10 bg-white rounded-3xl border border-slate-200 text-slate-400 text-sm">
-          No menu items found.
+        <div className="text-center py-16 glass-card rounded-3xl text-slate-400 text-sm flex flex-col items-center justify-center">
+          <Search className="w-8 h-8 text-slate-300 mb-3" />
+          <p className="font-bold">No menu items found.</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {filteredItems.map((item) => {
             const isUnavailable = !item.is_available;
             
@@ -76,27 +78,27 @@ export default function MenuCatalogue({ categories, menuItems, onAddItem, disabl
                     onAddItem(item);
                   }
                 }}
-                className={`group bg-white p-4 rounded-2xl border shadow-sm transition-all flex items-center justify-between ${
+                className={`group p-4 rounded-2xl transition-all flex items-center justify-between ${
                   isUnavailable || disabled
-                    ? "opacity-60 border-slate-200 cursor-not-allowed" 
-                    : "border-slate-200 hover:border-sky-400 hover:shadow-md cursor-pointer"
+                    ? "opacity-60 bg-slate-50 border border-slate-200 cursor-not-allowed" 
+                    : "glass-card glass-card-hover cursor-pointer border-transparent"
                 }`}
               >
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-slate-50 text-slate-400 flex items-center justify-center border border-slate-100 shrink-0 font-bold uppercase text-xs">
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-sky-50 to-indigo-50 text-sky-600 flex items-center justify-center border border-sky-100 shrink-0 font-black uppercase text-sm shadow-sm group-hover:shadow-md transition-shadow">
                     {item.name.substring(0, 2)}
                   </div>
                   <div>
                     <div className="flex items-center gap-1.5">
-                      <h3 className="text-xs font-black text-slate-900 leading-tight">{item.name}</h3>
+                      <h3 className="text-sm font-black text-slate-900 leading-tight font-[family-name:var(--font-display)] tracking-tight">{item.name}</h3>
                     </div>
                     {item.description && (
-                      <p className="text-[10px] text-slate-500 mt-0.5 line-clamp-1" title={item.description}>{item.description}</p>
+                      <p className="text-[11px] text-slate-500 mt-0.5 line-clamp-1 font-medium" title={item.description}>{item.description}</p>
                     )}
-                    <div className="flex items-center gap-2 mt-1">
-                      <p className="text-xs font-black text-emerald-600">₹{item.price}</p>
+                    <div className="flex items-center gap-2 mt-1.5">
+                      <p className="text-sm font-black text-emerald-600">₹{item.price}</p>
                       {isUnavailable && (
-                        <span className="text-[9px] font-black uppercase px-1.5 py-0.5 rounded bg-slate-100 text-slate-500">
+                        <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded-md bg-red-50 text-red-600 border border-red-100">
                           Unavailable
                         </span>
                       )}
@@ -107,13 +109,13 @@ export default function MenuCatalogue({ categories, menuItems, onAddItem, disabl
                 <button
                   type="button"
                   disabled={isUnavailable || disabled}
-                  className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 transition-colors ${
+                  className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 transition-all transform ${
                     isUnavailable || disabled
                       ? "bg-slate-100 text-slate-400"
-                      : "bg-slate-100 group-hover:bg-sky-600 group-hover:text-white text-slate-700"
+                      : "bg-sky-50 group-hover:bg-sky-500 group-hover:text-white text-sky-600 shadow-sm group-hover:shadow-md group-hover:-translate-y-0.5 group-hover:scale-105"
                   }`}
                 >
-                  <Plus className="w-4 h-4" />
+                  <Plus className="w-5 h-5" />
                 </button>
               </div>
             );
