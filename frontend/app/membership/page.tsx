@@ -29,6 +29,7 @@ import {
   QrCode,
   Smartphone,
   ChevronDown,
+  X,
 } from "lucide-react";
 import { useCurrentUser, setStoredUser, isOwner, getRoleProfilePath } from "@/lib/auth";
 import { apiClient } from "@/lib/api/client";
@@ -527,12 +528,6 @@ function MembershipContent() {
             <span>{successMessage}</span>
           </div>
         )}
-        {error && (
-          <div className="mb-6 p-4 rounded-2xl bg-red-50 border border-red-200 text-red-900 flex items-center gap-3 text-xs font-bold animate-in fade-in">
-            <AlertCircle className="w-5 h-5 text-red-600 shrink-0" />
-            <span>{error}</span>
-          </div>
-        )}
 
         {/* Section Heading */}
         <div className="text-center mb-10">
@@ -976,6 +971,77 @@ function MembershipContent() {
                 Continue Browsing
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* ERROR POPUP MODAL */}
+      {error && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/65 backdrop-blur-sm animate-in fade-in duration-200"
+          onClick={() => setError(null)}
+        >
+          <div
+            className="relative w-full max-w-md bg-white rounded-3xl p-6 sm:p-8 shadow-2xl border border-rose-100 flex flex-col items-center text-center animate-in zoom-in-95 duration-200 text-slate-900"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Close 'X' Button */}
+            <button
+              type="button"
+              onClick={() => setError(null)}
+              className="absolute top-4 right-4 w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 hover:text-slate-800 flex items-center justify-center transition-all cursor-pointer"
+              aria-label="Close error popup"
+            >
+              <X className="w-4 h-4" />
+            </button>
+
+            {/* Glowing Alert Icon */}
+            <div className="w-16 h-16 rounded-2xl bg-rose-50 border-2 border-rose-200/80 text-rose-500 flex items-center justify-center mb-4 shadow-sm">
+              <AlertCircle className="w-8 h-8 stroke-[2.2]" />
+            </div>
+
+            {/* Modal Title */}
+            <h3 className="text-xl font-black text-slate-900 font-[family-name:var(--font-outfit)] tracking-tight">
+              {error.toLowerCase().includes("date of birth") || error.toLowerCase().includes("age")
+                ? "Profile Information Required"
+                : error.toLowerCase().includes("payment")
+                ? "Payment Notice"
+                : "Unable to Complete Action"}
+            </h3>
+
+            {/* Error Message */}
+            <p className="text-xs sm:text-sm font-medium text-slate-600 mt-2 mb-6 leading-relaxed max-w-sm">
+              {error}
+            </p>
+
+            {/* Action Buttons */}
+            {error.toLowerCase().includes("date of birth") || error.toLowerCase().includes("profile") ? (
+              <div className="flex flex-col sm:flex-row items-center gap-2.5 w-full">
+                <Link
+                  href="/profile"
+                  onClick={() => setError(null)}
+                  className="w-full py-3 px-5 rounded-2xl bg-gradient-to-r from-sky-500 to-sky-600 hover:from-sky-600 hover:to-blue-700 text-white font-bold text-xs shadow-md shadow-sky-500/20 text-center transition-all flex items-center justify-center gap-1.5"
+                >
+                  <span>Update Profile Details</span>
+                  <ArrowRight className="w-3.5 h-3.5" />
+                </Link>
+                <button
+                  type="button"
+                  onClick={() => setError(null)}
+                  className="w-full sm:w-auto py-3 px-5 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition-colors cursor-pointer"
+                >
+                  Dismiss
+                </button>
+              </div>
+            ) : (
+              <button
+                type="button"
+                onClick={() => setError(null)}
+                className="w-full py-3 px-6 rounded-2xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs shadow-md transition-all active:scale-98 cursor-pointer"
+              >
+                Okay, Understood
+              </button>
+            )}
           </div>
         </div>
       )}
