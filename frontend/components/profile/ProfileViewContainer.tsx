@@ -130,11 +130,12 @@ function OwnerCourtStatusCard({
   const bookedCourts = glanceData?.court_status?.booked ?? 0;
   const availableCount = glanceData?.court_status?.available ?? 0;
   const maintenanceCount = glanceData?.court_status?.maintenance ?? 0;
-  // Use total booking slots (matching "Today's Bookings" on left card)
+  // Use total booking slots (matching "Today's Bookings" on left card) for legend display
   const totalBookingSlots = glanceData?.court_status?.total_booking_slots ?? glanceData?.todays_bookings_count ?? bookedCourts;
 
-  // Compute percentages based on total booking slots (matching left card)
-  const bookedPct = totalCourts > 0 ? Math.min(100, Math.round((totalBookingSlots / totalCourts) * 100)) : 0;
+  // Donut chart arcs must use COURT counts (not booking slots) for accurate visual proportions
+  // 6 booked courts + 8 available + 2 maintenance = 16 total
+  const bookedPct = totalCourts > 0 ? Math.round((bookedCourts / totalCourts) * 100) : 0;
   const maintenancePct = totalCourts > 0 ? Math.round((maintenanceCount / totalCourts) * 100) : 0;
   const availablePct = totalCourts > 0 ? Math.max(0, 100 - bookedPct - maintenancePct) : 100;
 
