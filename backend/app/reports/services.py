@@ -1281,12 +1281,12 @@ def get_club_glance_summary() -> Dict[str, Any]:
     except Exception:
         pass
 
-    booked_courts = len(today_booked_court_ids)
+    booked_courts_count = len(today_booked_court_ids)
     maintenance_courts = sum(1 for c in courts if c.status == CourtStatus.MAINTENANCE)
-    available_courts = max(0, total_courts - booked_courts - maintenance_courts)
+    available_courts = max(0, total_courts - booked_courts_count - maintenance_courts)
 
     if total_courts > 0:
-        booked_pct = round((booked_courts / total_courts) * 100)
+        booked_pct = round((booked_courts_count / total_courts) * 100)
         maintenance_pct = round((maintenance_courts / total_courts) * 100)
         available_pct = max(0, 100 - booked_pct - maintenance_pct)
     else:
@@ -1298,12 +1298,13 @@ def get_club_glance_summary() -> Dict[str, Any]:
         "pending_memberships_count": total_pending_memberships,
         "court_status": {
             "total": total_courts,
-            "booked": booked_courts,
+            "booked": booked_courts_count,
             "available": available_courts,
             "maintenance": maintenance_courts,
             "booked_pct": booked_pct,
             "available_pct": available_pct,
             "maintenance_pct": maintenance_pct,
+            "total_booking_slots": todays_bookings_count,
         },
     }
 

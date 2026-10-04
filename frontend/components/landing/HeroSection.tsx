@@ -195,7 +195,7 @@ export default function HeroSection() {
           </div>
 
           <div className="bg-white/80 rounded-2xl p-4 border border-slate-200/80 shadow-sm text-center">
-            <div className="text-2xl sm:text-3xl font-extrabold text-blue-600 font-[family-name:var(--font-outfit)]">6:00 AM – 11 PM</div>
+            <div className="text-lg sm:text-xl md:text-base lg:text-xl xl:text-2xl font-extrabold text-blue-600 font-[family-name:var(--font-outfit)] whitespace-nowrap tracking-tight">6:00 AM – 11 PM</div>
             <div className="text-xs font-semibold text-slate-800 mt-1">Daily Operating Hours</div>
             <div className="text-[11px] text-slate-500">Tournament-grade Floodlights</div>
           </div>

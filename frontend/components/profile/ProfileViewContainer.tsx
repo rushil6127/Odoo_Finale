@@ -92,12 +92,13 @@ interface OwnerGlanceData {
     booked_pct: number;
     available_pct: number;
     maintenance_pct: number;
+    total_booking_slots?: number;
   };
   today_date?: string;
 }
 
 /**
- * Streamlined Court Status Card
+ * Streamlined Court Status Card — Always Live from Backend API
  */
 function OwnerCourtStatusCard({
   glanceData,
@@ -107,24 +108,35 @@ function OwnerCourtStatusCard({
   loading?: boolean;
 }) {
   const [animated, setAnimated] = useState(false);
-  const [useSampleData, setUseSampleData] = useState(false);
+  const [animKey, setAnimKey] = useState(0);
 
+  // Re-trigger animation whenever glanceData changes (new data from API)
   useEffect(() => {
+    setAnimated(false);
     const timer = setTimeout(() => {
       setAnimated(true);
+      setAnimKey((prev) => prev + 1);
     }, 120);
     return () => clearTimeout(timer);
-  }, []);
+  }, [
+    glanceData?.court_status?.booked,
+    glanceData?.court_status?.available,
+    glanceData?.court_status?.maintenance,
+    glanceData?.court_status?.total,
+  ]);
 
-  const isSample = useSampleData || !glanceData;
-  const totalCourts = isSample ? 12 : (glanceData?.court_status?.total ?? 16);
-  const bookedCount = isSample ? 5 : (glanceData?.court_status?.booked ?? 1);
-  const availableCount = isSample ? 6 : (glanceData?.court_status?.available ?? 14);
-  const maintenanceCount = isSample ? 1 : (glanceData?.court_status?.maintenance ?? 1);
+  // Always use live data — compute percentages dynamically from counts
+  const totalCourts = glanceData?.court_status?.total ?? 0;
+  const bookedCourts = glanceData?.court_status?.booked ?? 0;
+  const availableCount = glanceData?.court_status?.available ?? 0;
+  const maintenanceCount = glanceData?.court_status?.maintenance ?? 0;
+  // Use total booking slots (matching "Today's Bookings" on left card)
+  const totalBookingSlots = glanceData?.court_status?.total_booking_slots ?? glanceData?.todays_bookings_count ?? bookedCourts;
 
-  const bookedPct = isSample ? 42 : (glanceData?.court_status?.booked_pct ?? Math.round((bookedCount / totalCourts) * 100));
-  const availablePct = isSample ? 50 : (glanceData?.court_status?.available_pct ?? Math.round((availableCount / totalCourts) * 100));
-  const maintenancePct = isSample ? 8 : (glanceData?.court_status?.maintenance_pct ?? Math.max(0, 100 - bookedPct - availablePct));
+  // Compute percentages based on total booking slots (matching left card)
+  const bookedPct = totalCourts > 0 ? Math.min(100, Math.round((totalBookingSlots / totalCourts) * 100)) : 0;
+  const maintenancePct = totalCourts > 0 ? Math.round((maintenanceCount / totalCourts) * 100) : 0;
+  const availablePct = totalCourts > 0 ? Math.max(0, 100 - bookedPct - maintenancePct) : 100;
 
   const size = 150;
   const strokeWidth = 22;
@@ -132,10 +144,12 @@ function OwnerCourtStatusCard({
   const radius = 48;
   const circumference = 2 * Math.PI * radius; // 301.59
 
-  // Segment arc lengths
+  // Segment arc lengths — derived directly from live percentage values
   const blueLen = circumference * (bookedPct / 100);
   const greenLen = circumference * (availablePct / 100);
   const orangeLen = circumference * (maintenancePct / 100);
+
+  const isLive = !!glanceData && !loading;
 
   return (
     <div className="flex flex-col h-full justify-between gap-5">
@@ -144,93 +158,96 @@ function OwnerCourtStatusCard({
         <h3 className="text-2xl font-black text-slate-900 font-[family-name:var(--font-outfit)] leading-tight">
           Court Status
         </h3>
-        <button
-          type="button"
-          onClick={() => setUseSampleData((prev) => !prev)}
-          title="Toggle Live/Sample Data"
-          className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all cursor-pointer select-none"
+        <span
+          className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider select-none"
           style={{
-            backgroundColor: isSample ? "#f1f5f9" : "#ecfdf5",
-            color: isSample ? "#64748b" : "#047857",
-            border: isSample ? "1px solid #e2e8f0" : "1px solid #a7f3d0",
+            backgroundColor: isLive ? "#ecfdf5" : "#f1f5f9",
+            color: isLive ? "#047857" : "#64748b",
+            border: isLive ? "1px solid #a7f3d0" : "1px solid #e2e8f0",
           }}
         >
-          {!isSample && (
+          {isLive && (
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
           )}
-          <span>{isSample ? "SAMPLE" : "LIVE"}</span>
-        </button>
+          <span>{loading ? "LOADING…" : isLive ? "LIVE" : "OFFLINE"}</span>
+        </span>
       </div>
 
       {/* Donut Chart + Legend */}
       <div className="flex items-center justify-between gap-4 my-auto py-1">
         {/* SVG Donut Chart */}
         <div className="relative w-36 h-36 shrink-0 flex items-center justify-center">
-          <svg
-            width="150"
-            height="150"
-            viewBox="0 0 150 150"
-            className="overflow-visible select-none"
-            style={{
-              transform: animated ? "rotate(0deg) scale(1)" : "rotate(-90deg) scale(0.85)",
-              opacity: animated ? 1 : 0.2,
-              transition: "transform 1.2s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.8s ease",
-            }}
-          >
-            <g transform="rotate(-90 75 75)">
-              {/* Blue Arc (Booked) */}
-              <circle
-                cx={center}
-                cy={center}
-                r={radius}
-                fill="none"
-                stroke="#0070f3"
-                strokeWidth={strokeWidth}
-                strokeDasharray={animated ? `${blueLen} ${circumference}` : `0 ${circumference}`}
-                strokeDashoffset={0}
-                style={{
-                  transition: "stroke-dasharray 1.1s cubic-bezier(0.16, 1, 0.3, 1) 0.1s",
-                }}
-              />
+          {loading ? (
+            /* Skeleton loader while fetching */
+            <div className="w-28 h-28 rounded-full border-[16px] border-slate-100 animate-pulse" />
+          ) : (
+            <svg
+              key={`donut-${animKey}`}
+              width="150"
+              height="150"
+              viewBox="0 0 150 150"
+              className="overflow-visible select-none"
+              style={{
+                transform: animated ? "rotate(0deg) scale(1)" : "rotate(-90deg) scale(0.85)",
+                opacity: animated ? 1 : 0.2,
+                transition: "transform 1.2s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.8s ease",
+              }}
+            >
+              <g transform="rotate(-90 75 75)">
+                {/* Blue Arc (Booked) */}
+                <circle
+                  cx={center}
+                  cy={center}
+                  r={radius}
+                  fill="none"
+                  stroke="#0070f3"
+                  strokeWidth={strokeWidth}
+                  strokeDasharray={animated ? `${blueLen} ${circumference}` : `0 ${circumference}`}
+                  strokeDashoffset={0}
+                  style={{
+                    transition: "stroke-dasharray 1.1s cubic-bezier(0.16, 1, 0.3, 1) 0.1s",
+                  }}
+                />
 
-              {/* Green Arc (Available) */}
-              <circle
-                cx={center}
-                cy={center}
-                r={radius}
-                fill="none"
-                stroke="#10b981"
-                strokeWidth={strokeWidth}
-                strokeDasharray={animated ? `${greenLen} ${circumference}` : `0 ${circumference}`}
-                strokeDashoffset={-blueLen}
-                style={{
-                  transition: "stroke-dasharray 1.1s cubic-bezier(0.16, 1, 0.3, 1) 0.25s",
-                }}
-              />
+                {/* Green Arc (Available) */}
+                <circle
+                  cx={center}
+                  cy={center}
+                  r={radius}
+                  fill="none"
+                  stroke="#10b981"
+                  strokeWidth={strokeWidth}
+                  strokeDasharray={animated ? `${greenLen} ${circumference}` : `0 ${circumference}`}
+                  strokeDashoffset={-blueLen}
+                  style={{
+                    transition: "stroke-dasharray 1.1s cubic-bezier(0.16, 1, 0.3, 1) 0.25s",
+                  }}
+                />
 
-              {/* Orange Arc (Maintenance) */}
-              <circle
-                cx={center}
-                cy={center}
-                r={radius}
-                fill="none"
-                stroke="#f97316"
-                strokeWidth={strokeWidth}
-                strokeDasharray={animated ? `${orangeLen} ${circumference}` : `0 ${circumference}`}
-                strokeDashoffset={-(blueLen + greenLen)}
-                style={{
-                  transition: "stroke-dasharray 1.1s cubic-bezier(0.16, 1, 0.3, 1) 0.4s",
-                }}
-              />
-            </g>
-          </svg>
+                {/* Orange Arc (Maintenance) */}
+                <circle
+                  cx={center}
+                  cy={center}
+                  r={radius}
+                  fill="none"
+                  stroke="#f97316"
+                  strokeWidth={strokeWidth}
+                  strokeDasharray={animated ? `${orangeLen} ${circumference}` : `0 ${circumference}`}
+                  strokeDashoffset={-(blueLen + greenLen)}
+                  style={{
+                    transition: "stroke-dasharray 1.1s cubic-bezier(0.16, 1, 0.3, 1) 0.4s",
+                  }}
+                />
+              </g>
+            </svg>
+          )}
 
           {/* Center Hole Content */}
           <div
             className="absolute inset-0 flex flex-col items-center justify-center text-center pointer-events-none select-none"
             style={{
-              opacity: animated ? 1 : 0,
-              transform: animated ? "scale(1)" : "scale(0.8)",
+              opacity: animated && !loading ? 1 : 0,
+              transform: animated && !loading ? "scale(1)" : "scale(0.8)",
               transition: "opacity 0.6s ease-out 0.4s, transform 0.6s ease-out 0.4s",
             }}
           >
@@ -245,14 +262,14 @@ function OwnerCourtStatusCard({
 
         {/* Legend */}
         <div className="space-y-3 pr-1 flex-1">
-          {/* Booked */}
+          {/* Booked — shows total booking slots to match left card */}
           <div className="flex items-center justify-between gap-2">
             <div className="flex items-center gap-2">
               <span className="w-2.5 h-2.5 rounded-full bg-[#0070f3] shrink-0" />
               <span className="text-xs font-semibold text-slate-600">Booked</span>
             </div>
             <span className="text-xs font-black text-slate-900 font-mono">
-              {bookedCount} <span className="text-[10px] text-slate-400 font-normal">({bookedPct}%)</span>
+              {loading ? "…" : totalBookingSlots} <span className="text-[10px] text-slate-400 font-normal">({bookedCourts} courts)</span>
             </span>
           </div>
 
@@ -263,7 +280,7 @@ function OwnerCourtStatusCard({
               <span className="text-xs font-semibold text-slate-600">Available</span>
             </div>
             <span className="text-xs font-black text-slate-900 font-mono">
-              {availableCount} <span className="text-[10px] text-slate-400 font-normal">({availablePct}%)</span>
+              {loading ? "…" : availableCount} <span className="text-[10px] text-slate-400 font-normal">({availablePct}%)</span>
             </span>
           </div>
 
@@ -274,16 +291,16 @@ function OwnerCourtStatusCard({
               <span className="text-xs font-semibold text-slate-600">Maintenance</span>
             </div>
             <span className="text-xs font-black text-slate-900 font-mono">
-              {maintenanceCount} <span className="text-[10px] text-slate-400 font-normal">({maintenancePct}%)</span>
+              {loading ? "…" : maintenanceCount} <span className="text-[10px] text-slate-400 font-normal">({maintenancePct}%)</span>
             </span>
           </div>
         </div>
       </div>
 
-      {/* Clean Court Action Footer (No duplicate booking/membership rows!) */}
+      {/* Clean Court Action Footer */}
       <div className="pt-3 border-t border-slate-100 flex items-center justify-between">
         <span className="text-xs font-semibold text-slate-500">
-          Capacity: <span className="font-bold text-slate-900">{availableCount} open</span>
+          Capacity: <span className="font-bold text-slate-900">{loading ? "…" : availableCount} open</span>
         </span>
         <Link
           href="/#courts"
