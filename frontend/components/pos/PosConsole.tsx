@@ -38,7 +38,7 @@ export default function PosConsole() {
       if (tablesData) setTables(tablesData);
       if (catData) setCategories(catData);
       if (menuData) setMenuItems(menuData);
-      if (shiftData) setActiveShift(shiftData);
+      if (shiftData && Object.keys(shiftData).length > 0) setActiveShift(shiftData);
       if (salesData) setDailySales(salesData);
     } catch (err) {
       console.error("Failed to load POS data", err);
@@ -283,7 +283,7 @@ export default function PosConsole() {
           <div className="flex items-end gap-2 mt-1">
             {activeShift ? (
               <span className="text-sm font-black text-slate-900 truncate" title={activeShift.shift_reference}>
-                Active ({activeShift.shift_reference.split("-")[1]})
+                Active ({activeShift.shift_reference?.split("-")[1] || activeShift.shift_reference || "N/A"})
               </span>
             ) : (
               <span className="text-sm font-black text-slate-400">Closed</span>

@@ -81,6 +81,11 @@ export default function CurrentTab({
 
   // Local pending calculations
   const pendingSubtotal = cart.reduce((acc, item) => acc + item.price * item.qty, 0);
+  const pendingTax = cart.reduce((acc, item) => acc + (item.price * item.tax_rate) * item.qty, 0);
+  
+  const displaySubtotal = (Number(currentTab.subtotal_amount) || 0) + pendingSubtotal;
+  const displayTax = (Number(currentTab.tax_amount) || 0) + pendingTax;
+  const displayTotal = displaySubtotal + displayTax - (Number(currentTab.discount_amount) || 0);
 
   return (
     <div className="glass-card rounded-3xl p-6 shadow-md shadow-slate-200/50 space-y-5 sticky top-6 flex flex-col max-h-[85vh] relative overflow-hidden">
@@ -189,28 +194,28 @@ export default function CurrentTab({
       <div className="border-t border-slate-200/60 pt-4 space-y-2.5 text-xs shrink-0">
         <div className="flex justify-between text-slate-500 font-medium px-1">
           <span>Subtotal</span>
-          <span className="font-bold text-slate-800">₹{currentTab.subtotal_amount}</span>
+          <span className="font-bold text-slate-800">₹{displaySubtotal.toFixed(2)}</span>
         </div>
         <div className="flex justify-between text-slate-500 font-medium px-1">
           <span>Taxes & Fees</span>
-          <span>₹{currentTab.tax_amount}</span>
+          <span>₹{displayTax.toFixed(2)}</span>
         </div>
-        {currentTab.discount_amount > 0 && (
+        {Number(currentTab.discount_amount) > 0 && (
           <div className="flex justify-between text-emerald-600 font-bold px-1 bg-emerald-50 rounded px-2 py-1">
             <span>Discount</span>
-            <span>-₹{currentTab.discount_amount}</span>
+            <span>-₹{Number(currentTab.discount_amount).toFixed(2)}</span>
           </div>
         )}
         <div className="flex justify-between items-center text-sm font-black text-slate-900 pt-3 pb-1 border-t border-slate-100 mt-2 px-1">
           <span className="uppercase tracking-wide text-xs">Total</span>
           <span className="text-sky-600 font-[family-name:var(--font-display)] text-xl">
-            ₹{currentTab.total_amount}
+            ₹{displayTotal.toFixed(2)}
           </span>
         </div>
         
         {cart.length > 0 && (
           <p className="text-[11px] font-bold text-amber-600 bg-amber-50 py-1.5 px-3 rounded-lg text-right">
-            + ₹{pendingSubtotal} in unsaved items
+            + ₹{pendingSubtotal.toFixed(2)} in unsaved items (Included above)
           </p>
         )}
 
