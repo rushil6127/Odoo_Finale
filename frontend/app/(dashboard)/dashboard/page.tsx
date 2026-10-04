@@ -272,7 +272,7 @@ export default function DashboardPage() {
                 Staff &amp; Role Governance
               </h3>
             </div>
-            <div className="mt-6 flex items-center justify-between text-xs sm:text-sm font-bold text-amber-700">
+            <div className="mt-6 py-2.5 px-4 rounded-xl bg-amber-50/70 group-hover:bg-amber-100/90 border border-amber-200/80 shadow-xs group-hover:shadow-sm flex items-center justify-between text-xs sm:text-sm font-bold text-amber-800 transition-all">
               <span>Open Staff Console</span>
               <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
             </div>
@@ -296,7 +296,7 @@ export default function DashboardPage() {
                 Court Schedules &amp; Bookings
               </h3>
             </div>
-            <div className="mt-6 flex items-center justify-between text-xs sm:text-sm font-bold text-sky-700">
+            <div className="mt-6 py-2.5 px-4 rounded-xl bg-sky-50/70 group-hover:bg-sky-100/90 border border-sky-200/80 shadow-xs group-hover:shadow-sm flex items-center justify-between text-xs sm:text-sm font-bold text-sky-700 transition-all">
               <span>Manage Courts &amp; Slots</span>
               <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
             </div>
@@ -320,7 +320,7 @@ export default function DashboardPage() {
                 Membership Approvals &amp; Plans
               </h3>
             </div>
-            <div className="mt-6 flex items-center justify-between text-xs sm:text-sm font-bold text-emerald-700">
+            <div className="mt-6 py-2.5 px-4 rounded-xl bg-emerald-50/70 group-hover:bg-emerald-100/90 border border-emerald-200/80 shadow-xs group-hover:shadow-sm flex items-center justify-between text-xs sm:text-sm font-bold text-emerald-700 transition-all">
               <span>Review Membership Queue</span>
               <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
             </div>
@@ -344,7 +344,7 @@ export default function DashboardPage() {
                 Sports Bar &amp; Café POS
               </h3>
             </div>
-            <div className="mt-6 flex items-center justify-between text-xs sm:text-sm font-bold text-teal-700">
+            <div className="mt-6 py-2.5 px-4 rounded-xl bg-teal-50/70 group-hover:bg-teal-100/90 border border-teal-200/80 shadow-xs group-hover:shadow-sm flex items-center justify-between text-xs sm:text-sm font-bold text-teal-700 transition-all">
               <span>Launch POS Terminal</span>
               <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
             </div>
@@ -368,7 +368,7 @@ export default function DashboardPage() {
                 Equipment &amp; Pro Shop
               </h3>
             </div>
-            <div className="mt-6 flex items-center justify-between text-xs sm:text-sm font-bold text-indigo-700">
+            <div className="mt-6 py-2.5 px-4 rounded-xl bg-indigo-50/70 group-hover:bg-indigo-100/90 border border-indigo-200/80 shadow-xs group-hover:shadow-sm flex items-center justify-between text-xs sm:text-sm font-bold text-indigo-700 transition-all">
               <span>Open Inventory</span>
               <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
             </div>
@@ -392,7 +392,7 @@ export default function DashboardPage() {
                 Financial Reports &amp; Audits
               </h3>
             </div>
-            <div className="mt-6 flex items-center justify-between text-xs sm:text-sm font-bold text-purple-700">
+            <div className="mt-6 py-2.5 px-4 rounded-xl bg-purple-50/70 group-hover:bg-purple-100/90 border border-purple-200/80 shadow-xs group-hover:shadow-sm flex items-center justify-between text-xs sm:text-sm font-bold text-purple-700 transition-all">
               <span>View Financial Reports</span>
               <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
             </div>
