@@ -98,6 +98,9 @@ def create_app(config_name: str = None) -> Flask:
 
     # Initialize extensions
     db.init_app(app)
+    with app.app_context():
+        if db_uri.startswith("sqlite"):
+            db.create_all()
     migrate.init_app(app, db, directory=migrations_dir)
     jwt.init_app(app)
     bcrypt.init_app(app)
