@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { 
   User, 
@@ -41,11 +41,17 @@ import {
   Layers,
   Sparkle,
   Menu,
-  X
+  X,
+  Camera,
+  Loader2,
+  Trash2
 } from "lucide-react";
 import { 
   getUserRoleLabel,
   getAvatarImageUrl,
+  uploadUserAvatar,
+  deleteUserAvatar,
+  setStoredUser,
   type AuthUserProfile, 
   type EmployeeCourtSlot, 
   type EmployeeTrainee, 
@@ -65,10 +71,124 @@ export default function EmployeeProfileView({
   onLogout,
   onSwitchToMemberView,
 }: EmployeeProfileViewProps) {
+  const [currentUser, setCurrentUser] = useState<AuthUserProfile>(user);
+
+  useEffect(() => {
+    setCurrentUser(user);
+  }, [user]);
+
   const [activeTab, setActiveTab] = useState<EmployeeTabType>("emp_overview");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   
-  const empData = user.employeeData!;
+  const empData = currentUser.employeeData!;
+
+  // Profile Picture Upload & State
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [avatarUploading, setAvatarUploading] = useState(false);
+  const [avatarSuccessMsg, setAvatarSuccessMsg] = useState("");
+  const [avatarErrorMsg, setAvatarErrorMsg] = useState("");
+
+  const handleAvatarFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 5 * 1024 * 1024) {
+      setAvatarErrorMsg("Image size exceeds 5MB limit. Please choose a smaller image.");
+      setTimeout(() => setAvatarErrorMsg(""), 4000);
+      return;
+    }
+
+    try {
+      setAvatarUploading(true);
+      setAvatarErrorMsg("");
+      setAvatarSuccessMsg("");
+
+      const dataUrl = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = (readerEvent) => {
+          const img = new (window as any).Image();
+          img.onload = () => {
+            const canvas = document.createElement("canvas");
+            const maxDim = 800;
+            let width = img.width;
+            let height = img.height;
+            if (width > height) {
+              if (width > maxDim) {
+                height = Math.round((height * maxDim) / width);
+                width = maxDim;
+              }
+            } else {
+              if (height > maxDim) {
+                width = Math.round((width * maxDim) / height);
+                height = maxDim;
+              }
+            }
+            canvas.width = width;
+            canvas.height = height;
+            const ctx = canvas.getContext("2d");
+            if (ctx) {
+              ctx.drawImage(img, 0, 0, width, height);
+              resolve(canvas.toDataURL("image/jpeg", 0.88));
+            } else {
+              resolve(readerEvent.target?.result as string);
+            }
+          };
+          img.onerror = () => reject(new Error("Failed to load image for compression"));
+          img.src = readerEvent.target?.result as string;
+        };
+        reader.onerror = () => reject(new Error("Failed to read image file"));
+        reader.readAsDataURL(file);
+      });
+
+      const res = await uploadUserAvatar(dataUrl);
+      const savedUrl = res.avatar_url || dataUrl;
+
+      const updated = {
+        ...currentUser,
+        avatarUrl: savedUrl,
+        avatar_url: savedUrl,
+      };
+      setCurrentUser(updated);
+      setStoredUser(updated);
+
+      setAvatarSuccessMsg("Profile photo updated and saved to database!");
+      setTimeout(() => setAvatarSuccessMsg(""), 4000);
+    } catch (err: any) {
+      console.error("Failed to upload avatar:", err);
+      setAvatarErrorMsg(err?.message || "Failed to update profile photo.");
+      setTimeout(() => setAvatarErrorMsg(""), 4000);
+    } finally {
+      setAvatarUploading(false);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
+    }
+  };
+
+  const handleRemoveAvatar = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!confirm("Are you sure you want to remove your profile photo?")) return;
+
+    try {
+      setAvatarUploading(true);
+      setAvatarErrorMsg("");
+      await deleteUserAvatar();
+
+      const updated = { ...currentUser };
+      delete (updated as any).avatar_url;
+      delete updated.avatarUrl;
+      setCurrentUser(updated);
+      setStoredUser(updated);
+
+      setAvatarSuccessMsg("Profile photo removed.");
+      setTimeout(() => setAvatarSuccessMsg(""), 4000);
+    } catch (err: any) {
+      setAvatarErrorMsg(err?.message || "Failed to remove avatar.");
+      setTimeout(() => setAvatarErrorMsg(""), 4000);
+    } finally {
+      setAvatarUploading(false);
+    }
+  };
 
   // Live Duty Status
   const [dutyStatus, setDutyStatus] = useState<"ON_DUTY" | "IN_SESSION" | "ON_BREAK" | "OFF_DUTY">(
@@ -320,7 +440,31 @@ export default function EmployeeProfileView({
       {/* ============================================================ */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 sm:pt-32 pb-20 w-full flex-1 space-y-6">
 
-        {/* Toast Notification Alert */}
+        {/* Toast Notification Alerts */}
+        {avatarSuccessMsg && (
+          <div className="p-3.5 rounded-2xl bg-emerald-900/90 text-white border border-emerald-400 shadow-xl flex items-center justify-between gap-3 animate-in fade-in slide-in-from-top-2">
+            <div className="flex items-center gap-2 text-xs font-bold">
+              <CheckCircle2 className="w-4 h-4 text-emerald-300 shrink-0" />
+              <span>{avatarSuccessMsg}</span>
+            </div>
+            <button onClick={() => setAvatarSuccessMsg("")} className="text-emerald-200 hover:text-white">
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+        )}
+
+        {avatarErrorMsg && (
+          <div className="p-3.5 rounded-2xl bg-rose-900/90 text-white border border-rose-400 shadow-xl flex items-center justify-between gap-3 animate-in fade-in slide-in-from-top-2">
+            <div className="flex items-center gap-2 text-xs font-bold">
+              <AlertCircle className="w-4 h-4 text-rose-300 shrink-0" />
+              <span>{avatarErrorMsg}</span>
+            </div>
+            <button onClick={() => setAvatarErrorMsg("")} className="text-rose-200 hover:text-white">
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+        )}
+
         {actionSuccessMsg && (
           <div className="p-3.5 rounded-2xl bg-emerald-900/90 text-white border border-emerald-400 shadow-xl flex items-center justify-between gap-3 animate-in fade-in slide-in-from-top-2">
             <div className="flex items-center gap-2 text-xs font-bold">
@@ -348,24 +492,90 @@ export default function EmployeeProfileView({
 
             <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6 relative z-10">
               
+              {/* Hidden File Input for Avatar Upload */}
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/png,image/jpeg,image/jpg,image/webp"
+                className="hidden"
+                onChange={handleAvatarFileSelect}
+              />
+
               {/* Coach Identity */}
               <div className="flex items-center gap-4 sm:gap-5">
-                <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-gradient-to-tr from-sky-400 via-sky-600 to-blue-700 flex items-center justify-center text-white font-black text-2xl sm:text-3xl shadow-xl border-2 border-white/40 overflow-hidden shrink-0">
-                  {user.avatarUrl || user.avatar_url ? (
-                    <img
-                      src={getAvatarImageUrl(user.avatarUrl || user.avatar_url) || ""}
-                      alt={user.name}
-                      className="w-full h-full object-cover rounded-full"
-                    />
-                  ) : (
-                    user.name.split(" ").map((n) => n[0]).join("")
+                {/* Circle Avatar with Upload Option & Camera Button */}
+                <div className="relative group shrink-0">
+                  <div
+                    onClick={() => !avatarUploading && fileInputRef.current?.click()}
+                    className="w-18 h-18 sm:w-22 sm:h-22 md:w-24 md:h-24 rounded-full bg-gradient-to-tr from-sky-400 via-sky-600 to-blue-700 flex items-center justify-center text-white font-black text-2xl sm:text-3xl md:text-4xl shadow-2xl border-4 border-white/40 overflow-hidden relative cursor-pointer select-none transition-transform duration-200 group-hover:scale-105"
+                    title="Click to add or update profile picture"
+                  >
+                    {currentUser.avatarUrl || currentUser.avatar_url ? (
+                      <img
+                        src={getAvatarImageUrl(currentUser.avatarUrl || currentUser.avatar_url) || ""}
+                        alt={currentUser.name}
+                        className="w-full h-full object-cover rounded-full"
+                      />
+                    ) : (
+                      <span>{currentUser.name.split(" ").map((n) => n[0]).join("")}</span>
+                    )}
+
+                    {/* Darkened Hover Overlay */}
+                    <div className="absolute inset-0 bg-black/60 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex flex-col items-center justify-center text-white p-1 text-center backdrop-blur-[2px]">
+                      {avatarUploading ? (
+                        <Loader2 className="w-6 h-6 animate-spin text-white" />
+                      ) : (
+                        <>
+                          <Camera className="w-5 h-5 mb-0.5 text-sky-300 drop-shadow" />
+                          <span className="text-[10px] font-black uppercase tracking-wider text-slate-100">
+                            {currentUser.avatarUrl || currentUser.avatar_url ? "Update" : "Add Pic"}
+                          </span>
+                        </>
+                      )}
+                    </div>
+
+                    {/* Active Uploading Spinner Overlay */}
+                    {avatarUploading && (
+                      <div className="absolute inset-0 bg-slate-900/85 rounded-full flex flex-col items-center justify-center text-white backdrop-blur-sm z-20">
+                        <Loader2 className="w-6 h-6 animate-spin text-sky-400" />
+                        <span className="text-[9px] font-bold text-sky-200 mt-1">Saving...</span>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Camera Action Badge Button */}
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      fileInputRef.current?.click();
+                    }}
+                    disabled={avatarUploading}
+                    className="absolute -bottom-1 -right-1 p-2 sm:p-2.5 rounded-full bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-400 hover:to-blue-500 text-white shadow-xl border-2 border-slate-900 transition-all duration-200 hover:scale-115 active:scale-95 disabled:opacity-50 z-10 cursor-pointer"
+                    title="Upload or update profile picture"
+                    aria-label="Upload profile picture"
+                  >
+                    <Camera className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-white drop-shadow" />
+                  </button>
+
+                  {/* Remove Avatar Button (visible on hover if custom avatar exists) */}
+                  {(currentUser.avatarUrl || currentUser.avatar_url) && !avatarUploading && (
+                    <button
+                      type="button"
+                      onClick={handleRemoveAvatar}
+                      className="absolute -top-1 -right-1 p-1.5 rounded-full bg-rose-600 hover:bg-rose-500 text-white shadow-lg border-2 border-slate-900 transition-all duration-200 hover:scale-115 opacity-0 group-hover:opacity-100 z-10 cursor-pointer"
+                      title="Remove profile picture"
+                      aria-label="Remove profile picture"
+                    >
+                      <Trash2 className="w-3 h-3 text-white" />
+                    </button>
                   )}
                 </div>
 
                 <div>
                   <div className="flex items-center gap-2.5 flex-wrap">
                     <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-white font-[family-name:var(--font-outfit)]">
-                      {user.name}
+                      {currentUser.name}
                     </h1>
                     <span className="px-3 py-0.5 rounded-full text-[11px] font-black uppercase border border-amber-300 shadow-sm bg-gradient-to-r from-amber-400 to-amber-600 text-amber-950">
                       <Crown className="w-3.5 h-3.5 inline mr-1 -mt-0.5" />
@@ -380,7 +590,7 @@ export default function EmployeeProfileView({
                   <div className="flex items-center gap-3 sm:gap-4 text-xs text-slate-300 mt-2 flex-wrap font-medium">
                     <span className="flex items-center gap-1.5 font-bold text-sky-200 bg-white/10 px-2.5 py-0.5 rounded-lg border border-white/15 shadow-2xs">
                       <ShieldCheck className="w-3.5 h-3.5 text-sky-400" />
-                      {getUserRoleLabel(user)}
+                      {getUserRoleLabel(currentUser)}
                     </span>
                     <span className="flex items-center gap-1.5 text-slate-300 font-semibold bg-white/10 px-2 py-0.5 rounded border border-white/10">
                       <Activity className="w-3.5 h-3.5 text-sky-400" />
@@ -388,11 +598,11 @@ export default function EmployeeProfileView({
                     </span>
                     <span className="flex items-center gap-1 text-slate-300">
                       <Mail className="w-3.5 h-3.5 text-slate-400" />
-                      {user.email}
+                      {currentUser.email}
                     </span>
                     <span className="flex items-center gap-1 text-slate-300">
                       <Phone className="w-3.5 h-3.5 text-slate-400" />
-                      {user.phone}
+                      {currentUser.phone}
                     </span>
                   </div>
                 </div>
