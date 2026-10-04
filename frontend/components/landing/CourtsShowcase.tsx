@@ -401,6 +401,19 @@ export default function CourtsShowcase() {
     };
   }, [handleOpenBooking]);
 
+  // Handle custom window event to display the common all-courts section
+  useEffect(() => {
+    const handleShowAllCourtsEvent = () => {
+      setFilterSport("all");
+      setSelectedFacility(null);
+    };
+
+    window.addEventListener("show-all-courts", handleShowAllCourtsEvent);
+    return () => {
+      window.removeEventListener("show-all-courts", handleShowAllCourtsEvent);
+    };
+  }, []);
+
   // Fetch slot availability when court or date changes
   const fetchAvailability = useCallback(async () => {
     if (!selectedCourtId || !selectedDate) return;

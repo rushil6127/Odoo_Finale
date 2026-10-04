@@ -189,7 +189,7 @@ export default function Navbar() {
                     const courtsEl = document.getElementById("courts");
                     if (courtsEl) courtsEl.scrollIntoView({ behavior: "smooth", block: "start" });
                     window.dispatchEvent(
-                      new CustomEvent("open-court-booking", { detail: { sportId: "tennis" } })
+                      new CustomEvent("show-all-courts", {})
                     );
                   }
                 }}

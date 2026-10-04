@@ -48,6 +48,19 @@ export default function HeroSection() {
     { id: "swimming", name: "Olympic Pool", count: "Heated 50m", icon: Waves },
   ];
 
+  const handleReserveClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+
+    const courtsEl = document.getElementById("courts");
+    if (courtsEl) {
+      courtsEl.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+
+    if (typeof window !== "undefined") {
+      window.dispatchEvent(new CustomEvent("show-all-courts", {}));
+    }
+  };
+
   const handleBookClick = (e: React.MouseEvent, sportId?: string) => {
     e.preventDefault();
     const targetSport = sportId || selectedSport || "tennis";
@@ -126,7 +139,7 @@ export default function HeroSection() {
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3.5 sm:gap-4 mb-12">
             <Link
               href="#courts"
-              onClick={(e) => handleBookClick(e, "tennis")}
+              onClick={handleReserveClick}
               className="w-full sm:w-auto inline-flex items-center justify-center gap-2.5 px-7 py-3.5 rounded-full text-sm font-bold text-white bg-gradient-to-r from-sky-500 to-sky-600 hover:from-sky-600 hover:to-blue-700 shadow-lg shadow-sky-500/25 hover:shadow-sky-500/40 hover:-translate-y-0.5 transition-all duration-200"
             >
               <Calendar className="w-4 h-4 text-[#CCFF00]" />
