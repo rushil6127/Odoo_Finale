@@ -1,7 +1,7 @@
 import time
 from collections import defaultdict
 from threading import Lock
-from typing import Tuple, Optional
+from typing import Tuple, Optional, List
 from flask import has_request_context, request
 from flask_jwt_extended import create_access_token
 from backend.app.extensions import db
