@@ -337,34 +337,33 @@ export default function ReportsPage() {
                 />
 
                 {/* Dynamic Segments */}
-                {(() => {
+                {deptRevenue.map((dept, idx) => {
                   const CIRCUMFERENCE = 314.16;
-                  let accum = 0;
-                  return deptRevenue.map((dept, idx) => {
-                    const segLength = (dept.sharePct / 100) * CIRCUMFERENCE;
-                    const offset = -accum;
-                    accum += segLength;
-                    const colors = ["#10b981", "#0ea5e9", "#f59e0b", "#8b5cf6", "#ec4899", "#06b6d4"];
-                    const strokeColor = colors[idx % colors.length];
-                    return (
-                      <circle
-                        key={dept.department}
-                        cx="64"
-                        cy="64"
-                        r="50"
-                        stroke={strokeColor}
-                        strokeWidth="12"
-                        strokeDasharray={chartAnimated ? `${segLength.toFixed(2)} ${CIRCUMFERENCE}` : `0 ${CIRCUMFERENCE}`}
-                        strokeDashoffset={offset.toFixed(2)}
-                        strokeLinecap="butt"
-                        fill="none"
-                        style={{
-                          transition: `stroke-dasharray 1.1s cubic-bezier(0.16, 1, 0.3, 1) ${(idx * 0.15).toFixed(2)}s`,
-                        }}
-                      />
-                    );
-                  });
-                })()}
+                  const segLength = (dept.sharePct / 100) * CIRCUMFERENCE;
+                  const prevLengthSum = deptRevenue
+                    .slice(0, idx)
+                    .reduce((sum, d) => sum + (d.sharePct / 100) * CIRCUMFERENCE, 0);
+                  const offset = -prevLengthSum;
+                  const colors = ["#10b981", "#0ea5e9", "#f59e0b", "#8b5cf6", "#ec4899", "#06b6d4"];
+                  const strokeColor = colors[idx % colors.length];
+                  return (
+                    <circle
+                      key={dept.department}
+                      cx="64"
+                      cy="64"
+                      r="50"
+                      stroke={strokeColor}
+                      strokeWidth="12"
+                      strokeDasharray={chartAnimated ? `${segLength.toFixed(2)} ${CIRCUMFERENCE}` : `0 ${CIRCUMFERENCE}`}
+                      strokeDashoffset={offset.toFixed(2)}
+                      strokeLinecap="butt"
+                      fill="none"
+                      style={{
+                        transition: `stroke-dasharray 1.1s cubic-bezier(0.16, 1, 0.3, 1) ${(idx * 0.15).toFixed(2)}s`,
+                      }}
+                    />
+                  );
+                })}
 
                 {/* Inner Precision Hairline Ring */}
                 <circle
