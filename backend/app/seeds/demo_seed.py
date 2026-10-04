@@ -11,7 +11,7 @@ Covers:
 
 import os
 from datetime import date, datetime, timedelta
-from typing import Dict, Any, List
+from typing import Dict, Any, List, Optional
 from decimal import Decimal
 
 from flask import current_app
