@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { 
   Check, 
@@ -12,6 +12,7 @@ import {
   ArrowRight,
   HelpCircle
 } from "lucide-react";
+import { apiClient } from "@/lib/api/client";
 
 interface Plan {
   id: string;
@@ -26,7 +27,7 @@ interface Plan {
   features: { name: string; included: boolean }[];
 }
 
-const plans: Plan[] = [
+const DEFAULT_PLANS: Plan[] = [
   {
     id: "silver",
     name: "Silver Tier",
@@ -112,8 +113,54 @@ const plans: Plan[] = [
   },
 ];
 
-export default function MembershipPlans() {
+function mapLivePlans(livePlans: any[], basePlans: Plan[] = DEFAULT_PLANS): Plan[] {
+  if (!livePlans || !livePlans.length) return basePlans;
+  return basePlans.map((staticPlan) => {
+    const livePlan = livePlans.find(
+      (p: any) => p.code?.toLowerCase() === staticPlan.id.toLowerCase()
+    );
+    if (!livePlan) return staticPlan;
+
+    const monthlyFee = Number(livePlan.displayed_monthly_price);
+    const liveFeatures = livePlan.benefits?.features || [];
+
+    return {
+      ...staticPlan,
+      name: livePlan.name || staticPlan.name,
+      annualPrice: monthlyFee,
+      monthlyPrice: Math.round(monthlyFee * 1.25),
+      benefits: liveFeatures.length > 0 ? liveFeatures : staticPlan.benefits,
+    };
+  });
+}
+
+interface MembershipPlansProps {
+  initialPlans?: any[] | null;
+}
+
+export default function MembershipPlans({ initialPlans }: MembershipPlansProps) {
   const [isAnnual, setIsAnnual] = useState(true);
+  const [plansList, setPlansList] = useState<Plan[]>(() =>
+    initialPlans && initialPlans.length > 0 ? mapLivePlans(initialPlans) : DEFAULT_PLANS
+  );
+
+  useEffect(() => {
+    let isMounted = true;
+    async function fetchLivePlans() {
+      try {
+        const data = await apiClient.get<{ plans: any[] }>("/membership-plans");
+        if (data?.plans?.length && isMounted) {
+          setPlansList(mapLivePlans(data.plans));
+        }
+      } catch {
+        // Fallback gracefully to default plans
+      }
+    }
+    fetchLivePlans();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   return (
     <section id="memberships" className="py-20 bg-slate-50 relative overflow-hidden">
@@ -157,7 +204,7 @@ export default function MembershipPlans() {
 
         {/* Pricing Cards Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-stretch">
-          {plans.map((plan) => {
+          {plansList.map((plan) => {
             const price = isAnnual ? plan.annualPrice : plan.monthlyPrice;
 
             return (

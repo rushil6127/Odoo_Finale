@@ -8,7 +8,23 @@ import ProShopAndCafe from "@/components/landing/ProShopAndCafe";
 import EnquiryCrmSection from "@/components/landing/EnquiryCrmSection";
 import Footer from "@/components/landing/Footer";
 
-export default function HomePage() {
+async function getMembershipPlans() {
+  try {
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api/v1";
+    const res = await fetch(`${apiUrl}/membership-plans`, {
+      cache: "no-store",
+    });
+    if (!res.ok) return null;
+    const json = await res.json();
+    return json.data?.plans || null;
+  } catch {
+    return null;
+  }
+}
+
+export default async function HomePage() {
+  const plans = await getMembershipPlans();
+
   return (
     <main className="min-h-screen bg-white flex flex-col selection:bg-sky-200 selection:text-sky-900">
       {/* Floating Pill Navbar inspired by isaitnu & reference */}
@@ -27,7 +43,7 @@ export default function HomePage() {
       <CourtsShowcase />
 
       {/* Membership Tiers & Breakdown (Gold, Silver, Junior) */}
-      <MembershipPlans />
+      <MembershipPlans initialPlans={plans} />
 
       {/* Pro Shop Retail & Champions Lounge Cafeteria */}
       <ProShopAndCafe />
