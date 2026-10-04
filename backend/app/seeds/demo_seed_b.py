@@ -113,30 +113,54 @@ def seed_commerce_and_crm_demo():
     # ==========================
     # 3. POS System
     # ==========================
-    menu_cat_drinks = create_menu_category("Beverages", "beverages", 1)
-    menu_cat_food = create_menu_category("Snacks", "snacks", 2)
-    
-    item_coffee = create_menu_item(menu_cat_drinks.id, "COF-01", "Espresso", 150.0)
-    item_beer = create_menu_item(menu_cat_drinks.id, "BEER-01", "Craft Beer Pint", 350.0)
-    item_sandwich = create_menu_item(menu_cat_food.id, "SND-01", "Club Sandwich", 250.0)
-    
+    from backend.app.pos.models import POSMenuCategory, POSMenuItem
+
+    def get_or_create_pos_cat(name: str, slug: str, display_order: int = 1):
+        cat = POSMenuCategory.query.filter((POSMenuCategory.slug == slug) | (POSMenuCategory.name == name)).first()
+        if not cat:
+            cat = create_menu_category(name, slug, display_order)
+        return cat
+
+    def get_or_create_pos_item(cat_id: int, code: str, name: str, price: float, desc: str = "", prep_time: int = 10):
+        item = POSMenuItem.query.filter((POSMenuItem.code == code) | (POSMenuItem.name == name)).first()
+        if not item:
+            item = create_menu_item(cat_id, code, name, price, description=desc, preparation_time_minutes=prep_time)
+        return item
+
+    menu_cat_drinks = get_or_create_pos_cat("Beverages & Coffee", "beverages", 1)
+    menu_cat_snacks = get_or_create_pos_cat("Snacks & Appetizers", "snacks", 2)
+    menu_cat_meals = get_or_create_pos_cat("Meals & Gourmet Bowls", "meals", 3)
+
+    item_coffee = get_or_create_pos_item(menu_cat_drinks.id, "B01", "Double Shot Espresso", 150.0, "Single-origin Arabica roast extracted at 9 bars with thick golden crema.", 5)
+    get_or_create_pos_item(menu_cat_drinks.id, "B02", "Artisan Cafe Latte / Cappuccino", 180.0, "Silky micro-foam steamed whole or oat milk over rich double-shot espresso.", 7)
+    get_or_create_pos_item(menu_cat_drinks.id, "B03", "Cascade Nitro Cold Brew", 210.0, "Steeped for 24 hours and infused with pure nitrogen for a velvety, stout-like texture.", 3)
+    get_or_create_pos_item(menu_cat_drinks.id, "B04", "Whey Protein Berry Blast Smoothie", 320.0, "30g grass-fed whey isolate, organic blueberries, banana, chia seeds, and almond milk.", 6)
+
+    get_or_create_pos_item(menu_cat_snacks.id, "S01", "Truffle Parmesan Crisp Fries", 220.0, "Hand-cut Idaho potatoes tossed with white truffle oil, rosemary, and aged Parmigiano.", 10)
+    get_or_create_pos_item(menu_cat_snacks.id, "S02", "Loaded Guacamole Nachos", 280.0, "Stone-ground organic corn chips, fresh pico de gallo, smashed Haas avocado, and warm queso.", 10)
+    get_or_create_pos_item(menu_cat_snacks.id, "S03", "Crispy Golden Onion Rings", 190.0, "Panko & craft-beer battered Vidalia onion rings with smoked chipotle dipping sauce.", 8)
+
+    item_sandwich = get_or_create_pos_item(menu_cat_meals.id, "M01", "Champions Club Artisan Sandwich", 290.0, "Roasted herb turkey breast, Haas avocado, arugula, aged white cheddar on toasted sourdough.", 12)
+    get_or_create_pos_item(menu_cat_meals.id, "M02", "Grilled Chicken & Avocado Burger", 350.0, "Free-range marinated chicken breast, smashed avocado, heirloom tomato on a toasted brioche bun.", 15)
+    get_or_create_pos_item(menu_cat_meals.id, "M03", "Mediterranean Quinoa & Protein Salad", 340.0, "Organic red quinoa, kalamata olives, diced cucumbers, bell peppers, Greek feta, and lemon vinaigrette.", 10)
+
     table_1 = create_table("T1", "Terrace 1")
     table_2 = create_table("T2", "Lounge 1")
-    
+
     # Start a shift
     shift = start_shift(bar_user.id, starting_cash=1000.0)
-    
+
     # Closed Tab
     tab_1 = open_tab(table_1.id, bar_user, member_id=gold_member.id, shift_id=shift.id)
     add_items_to_tab(tab_1.id, [{"menu_item_id": item_coffee.id, "quantity": 2}], bar_user)
     send_tab_to_kitchen(tab_1.id, bar_user)
     pay_tab(tab_1.id, "CARD", staff_user=bar_user)
     close_tab(tab_1.id, bar_user)
-    
+
     # Open Tab
     tab_2 = open_tab(table_2.id, bar_user, customer_name="Walk-in Guest", shift_id=shift.id)
-    add_items_to_tab(tab_2.id, [{"menu_item_id": item_beer.id, "quantity": 1}, {"menu_item_id": item_sandwich.id, "quantity": 1}], bar_user)
-    
+    add_items_to_tab(tab_2.id, [{"menu_item_id": item_coffee.id, "quantity": 1}, {"menu_item_id": item_sandwich.id, "quantity": 1}], bar_user)
+
     end_shift(shift.id, ending_cash=1500.0)
 
     # ==========================
