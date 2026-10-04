@@ -109,8 +109,7 @@ export default function LoginPage() {
         });
 
         const loginBtn = document.getElementById("google-signin-login");
-        if (loginBtn) {
-          loginBtn.innerHTML = "";
+        if (loginBtn && !loginBtn.hasChildNodes()) {
           google.accounts.id.renderButton(loginBtn, {
             theme: "outline",
             size: "large",
@@ -121,8 +120,7 @@ export default function LoginPage() {
         }
 
         const regBtn = document.getElementById("google-signin-register");
-        if (regBtn) {
-          regBtn.innerHTML = "";
+        if (regBtn && !regBtn.hasChildNodes()) {
           google.accounts.id.renderButton(regBtn, {
             theme: "outline",
             size: "large",
@@ -150,11 +148,9 @@ export default function LoginPage() {
     document.body.appendChild(script);
 
     return () => {
-      if (document.body.contains(script)) {
-        document.body.removeChild(script);
-      }
+      // Keep script cached in document to avoid re-injections
     };
-  }, [handleGoogleResponse, activeView]);
+  }, [handleGoogleResponse]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -301,7 +297,10 @@ export default function LoginPage() {
         />
 
         {/* Register Form */}
-        <div className={`form register ${activeView === "register" ? "active" : ""}`}>
+        <div
+          className={`form register ${activeView === "register" ? "active" : ""}`}
+          aria-hidden={activeView !== "register"}
+        >
           <h2>Sign Up</h2>
 
           {/* Official Google Button Container */}
@@ -375,7 +374,10 @@ export default function LoginPage() {
         />
 
         {/* Login Form */}
-        <div className={`form login ${activeView === "login" ? "active" : ""}`}>
+        <div
+          className={`form login ${activeView === "login" ? "active" : ""}`}
+          aria-hidden={activeView !== "login"}
+        >
           <h2>Login</h2>
 
           {/* Official Google Button Container */}
