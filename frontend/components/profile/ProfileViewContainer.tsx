@@ -60,6 +60,7 @@ import {
   uploadUserAvatar,
   deleteUserAvatar,
   getAvatarImageUrl,
+  updateMyMemberProfile,
 } from "@/lib/auth";
 import { apiClient } from "@/lib/api/client";
 import EmployeeProfileView from "@/components/profile/EmployeeProfileView";
@@ -543,6 +544,8 @@ export default function ProfileViewContainer({ forcedMode }: ProfileViewContaine
     crmInquiries: user?.crmInquiries || [],
     avatarUrl: (user as any)?.avatar_url || user?.avatarUrl,
     avatar_url: (user as any)?.avatar_url || user?.avatarUrl,
+    date_of_birth: memberProfileData?.date_of_birth || (user as any)?.date_of_birth,
+    age: memberProfileData?.age ?? (user as any)?.age,
     employeeData: user?.employeeData || DEFAULT_COACH_EMPLOYEE_DATA,
   };
 
@@ -671,8 +674,19 @@ export default function ProfileViewContainer({ forcedMode }: ProfileViewContaine
     if (typeof window !== "undefined") {
       const params = new URLSearchParams(window.location.search);
       const tab = params.get("tab") as TabType;
+      const focus = params.get("focus");
       if (tab && ["overview", "calendar", "crm", "orders", "bookings", "payments", "settings"].includes(tab)) {
         setActiveTab(tab);
+      }
+      if (focus === "dob") {
+        setActiveTab("settings");
+        setTimeout(() => {
+          const el = document.getElementById("dob-input");
+          if (el) {
+            el.focus();
+            el.scrollIntoView({ behavior: "smooth", block: "center" });
+          }
+        }, 350);
       }
     }
   }, []);
@@ -846,10 +860,34 @@ export default function ProfileViewContainer({ forcedMode }: ProfileViewContaine
   const [editName, setEditName] = useState(activeUser.name);
   const [editPhone, setEditPhone] = useState(activeUser.phone);
   const [editEmail, setEditEmail] = useState(activeUser.email);
+  const [editDob, setEditDob] = useState<string>("");
   const [preferredSport, setPreferredSport] = useState("Tennis");
   const [skillLevel, setSkillLevel] = useState("Advanced (NTRP 4.5)");
   const [dietaryPref, setDietaryPref] = useState("High-Protein / Keto Friendly");
   const [settingsSaved, setSettingsSaved] = useState(false);
+  const [isSavingSettings, setIsSavingSettings] = useState(false);
+  const [settingsError, setSettingsError] = useState("");
+
+  // Sync DOB from member profile when loaded
+  useEffect(() => {
+    if (memberProfileData?.date_of_birth) {
+      setEditDob(memberProfileData.date_of_birth.substring(0, 10));
+    }
+  }, [memberProfileData?.date_of_birth]);
+
+  // Live calculated age from editDob
+  const calculatedAge = useMemo(() => {
+    if (!editDob) return null;
+    const birth = new Date(editDob);
+    if (isNaN(birth.getTime())) return null;
+    const today = new Date();
+    let age = today.getFullYear() - birth.getFullYear();
+    const m = today.getMonth() - birth.getMonth();
+    if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) {
+      age--;
+    }
+    return age >= 0 ? age : null;
+  }, [editDob]);
 
   // Filter states
   const [orderFilter, setOrderFilter] = useState<"ALL" | "PRO_SHOP" | "CAFE" | "STRINGING">("ALL");
@@ -1021,17 +1059,42 @@ export default function ProfileViewContainer({ forcedMode }: ProfileViewContaine
     }
   };
 
-  const handleSaveSettings = (e: React.FormEvent) => {
+  const handleSaveSettings = async (e: React.FormEvent) => {
     e.preventDefault();
-    const updatedUser: AuthUserProfile = {
-      ...activeUser,
-      name: editName.trim() || activeUser.name,
-      phone: editPhone.trim() || activeUser.phone,
-      email: editEmail.trim() || activeUser.email,
-    };
-    setStoredUser(updatedUser);
-    setSettingsSaved(true);
-    setTimeout(() => setSettingsSaved(false), 3000);
+    setIsSavingSettings(true);
+    setSettingsError("");
+    try {
+      // 1. Update member record in database (members table: date_of_birth, phone)
+      const updateRes = await updateMyMemberProfile({
+        date_of_birth: editDob || null,
+        phone: editPhone.trim() || undefined,
+      });
+
+      if (updateRes && (updateRes as any).id) {
+        setMemberProfileData(updateRes);
+      } else {
+        await fetchLiveMemberData();
+      }
+
+      // 2. Persist to stored auth user state
+      const updatedUser: AuthUserProfile = {
+        ...activeUser,
+        name: editName.trim() || activeUser.name,
+        phone: editPhone.trim() || activeUser.phone,
+        email: editEmail.trim() || activeUser.email,
+        date_of_birth: editDob || undefined,
+        age: calculatedAge ?? undefined,
+      };
+      setStoredUser(updatedUser);
+
+      setSettingsSaved(true);
+      setTimeout(() => setSettingsSaved(false), 3500);
+    } catch (err: any) {
+      console.error("Failed to update profile settings:", err);
+      setSettingsError(err?.message || "Failed to update profile settings.");
+    } finally {
+      setIsSavingSettings(false);
+    }
   };
 
   const getTierColor = (plan: string) => {
@@ -1427,6 +1490,32 @@ export default function ProfileViewContainer({ forcedMode }: ProfileViewContaine
                       <Phone className="w-3.5 h-3.5 text-slate-400" />
                       {activeUser.phone}
                     </span>
+                    {memberProfileData?.date_of_birth ? (
+                      <span className="flex items-center gap-1 text-emerald-300 font-medium bg-emerald-950/50 px-2.5 py-0.5 rounded border border-emerald-800/60">
+                        <CalendarIcon className="w-3.5 h-3.5 text-emerald-400" />
+                        <span>DOB: {new Date(memberProfileData.date_of_birth).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}</span>
+                        {memberProfileData.age ? <span className="font-bold text-white">({memberProfileData.age} yrs)</span> : null}
+                      </span>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setActiveTab("settings");
+                          setTimeout(() => {
+                            const el = document.getElementById("dob-input");
+                            if (el) {
+                              el.focus();
+                              el.scrollIntoView({ behavior: "smooth", block: "center" });
+                            }
+                          }, 100);
+                        }}
+                        className="flex items-center gap-1 text-amber-300 hover:text-amber-200 bg-amber-950/60 px-2 py-0.5 rounded border border-amber-700/60 font-bold transition-colors cursor-pointer"
+                        title="Click to enter your date of birth"
+                      >
+                        <AlertTriangle className="w-3.5 h-3.5 text-amber-400" />
+                        <span>Add Date of Birth</span>
+                      </button>
+                    )}
                   </div>
                 </div>
               </div>
@@ -2723,13 +2812,18 @@ export default function ProfileViewContainer({ forcedMode }: ProfileViewContaine
               <div className="p-6 sm:p-8 space-y-6 animate-in fade-in duration-200">
 
                 <form onSubmit={handleSaveSettings} className="space-y-5">
-                  <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+                  <div className="flex items-center justify-between pb-3 border-b border-slate-100 flex-wrap gap-2">
                     <h4 className="text-xs font-extrabold uppercase tracking-wider text-slate-500">
                       Personal Information & Club Preferences
                     </h4>
                     {settingsSaved && (
                       <span className="text-xs font-bold text-green-700 bg-green-100 px-3 py-1 rounded-full border border-green-300 flex items-center gap-1">
                         <CheckCircle2 className="w-3.5 h-3.5" /> Details Updated Successfully!
+                      </span>
+                    )}
+                    {settingsError && (
+                      <span className="text-xs font-bold text-rose-700 bg-rose-100 px-3 py-1 rounded-full border border-rose-300 flex items-center gap-1">
+                        <AlertCircle className="w-3.5 h-3.5" /> {settingsError}
                       </span>
                     )}
                   </div>
@@ -2781,14 +2875,48 @@ export default function ProfileViewContainer({ forcedMode }: ProfileViewContaine
                         <option value="Aquatics">Heated Olympic Pool</option>
                       </select>
                     </div>
+
+                    {/* Date of Birth Field */}
+                    <div className="sm:col-span-2 p-4 rounded-2xl bg-sky-50/70 border border-sky-200/80 transition-all">
+                      <div className="flex items-center justify-between gap-2 mb-2 flex-wrap">
+                        <label htmlFor="dob-input" className="text-xs font-extrabold text-slate-800 flex items-center gap-1.5">
+                          <CalendarIcon className="w-4 h-4 text-sky-600" />
+                          <span>Date of Birth</span>
+                          <span className="text-rose-500 font-black">*</span>
+                        </label>
+                        {calculatedAge !== null && (
+                          <span className="text-xs font-extrabold px-2.5 py-0.5 rounded-full bg-sky-600 text-white shadow-sm flex items-center gap-1.5">
+                            <span>Age: {calculatedAge} years</span>
+                            {calculatedAge < 18 ? (
+                              <span className="text-[10px] bg-emerald-400 text-slate-950 px-1.5 py-0.2 rounded font-black uppercase tracking-wide">Junior</span>
+                            ) : (
+                              <span className="text-[10px] bg-white/20 text-white px-1.5 py-0.2 rounded font-bold uppercase tracking-wide">Adult</span>
+                            )}
+                          </span>
+                        )}
+                      </div>
+                      <input
+                        id="dob-input"
+                        type="date"
+                        value={editDob}
+                        max={new Date().toISOString().split("T")[0]}
+                        onChange={(e) => setEditDob(e.target.value)}
+                        className="w-full sm:w-72 px-4 py-2.5 rounded-xl border border-slate-300 bg-white text-xs font-bold text-slate-900 focus:outline-none focus:border-sky-500 focus:ring-2 focus:ring-sky-500/20 shadow-sm"
+                      />
+                      <p className="text-[11px] text-slate-500 mt-2 font-medium leading-relaxed">
+                        Required for age-restricted plans (e.g. <strong>Junior Academy</strong> is exclusively for ages 6–18) and official tournament registrations.
+                      </p>
+                    </div>
                   </div>
 
                   <div className="flex justify-end pt-2">
                     <button
                       type="submit"
-                      className="px-6 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-extrabold text-xs shadow-md transition-all"
+                      disabled={isSavingSettings}
+                      className="px-6 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 disabled:opacity-60 text-white font-extrabold text-xs shadow-md transition-all flex items-center gap-2 cursor-pointer"
                     >
-                      Save Preferences
+                      {isSavingSettings && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
+                      <span>{isSavingSettings ? "Saving Changes..." : "Save Preferences"}</span>
                     </button>
                   </div>
                 </form>

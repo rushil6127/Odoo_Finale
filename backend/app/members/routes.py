@@ -75,11 +75,77 @@ def get_my_member_profile():
     """Retrieve profile of the currently logged-in user."""
     member = get_member_by_user_id(current_user.id)
     if not member:
-        raise NotFoundException("Member profile not found for the current user.")
+        # Create baseline member record for current user if missing
+        from backend.app.extensions import db
+        from backend.app.members.models import Member
+        member = Member(user_id=current_user.id, phone=current_user.email)
+        db.session.add(member)
+        db.session.commit()
     return success_response(
         data={"member": member.to_dict(include_membership=True, include_user=True)},
         status_code=200,
     )
+
+
+@members_bp.route("/me", methods=["PUT", "PATCH"])
+@jwt_required()
+def update_my_member_profile():
+    """Update profile and date of birth for the currently logged-in user."""
+    from datetime import datetime
+    from backend.app.extensions import db
+    from backend.app.common.errors import BadRequestException
+    from backend.app.members.models import Member
+
+    member = get_member_by_user_id(current_user.id)
+    body = request.get_json(silent=True) or {}
+
+    # Parse date_of_birth
+    dob_val = body.get("date_of_birth")
+    dob_parsed = None
+    if dob_val:
+        if isinstance(dob_val, str):
+            try:
+                dob_parsed = datetime.strptime(dob_val.strip(), "%Y-%m-%d").date()
+            except ValueError:
+                try:
+                    dob_parsed = datetime.fromisoformat(dob_val.strip()).date()
+                except Exception:
+                    raise BadRequestException("Invalid date_of_birth format. Use YYYY-MM-DD.")
+        else:
+            dob_parsed = dob_val
+
+    if not member:
+        member = Member(
+            user_id=current_user.id,
+            phone=body.get("phone") or "",
+            date_of_birth=dob_parsed,
+            gender=body.get("gender"),
+            address=body.get("address"),
+            emergency_contact_name=body.get("emergency_contact_name"),
+            emergency_contact_phone=body.get("emergency_contact_phone"),
+        )
+        db.session.add(member)
+    else:
+        if "date_of_birth" in body:
+            member.date_of_birth = dob_parsed
+        if "phone" in body:
+            member.phone = body.get("phone")
+        if "gender" in body:
+            member.gender = body.get("gender")
+        if "address" in body:
+            member.address = body.get("address")
+        if "emergency_contact_name" in body:
+            member.emergency_contact_name = body.get("emergency_contact_name")
+        if "emergency_contact_phone" in body:
+            member.emergency_contact_phone = body.get("emergency_contact_phone")
+
+    db.session.commit()
+    return success_response(
+        data={"member": member.to_dict(include_membership=True, include_user=True)},
+        message="Member profile updated successfully",
+        status_code=200,
+    )
+
 
 
 @members_bp.route("", methods=["POST"])

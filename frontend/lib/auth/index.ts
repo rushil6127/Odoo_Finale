@@ -194,6 +194,8 @@ export interface AuthUserProfile {
   clubTabsOutstanding: number;
   avatarUrl?: string;
   avatar_url?: string;
+  date_of_birth?: string;
+  age?: number;
   crmInquiries: UserCRMInquiry[];
   orders: UserOrder[];
   bookings: UserBooking[];
@@ -801,6 +803,18 @@ export async function fetchMemberProfile(): Promise<MemberProfile> {
 
 export async function updateMemberProfile(memberId: number, data: Partial<MemberProfile>): Promise<MemberProfile> {
   const res = await apiClient.put<{ member: MemberProfile }>(`/members/${memberId}`, data);
+  return res.member;
+}
+
+export async function updateMyMemberProfile(data: {
+  date_of_birth?: string | null;
+  phone?: string;
+  gender?: string;
+  address?: string;
+  emergency_contact_name?: string;
+  emergency_contact_phone?: string;
+}): Promise<MemberProfile> {
+  const res = await apiClient.put<{ member: MemberProfile }>("/members/me", data);
   return res.member;
 }
 

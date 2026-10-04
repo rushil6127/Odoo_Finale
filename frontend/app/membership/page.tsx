@@ -199,6 +199,27 @@ function MembershipContent() {
   } | null>(null);
   const [showLoginPrompt, setShowLoginPrompt] = useState(false);
   const [payMethod, setPayMethod] = useState<"razorpay" | "upi" | "card" | "netbanking">("razorpay");
+  const [dobCountdown, setDobCountdown] = useState<number | null>(null);
+
+  // Auto-redirect to profile settings when date of birth error occurs
+  useEffect(() => {
+    if (error && error.toLowerCase().includes("date of birth")) {
+      setDobCountdown(3);
+      const interval = setInterval(() => {
+        setDobCountdown((prev) => {
+          if (prev === null || prev <= 1) {
+            clearInterval(interval);
+            router.push("/profile?tab=settings&focus=dob");
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+      return () => clearInterval(interval);
+    } else {
+      setDobCountdown(null);
+    }
+  }, [error, router]);
 
   const loadData = useCallback(async () => {
     setLoading(true);
@@ -1002,23 +1023,64 @@ function MembershipContent() {
 
             {/* Modal Title */}
             <h3 className="text-xl font-black text-slate-900 font-[family-name:var(--font-outfit)] tracking-tight">
-              {error.toLowerCase().includes("date of birth") || error.toLowerCase().includes("age")
-                ? "Profile Information Required"
+              {error.toLowerCase().includes("date of birth")
+                ? "Date of Birth Required"
+                : error.toLowerCase().includes("age")
+                ? "Age Restriction Notice"
                 : error.toLowerCase().includes("payment")
                 ? "Payment Notice"
                 : "Unable to Complete Action"}
             </h3>
 
             {/* Error Message */}
-            <p className="text-xs sm:text-sm font-medium text-slate-600 mt-2 mb-6 leading-relaxed max-w-sm">
+            <p className="text-xs sm:text-sm font-medium text-slate-600 mt-2 mb-4 leading-relaxed max-w-sm">
               {error}
             </p>
 
+            {/* Auto-redirect indicator for DOB error */}
+            {error.toLowerCase().includes("date of birth") && (
+              <div className="w-full bg-amber-50/90 border border-amber-200 rounded-2xl p-3.5 mb-5 text-left flex items-start gap-3">
+                <Clock className="w-4 h-4 text-amber-600 shrink-0 mt-0.5 animate-spin" />
+                <div className="text-xs text-amber-900 leading-snug">
+                  Redirecting to your profile settings to enter your Date of Birth in{" "}
+                  <strong className="font-extrabold text-amber-800 font-mono text-sm">
+                    {dobCountdown !== null ? `${dobCountdown}s` : "3s"}
+                  </strong>
+                  ...
+                </div>
+              </div>
+            )}
+
             {/* Action Buttons */}
-            {error.toLowerCase().includes("date of birth") || error.toLowerCase().includes("profile") ? (
+            {error.toLowerCase().includes("date of birth") ? (
+              <div className="flex flex-col sm:flex-row items-center gap-2.5 w-full">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setError(null);
+                    setDobCountdown(null);
+                    router.push("/profile?tab=settings&focus=dob");
+                  }}
+                  className="w-full py-3 px-5 rounded-2xl bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-600 hover:to-blue-700 text-white font-extrabold text-xs shadow-md shadow-sky-500/20 text-center transition-all flex items-center justify-center gap-2 cursor-pointer"
+                >
+                  <span>Enter Date of Birth Now</span>
+                  <ArrowRight className="w-4 h-4" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setError(null);
+                    setDobCountdown(null);
+                  }}
+                  className="w-full sm:w-auto py-3 px-5 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition-colors cursor-pointer"
+                >
+                  Stay Here
+                </button>
+              </div>
+            ) : error.toLowerCase().includes("profile") ? (
               <div className="flex flex-col sm:flex-row items-center gap-2.5 w-full">
                 <Link
-                  href="/profile"
+                  href="/profile?tab=settings"
                   onClick={() => setError(null)}
                   className="w-full py-3 px-5 rounded-2xl bg-gradient-to-r from-sky-500 to-sky-600 hover:from-sky-600 hover:to-blue-700 text-white font-bold text-xs shadow-md shadow-sky-500/20 text-center transition-all flex items-center justify-center gap-1.5"
                 >
