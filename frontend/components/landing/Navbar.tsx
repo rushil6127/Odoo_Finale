@@ -183,6 +183,16 @@ export default function Navbar() {
 
               <Link
                 href="/#courts"
+                onClick={(e) => {
+                  if (pathname === "/") {
+                    e.preventDefault();
+                    const courtsEl = document.getElementById("courts");
+                    if (courtsEl) courtsEl.scrollIntoView({ behavior: "smooth", block: "start" });
+                    window.dispatchEvent(
+                      new CustomEvent("open-court-booking", { detail: { sportId: "tennis" } })
+                    );
+                  }
+                }}
                 className="inline-flex items-center gap-1.5 text-xs font-bold text-white bg-gradient-to-r from-sky-500 to-sky-600 hover:from-sky-600 hover:to-blue-700 px-4 py-2 rounded-full shadow-md shadow-sky-500/20 hover:shadow-sky-500/35 transition-all duration-200 active:scale-95 border border-sky-400/30"
               >
                 <Calendar className="w-3.5 h-3.5 text-[#CCFF00]" />

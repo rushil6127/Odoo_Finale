@@ -350,7 +350,7 @@ export default function CourtsShowcase() {
   }, [selectedFacility, backendCourts]);
 
   // Open booking modal for a facility
-  const handleOpenBooking = (facility: CourtFacility) => {
+  const handleOpenBooking = useCallback((facility: CourtFacility) => {
     setSelectedFacility(facility);
     setBookingSuccess(null);
     setBookingError(null);
@@ -367,7 +367,39 @@ export default function CourtsShowcase() {
     if (!isAuthenticated) {
       setBookingTab("member");
     }
-  };
+  }, [backendCourts, isAuthenticated]);
+
+  // Handle custom window event to open court booking modal directly from hero CTA buttons
+  useEffect(() => {
+    const handleOpenBookingEvent = (e: Event) => {
+      const customEvent = e as CustomEvent<{ sportId?: string }>;
+      const sportId = customEvent.detail?.sportId || "tennis";
+
+      let facility = courtFacilities.find((f) => {
+        if (sportId === "tennis") return f.sportKey === "LAWN_TENNIS";
+        if (sportId === "cricket") return f.sportKey === "BOX_CRICKET";
+        if (sportId === "table-tennis") return f.sportKey === "TABLE_TENNIS";
+        if (sportId === "badminton") return f.sportKey === "BADMINTON";
+        if (sportId === "volleyball") return f.sportKey === "VOLLEYBALL";
+        if (sportId === "swimming") return f.sportKey === "SWIMMING_POOL";
+        return f.id === sportId || f.sportKey === sportId;
+      });
+
+      if (!facility) {
+        facility = courtFacilities[0];
+      }
+
+      setFilterSport(sportId);
+
+      // Open booking modal for the matched facility
+      handleOpenBooking(facility);
+    };
+
+    window.addEventListener("open-court-booking", handleOpenBookingEvent);
+    return () => {
+      window.removeEventListener("open-court-booking", handleOpenBookingEvent);
+    };
+  }, [handleOpenBooking]);
 
   // Fetch slot availability when court or date changes
   const fetchAvailability = useCallback(async () => {

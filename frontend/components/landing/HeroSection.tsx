@@ -48,6 +48,24 @@ export default function HeroSection() {
     { id: "swimming", name: "Olympic Pool", count: "Heated 50m", icon: Waves },
   ];
 
+  const handleBookClick = (e: React.MouseEvent, sportId?: string) => {
+    e.preventDefault();
+    const targetSport = sportId || selectedSport || "tennis";
+
+    const courtsEl = document.getElementById("courts");
+    if (courtsEl) {
+      courtsEl.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+
+    if (typeof window !== "undefined") {
+      window.dispatchEvent(
+        new CustomEvent("open-court-booking", {
+          detail: { sportId: targetSport },
+        })
+      );
+    }
+  };
+
   return (
     <section id="hero" className="relative pt-28 sm:pt-36 pb-16 sm:pb-24 overflow-hidden hero-gradient-bg">
       {/* Decorative Floating Blobs with Scroll Responsive Parallax */}
@@ -108,6 +126,7 @@ export default function HeroSection() {
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3.5 sm:gap-4 mb-12">
             <Link
               href="#courts"
+              onClick={(e) => handleBookClick(e, "tennis")}
               className="w-full sm:w-auto inline-flex items-center justify-center gap-2.5 px-7 py-3.5 rounded-full text-sm font-bold text-white bg-gradient-to-r from-sky-500 to-sky-600 hover:from-sky-600 hover:to-blue-700 shadow-lg shadow-sky-500/25 hover:shadow-sky-500/40 hover:-translate-y-0.5 transition-all duration-200"
             >
               <Calendar className="w-4 h-4 text-[#CCFF00]" />
@@ -172,6 +191,7 @@ export default function HeroSection() {
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
             <Link
               href="#courts"
+              onClick={(e) => handleBookClick(e, selectedSport)}
               className="w-full sm:w-auto px-8 py-3.5 rounded-full bg-gradient-to-r from-sky-500 via-sky-600 to-blue-700 hover:from-sky-600 hover:to-blue-800 text-white text-xs font-extrabold shadow-lg shadow-sky-500/25 hover:shadow-sky-500/40 hover:scale-105 active:scale-95 transition-all duration-200 flex items-center justify-center gap-2"
             >
               <span>Find & Book Available Slots</span>
