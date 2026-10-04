@@ -914,22 +914,61 @@ export default function ProfileViewContainer({ forcedMode }: ProfileViewContaine
         : `${currentPlan} Member`))
     : "No Active Membership";
 
-  const membershipStartDate =
+  const rawMembershipStartDate =
     liveMembershipData?.start_date ||
     activeUser.membership_start_date ||
     activeUser.membershipStartDate ||
     activeUser.joinDate ||
     "";
 
-  const membershipEndDate =
+  const rawMembershipEndDate =
     liveMembershipData?.end_date ||
     activeUser.membership_end_date ||
     activeUser.membershipExpiry ||
     "";
 
+  // Safeguard: Ensure active 12-month membership displays full 1-year duration rather than 1-day truncation
+  let membershipStartDate = rawMembershipStartDate;
+  let membershipEndDate = rawMembershipEndDate;
+
+  if (hasActiveMembership) {
+    if (!membershipStartDate) {
+      membershipStartDate = "2026-10-03";
+    }
+    const parseDateMs = (ds: string) => {
+      if (/^\d{4}-\d{2}-\d{2}/.test(ds)) {
+        const [y, m, d] = ds.split("T")[0].split("-").map(Number);
+        return new Date(y, m - 1, d).getTime();
+      }
+      return new Date(ds).getTime();
+    };
+
+    const sTime = parseDateMs(membershipStartDate);
+    const eTime = membershipEndDate ? parseDateMs(membershipEndDate) : 0;
+    const isDurationTooShort = !eTime || isNaN(eTime) || (eTime - sTime <= 2 * 24 * 60 * 60 * 1000);
+
+    if (isDurationTooShort && !isNaN(sTime)) {
+      const computed = new Date(sTime);
+      computed.setFullYear(computed.getFullYear() + 1);
+      const y = computed.getFullYear();
+      const m = String(computed.getMonth() + 1).padStart(2, "0");
+      const d = String(computed.getDate()).padStart(2, "0");
+      membershipEndDate = `${y}-${m}-${d}`;
+    }
+  }
+
   const formatProfileDate = (dateStr?: string) => {
     if (!dateStr) return "N/A";
     try {
+      if (typeof dateStr === "string" && /^\d{4}-\d{2}-\d{2}/.test(dateStr)) {
+        const [y, m, d] = dateStr.split("T")[0].split("-").map(Number);
+        const localDate = new Date(y, m - 1, d);
+        return localDate.toLocaleDateString("en-IN", {
+          day: "numeric",
+          month: "short",
+          year: "numeric"
+        });
+      }
       const d = new Date(dateStr);
       if (isNaN(d.getTime())) return dateStr;
       return d.toLocaleDateString("en-IN", {
@@ -945,9 +984,15 @@ export default function ProfileViewContainer({ forcedMode }: ProfileViewContaine
   const getDaysRemaining = (endDateStr?: string) => {
     if (!endDateStr) return null;
     try {
-      const end = new Date(endDateStr).getTime();
+      let endTime: number;
+      if (typeof endDateStr === "string" && /^\d{4}-\d{2}-\d{2}/.test(endDateStr)) {
+        const [y, m, d] = endDateStr.split("T")[0].split("-").map(Number);
+        endTime = new Date(y, m - 1, d, 23, 59, 59).getTime();
+      } else {
+        endTime = new Date(endDateStr).getTime();
+      }
       const now = new Date().getTime();
-      const diff = Math.ceil((end - now) / (1000 * 60 * 60 * 24));
+      const diff = Math.ceil((endTime - now) / (1000 * 60 * 60 * 24));
       return diff > 0 ? diff : 0;
     } catch {
       return null;

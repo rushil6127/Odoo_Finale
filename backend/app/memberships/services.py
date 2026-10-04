@@ -188,18 +188,32 @@ def get_active_membership(
 ) -> Optional[Membership]:
     """Retrieve active membership for a member at a given date."""
     target_date = as_of_date or date.today()
+    # 1. Search for an explicitly ACTIVE membership covering target_date
+    active_m = (
+        Membership.query.filter(
+            Membership.member_id == member_id,
+            Membership.start_date <= target_date,
+            Membership.end_date >= target_date,
+            Membership.status == MembershipStatus.ACTIVE,
+        )
+        .order_by(Membership.start_date.desc(), Membership.id.desc())
+        .first()
+    )
+    if active_m:
+        return active_m
+
+    # 2. Fallback to historical upgraded/downgraded for historical date queries
     return (
         Membership.query.filter(
             Membership.member_id == member_id,
             Membership.start_date <= target_date,
             Membership.end_date >= target_date,
             Membership.status.in_([
-                MembershipStatus.ACTIVE,
                 MembershipStatus.UPGRADED,
                 MembershipStatus.DOWNGRADED,
             ]),
         )
-        .order_by(Membership.start_date.desc())
+        .order_by(Membership.end_date.desc(), Membership.id.desc())
         .first()
     )
 

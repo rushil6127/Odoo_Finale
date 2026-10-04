@@ -52,8 +52,14 @@ class Member(db.Model):
 
     def get_active_membership(self, as_of_date: Optional[date] = None) -> Optional["Membership"]:
         """Retrieve the active membership record for the member on a given date."""
+        from backend.app.memberships.models import MembershipStatus
         target = as_of_date or date.today()
-        for membership in self.memberships:
+        # Prioritize explicitly ACTIVE memberships
+        for membership in sorted(self.memberships, key=lambda m: getattr(m, "id", 0), reverse=True):
+            if getattr(membership, "status", None) == MembershipStatus.ACTIVE and membership.is_active_on(target):
+                return membership
+        # Fallback for historical memberships
+        for membership in sorted(self.memberships, key=lambda m: getattr(m, "id", 0), reverse=True):
             if membership.is_active_on(target):
                 return membership
         return None
