@@ -34,6 +34,7 @@ export async function triggerExcelDownload(
   const params = new URLSearchParams({
     section,
     format,
+    _t: Date.now().toString(),
   });
 
   if (options?.startDate) params.set("start_date", options.startDate);
@@ -42,12 +43,18 @@ export async function triggerExcelDownload(
 
   const url = `${baseUrl}/reports/export/excel?${params.toString()}`;
 
-  const headers: Record<string, string> = {};
+  const headers: Record<string, string> = {
+    "Cache-Control": "no-cache",
+    Pragma: "no-cache",
+  };
   if (token) {
     headers["Authorization"] = `Bearer ${token}`;
   }
 
-  const res = await fetch(url, { headers });
+  const res = await fetch(url, {
+    headers,
+    cache: "no-store",
+  });
   if (!res.ok) {
     let errMessage = `Export failed (HTTP ${res.status})`;
     try {

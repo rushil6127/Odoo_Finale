@@ -374,9 +374,13 @@ def export_excel_download():
     clean_sec = "all" if section in ("all", "all_revenue") else section
     filename = f"champions_club_{clean_sec}_{timestamp}.{ext}"
 
-    return send_file(
+    response = send_file(
         buffer,
         mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
         as_attachment=True,
         download_name=filename,
     )
+    response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate, max-age=0"
+    response.headers["Pragma"] = "no-cache"
+    response.headers["Expires"] = "0"
+    return response

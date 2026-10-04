@@ -393,9 +393,13 @@ def export_employees_excel():
     timestamp = datetime.utcnow().strftime("%Y%m%d_%H%M%S")
     filename = f"champions_club_employees_{timestamp}.{ext}"
 
-    return send_file(
+    response = send_file(
         buffer,
         mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
         as_attachment=True,
         download_name=filename,
     )
+    response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate, max-age=0"
+    response.headers["Pragma"] = "no-cache"
+    response.headers["Expires"] = "0"
+    return response
