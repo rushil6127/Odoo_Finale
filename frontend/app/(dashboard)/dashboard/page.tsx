@@ -129,44 +129,24 @@ export default function DashboardPage() {
     <div className="space-y-6 max-w-7xl mx-auto pb-12">
       {/* 1. EXECUTIVE WELCOME BANNER */}
       <div className="rounded-3xl bg-slate-900 border border-slate-800 p-6 md:p-8 text-white shadow-lg">
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
-          <div className="space-y-2">
-            <div className="flex flex-wrap items-center gap-2.5">
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-amber-400/90 text-amber-950 border border-amber-300/80">
-                <Crown className="w-3.5 h-3.5 text-amber-950" />
-                {isOwner ? "Owner Console" : `${currentUser?.role || "Admin"} Console`}
-              </span>
-              <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-300">
-                <span className="w-2 h-2 rounded-full bg-emerald-400" />
-                All Systems Operational
-              </span>
-            </div>
-
-            <h1 className="text-2xl md:text-3xl font-black tracking-tight text-white font-[family-name:var(--font-outfit)]">
-              Operations &amp; Governance
-            </h1>
-            <p className="text-sm text-slate-300 max-w-2xl leading-relaxed">
-              Real-time monitoring of court bookings, staff rosters, membership queue, and club revenue.
-            </p>
+        <div className="space-y-2">
+          <div className="flex flex-wrap items-center gap-2.5">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-amber-400/90 text-amber-950 border border-amber-300/80">
+              <Crown className="w-3.5 h-3.5 text-amber-950" />
+              {isOwner ? "Owner Console" : `${currentUser?.role || "Admin"} Console`}
+            </span>
+            <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-300">
+              <span className="w-2 h-2 rounded-full bg-emerald-400" />
+              All Systems Operational
+            </span>
           </div>
 
-          <div className="flex flex-wrap md:flex-col items-stretch gap-2.5 shrink-0">
-            <Link
-              href="/employees"
-              className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-xs font-black bg-amber-400 hover:bg-amber-300 text-amber-950 transition-all shadow-md shadow-amber-400/20"
-            >
-              <Crown className="w-4 h-4" />
-              <span>Staff Governance</span>
-            </Link>
-
-            <Link
-              href="/bookings"
-              className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold bg-sky-600 hover:bg-sky-500 text-white transition-all shadow-md shadow-sky-600/20"
-            >
-              <CalendarDays className="w-4 h-4" />
-              <span>Court Booking Grid</span>
-            </Link>
-          </div>
+          <h1 className="text-2xl md:text-3xl font-black tracking-tight text-white font-[family-name:var(--font-outfit)]">
+            Operations &amp; Governance
+          </h1>
+          <p className="text-sm text-slate-300 max-w-2xl leading-relaxed">
+            Real-time monitoring of court bookings, staff rosters, membership queue, and club revenue.
+          </p>
         </div>
       </div>
 
