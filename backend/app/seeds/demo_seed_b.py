@@ -32,9 +32,8 @@ def seed_commerce_and_crm_demo():
     """Seed Developer B demo data: Commerce (Inventory, Shop, POS), CRM, HR/Invoices."""
     
     # Run only once (idempotent check)
-    # I'll check if a known product exists
-    from backend.app.inventory.models import Product
-    if Product.query.filter_by(sku="SKU-REQ-001").first():
+    from backend.app.inventory.models import Product, ProductCategory
+    if Product.query.filter(Product.sku.in_(["RCK-WIL-PRO97", "SKU-REQ-001"])).first():
         return
         
     today = date.today()
@@ -54,20 +53,35 @@ def seed_commerce_and_crm_demo():
     # ==========================
     # 1. Inventory & Products
     # ==========================
-    cat_eq = create_category("Equipment", "Tennis racquets, balls, and gear")
-    cat_ap = create_category("Apparel", "Club branded clothing")
-    cat_fd = create_category("Food & Beverage", "Snacks and drinks")
+    def get_or_create_cat(name: str, slug: str, desc: str = ""):
+        c = ProductCategory.query.filter((ProductCategory.name == name) | (ProductCategory.slug == slug)).first()
+        if not c:
+            c = create_category(name, slug=slug, description=desc)
+        return c
+
+    cat_rackets = get_or_create_cat("Rackets", "rackets", "Tennis, squash, and padel racquets")
+    cat_balls = get_or_create_cat("Balls & Shuttles", "balls", "Tennis balls, padel balls, and shuttlecocks")
+    cat_shoes = get_or_create_cat("Footwear", "shoes", "Court shoes and athletic footwear")
+    cat_apparel = get_or_create_cat("Club Apparel", "apparel", "Club branded clothing and athletic wear")
+    cat_gear = get_or_create_cat("Strings & Gear", "accessories", "Grips, strings, and gear")
+    cat_fd = get_or_create_cat("Food & Beverage", "food-and-beverage", "Snacks and drinks")
     
-    prod_racquet = create_product("SKU-REQ-001", "Pro Staff Racquet", cat_eq.id, 15000.0, 10000.0, 10)
-    prod_balls = create_product("SKU-REQ-002", "Tennis Balls (Can)", cat_eq.id, 500.0, 300.0, 50, low_stock_threshold=20)
-    prod_shirt = create_product("SKU-APP-001", "Club Polo Shirt", cat_ap.id, 2500.0, 1000.0, 5, low_stock_threshold=10) # low stock!
-    prod_grip = create_product("SKU-REQ-003", "Overgrip 3-pack", cat_eq.id, 800.0, 400.0, 2, low_stock_threshold=5) # low stock!
+    prod_racket_1 = create_product("RCK-WIL-PRO97", "Wilson Pro Staff 97 v14", cat_rackets.id, 22000.0, 15000.0, 12, low_stock_threshold=3, description="Precision and feel for advanced players. 315g unstrung.", image_url="/images/products/wilson-pro-staff.jpg")
+    prod_racket_2 = create_product("RCK-BAB-AER", "Babolat Pure Aero 2023", cat_rackets.id, 21500.0, 14000.0, 8, low_stock_threshold=3, description="Maximum spin and power. Rafael Nadal edition.", image_url="/images/products/babolat-pure-aero.jpg")
+    prod_balls = create_product("BAL-WIL-US3", "Wilson US Open Tennis Balls (Can of 3)", cat_balls.id, 650.0, 400.0, 120, low_stock_threshold=25, description="Official ball of the US Open. Premium woven felt.", image_url="/images/products/wilson-us-open-balls.jpg")
+    prod_padel = create_product("BAL-HEAD-PRO", "HEAD Padel Pro S (Can of 3)", cat_balls.id, 750.0, 450.0, 50, low_stock_threshold=15, description="Faster ball for dynamic padel rallies.", image_url="/images/products/head-padel-pro.jpg")
+    prod_shoes = create_product("SHOE-ASI-RES8", "Asics Gel Resolution 8 (Size 10)", cat_shoes.id, 11999.0, 8000.0, 4, low_stock_threshold=5, description="Advanced stability and cushioning for competitive tennis.", image_url="/images/products/asics-gel-resolution.jpg")
+    prod_shirt = create_product("APP-CHAMP-POLO", "Champions Club Dri-Fit Team Polo (M)", cat_apparel.id, 1499.0, 700.0, 25, low_stock_threshold=10, description="Official club crest moisture-wicking polo.", image_url="/images/products/champions-club-polo.jpg")
+    prod_grip = create_product("ACC-YON-OVER3", "Yonex Super Grap Overgrip (Pack of 3)", cat_gear.id, 450.0, 200.0, 60, low_stock_threshold=20, description="Tacky feel and excellent shock absorption.", image_url="/images/products/yonex-super-grap.jpg")
 
     # Add initial stock
-    record_stock_in(prod_racquet.id, 10, "INITIAL_STOCK", admin.id)
-    record_stock_in(prod_balls.id, 50, "INITIAL_STOCK", admin.id)
-    record_stock_in(prod_shirt.id, 5, "INITIAL_STOCK", admin.id)
-    record_stock_in(prod_grip.id, 2, "INITIAL_STOCK", admin.id)
+    record_stock_in(prod_racket_1.id, 12, "INITIAL_STOCK", admin.id)
+    record_stock_in(prod_racket_2.id, 8, "INITIAL_STOCK", admin.id)
+    record_stock_in(prod_balls.id, 120, "INITIAL_STOCK", admin.id)
+    record_stock_in(prod_padel.id, 50, "INITIAL_STOCK", admin.id)
+    record_stock_in(prod_shoes.id, 4, "INITIAL_STOCK", admin.id)
+    record_stock_in(prod_shirt.id, 25, "INITIAL_STOCK", admin.id)
+    record_stock_in(prod_grip.id, 60, "INITIAL_STOCK", admin.id)
     
     # ==========================
     # 2. Shop Orders

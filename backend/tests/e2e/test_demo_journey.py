@@ -626,8 +626,8 @@ class TestStage5CommercePOSAndDashboard:
         assert resp_prods.status_code == 200
         products = resp_prods.get_json()["data"]["products"]
         # Find balls and shirt
-        balls = next(p for p in products if p["sku"] == "SKU-REQ-002")
-        shirt = next(p for p in products if p["sku"] == "SKU-APP-001")
+        balls = next(p for p in products if p["sku"] in ("SKU-REQ-002", "BAL-WIL-US3"))
+        shirt = next(p for p in products if p["sku"] in ("SKU-APP-001", "APP-CHAMP-POLO"))
         
         initial_balls_stock = balls["stock_quantity"]
 
