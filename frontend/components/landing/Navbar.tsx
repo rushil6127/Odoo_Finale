@@ -11,7 +11,7 @@ import {
   Crown,
   ChevronDown
 } from "lucide-react";
-import { useCurrentUser, getRoleProfilePath } from "@/lib/auth";
+import { useCurrentUser, getRoleProfilePath, getAvatarImageUrl } from "@/lib/auth";
 
 interface NavLink {
   name: string;
@@ -136,8 +136,16 @@ export default function Navbar() {
                   className="inline-flex items-center gap-2 p-1.5 pr-3.5 rounded-full bg-slate-100/90 hover:bg-sky-50 border border-slate-200 hover:border-sky-300 shadow-sm transition-all group"
                   title="Open Member Profile & Digital Portal"
                 >
-                  <div className="w-7 h-7 rounded-full bg-gradient-to-tr from-sky-500 to-blue-700 text-white font-extrabold text-xs flex items-center justify-center shadow-sm">
-                    {user.name.split(" ").map((n) => n[0]).join("")}
+                  <div className="w-7 h-7 rounded-full bg-gradient-to-tr from-sky-500 to-blue-700 text-white font-extrabold text-xs flex items-center justify-center shadow-sm overflow-hidden shrink-0">
+                    {user.avatarUrl || user.avatar_url ? (
+                      <img
+                        src={getAvatarImageUrl(user.avatarUrl || user.avatar_url) || ""}
+                        alt={user.name}
+                        className="w-full h-full object-cover rounded-full"
+                      />
+                    ) : (
+                      user.name.split(" ").map((n) => n[0]).join("")
+                    )}
                   </div>
                   <div className="flex flex-col text-left">
                     <span className="text-xs font-extrabold text-slate-900 group-hover:text-sky-700 leading-tight">
@@ -213,8 +221,16 @@ export default function Navbar() {
                     className="flex items-center justify-between p-3 rounded-2xl bg-sky-50 border border-sky-200 text-slate-900"
                   >
                     <div className="flex items-center gap-2.5">
-                      <div className="w-8 h-8 rounded-full bg-sky-600 text-white font-bold text-xs flex items-center justify-center">
-                        {user.name.split(" ").map((n) => n[0]).join("")}
+                      <div className="w-8 h-8 rounded-full bg-sky-600 text-white font-bold text-xs flex items-center justify-center overflow-hidden shrink-0">
+                        {user.avatarUrl || user.avatar_url ? (
+                          <img
+                            src={getAvatarImageUrl(user.avatarUrl || user.avatar_url) || ""}
+                            alt={user.name}
+                            className="w-full h-full object-cover rounded-full"
+                          />
+                        ) : (
+                          user.name.split(" ").map((n) => n[0]).join("")
+                        )}
                       </div>
                       <div className="text-left">
                         <div className="text-xs font-extrabold text-slate-900">{user.name}</div>

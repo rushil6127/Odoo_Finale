@@ -450,4 +450,89 @@ def update_user_department_endpoint(user_id: int):
     )
 
 
+@auth_bp.route("/avatar", methods=["POST", "PUT"])
+@jwt_required()
+def update_avatar():
+    """Upload or update profile picture avatar for current authenticated user."""
+    import os
+    import secrets
+    from flask import request
+    from backend.app.extensions import db
+    from backend.app.common.errors import BadRequestException
+
+    avatar_url = None
+
+    # 1. Check for multipart file upload
+    if "file" in request.files or "avatar" in request.files:
+        file = request.files.get("file") or request.files.get("avatar")
+        if not file or file.filename == "":
+            raise BadRequestException("No file selected.")
+
+        ext = file.filename.rsplit(".", 1)[-1].lower() if "." in file.filename else "png"
+        if ext not in ["png", "jpg", "jpeg", "webp", "gif"]:
+            raise BadRequestException("Invalid file format. Allowed: PNG, JPG, JPEG, WEBP, GIF.")
+
+        upload_dir = os.path.abspath(
+            os.path.join(os.path.dirname(__file__), "..", "..", "instance", "uploads", "avatars")
+        )
+        os.makedirs(upload_dir, exist_ok=True)
+
+        filename = f"avatar_{current_user.id}_{secrets.token_hex(6)}.{ext}"
+        filepath = os.path.join(upload_dir, filename)
+        file.save(filepath)
+
+        avatar_url = f"/api/v1/auth/avatar/file/{filename}"
+
+    # 2. Check for JSON payload (Base64 data URL or external URL)
+    else:
+        body = request.get_json(silent=True) or {}
+        avatar_val = body.get("avatar_url") or body.get("avatar") or body.get("image")
+
+        if avatar_val:
+            avatar_url = avatar_val
+        elif "avatar_url" in body or "avatar" in body:
+            # Explicit clear/removal
+            avatar_url = None
+        else:
+            raise BadRequestException("No image file or avatar_url provided.")
+
+    current_user.avatar_url = avatar_url
+    db.session.commit()
+
+    return success_response(
+        data={
+            "user": current_user.to_dict(),
+            "avatar_url": current_user.avatar_url,
+        },
+        message="Profile picture updated successfully." if avatar_url else "Profile picture removed successfully.",
+        status_code=200,
+    )
+
+
+@auth_bp.route("/avatar", methods=["DELETE"])
+@jwt_required()
+def remove_avatar():
+    """Remove avatar/profile picture for current user."""
+    from backend.app.extensions import db
+    current_user.avatar_url = None
+    db.session.commit()
+    return success_response(
+        data={"user": current_user.to_dict(), "avatar_url": None},
+        message="Profile picture removed successfully.",
+        status_code=200,
+    )
+
+
+@auth_bp.route("/avatar/file/<filename>", methods=["GET"])
+def serve_avatar(filename: str):
+    """Serve uploaded avatar image."""
+    import os
+    from flask import send_from_directory
+    upload_dir = os.path.abspath(
+        os.path.join(os.path.dirname(__file__), "..", "..", "instance", "uploads", "avatars")
+    )
+    return send_from_directory(upload_dir, filename)
+
+
+
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -46,9 +46,21 @@ import {
   Building2,
   Key,
   Loader2,
-  Trash2
+  Trash2,
+  Camera,
+  UploadCloud,
 } from "lucide-react";
-import { useCurrentUser, setStoredUser, isStaffOrAdmin, isOwner, DEFAULT_COACH_EMPLOYEE_DATA, type AuthUserProfile } from "@/lib/auth";
+import {
+  useCurrentUser,
+  setStoredUser,
+  isStaffOrAdmin,
+  isOwner,
+  DEFAULT_COACH_EMPLOYEE_DATA,
+  type AuthUserProfile,
+  uploadUserAvatar,
+  deleteUserAvatar,
+  getAvatarImageUrl,
+} from "@/lib/auth";
 import { apiClient } from "@/lib/api/client";
 import EmployeeProfileView from "@/components/profile/EmployeeProfileView";
 
@@ -415,11 +427,19 @@ export default function ProfileViewContainer({ forcedMode }: ProfileViewContaine
   const fetchLiveMemberData = useCallback(async () => {
     try {
       setProfileLoading(true);
-      const [meRes, bookingsRes, ordersRes] = await Promise.allSettled([
+      const [meRes, authRes, bookingsRes, ordersRes] = await Promise.allSettled([
         apiClient.get<any>("/members/me"),
+        apiClient.get<any>("/auth/me"),
         apiClient.get<any>("/bookings/my-history"),
         apiClient.get<any>("/shop/orders/my-orders"),
       ]);
+
+      if (authRes.status === "fulfilled" && authRes.value) {
+        const u = authRes.value?.user || authRes.value?.data?.user;
+        if (u) {
+          setStoredUser(u);
+        }
+      }
 
       if (meRes.status === "fulfilled" && meRes.value) {
         const mem = meRes.value?.member || meRes.value?.data || meRes.value;
@@ -521,7 +541,119 @@ export default function ProfileViewContainer({ forcedMode }: ProfileViewContaine
             ]),
     payments: user?.payments || [],
     crmInquiries: user?.crmInquiries || [],
+    avatarUrl: (user as any)?.avatar_url || user?.avatarUrl,
+    avatar_url: (user as any)?.avatar_url || user?.avatarUrl,
     employeeData: user?.employeeData || DEFAULT_COACH_EMPLOYEE_DATA,
+  };
+
+  // Profile Picture Upload & State
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [avatarUploading, setAvatarUploading] = useState(false);
+  const [avatarSuccessMsg, setAvatarSuccessMsg] = useState("");
+  const [avatarErrorMsg, setAvatarErrorMsg] = useState("");
+
+  const handleAvatarFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 5 * 1024 * 1024) {
+      setAvatarErrorMsg("Image size exceeds 5MB limit. Please choose a smaller image.");
+      setTimeout(() => setAvatarErrorMsg(""), 4000);
+      return;
+    }
+
+    try {
+      setAvatarUploading(true);
+      setAvatarErrorMsg("");
+      setAvatarSuccessMsg("");
+
+      // Compress/resize on client using canvas to max 800x800
+      const dataUrl = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = (readerEvent) => {
+          const img = new (window as any).Image();
+          img.onload = () => {
+            const canvas = document.createElement("canvas");
+            const maxDim = 800;
+            let width = img.width;
+            let height = img.height;
+            if (width > height) {
+              if (width > maxDim) {
+                height = Math.round((height * maxDim) / width);
+                width = maxDim;
+              }
+            } else {
+              if (height > maxDim) {
+                width = Math.round((width * maxDim) / height);
+                height = maxDim;
+              }
+            }
+            canvas.width = width;
+            canvas.height = height;
+            const ctx = canvas.getContext("2d");
+            if (ctx) {
+              ctx.drawImage(img, 0, 0, width, height);
+              resolve(canvas.toDataURL("image/jpeg", 0.88));
+            } else {
+              resolve(readerEvent.target?.result as string);
+            }
+          };
+          img.onerror = () => reject(new Error("Failed to load image for compression"));
+          img.src = readerEvent.target?.result as string;
+        };
+        reader.onerror = () => reject(new Error("Failed to read image file"));
+        reader.readAsDataURL(file);
+      });
+
+      const res = await uploadUserAvatar(dataUrl);
+      const savedUrl = res.avatar_url || dataUrl;
+
+      if (user) {
+        setStoredUser({
+          ...user,
+          avatarUrl: savedUrl,
+          avatar_url: savedUrl,
+        });
+      }
+
+      setAvatarSuccessMsg("Profile photo updated and saved to database!");
+      setTimeout(() => setAvatarSuccessMsg(""), 4000);
+    } catch (err: any) {
+      console.error("Failed to upload avatar:", err);
+      setAvatarErrorMsg(err?.message || "Failed to update profile photo.");
+      setTimeout(() => setAvatarErrorMsg(""), 4000);
+    } finally {
+      setAvatarUploading(false);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
+    }
+  };
+
+  const handleRemoveAvatar = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!confirm("Are you sure you want to remove your profile photo?")) return;
+
+    try {
+      setAvatarUploading(true);
+      setAvatarErrorMsg("");
+      await deleteUserAvatar();
+
+      if (user) {
+        const updated = { ...user };
+        delete (updated as any).avatar_url;
+        delete updated.avatarUrl;
+        setStoredUser(updated);
+      }
+
+      setAvatarSuccessMsg("Profile photo removed.");
+      setTimeout(() => setAvatarSuccessMsg(""), 4000);
+    } catch (err: any) {
+      setAvatarErrorMsg(err?.message || "Failed to remove avatar.");
+      setTimeout(() => setAvatarErrorMsg(""), 4000);
+    } finally {
+      setAvatarUploading(false);
+    }
   };
 
   const isEmployeeWithData = !!activeUser.employeeData || forcedMode === "employee" || isStaffOrAdmin(activeUser);
@@ -1168,10 +1300,84 @@ export default function ProfileViewContainer({ forcedMode }: ProfileViewContaine
 
             <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6 relative z-10">
 
+              {/* Hidden File Input for Avatar Upload */}
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/png,image/jpeg,image/jpg,image/webp"
+                className="hidden"
+                onChange={handleAvatarFileSelect}
+              />
+
               {/* User Identity */}
-              <div className="flex items-center gap-4 sm:gap-5">
-                <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-gradient-to-tr from-sky-400 via-sky-600 to-blue-700 flex items-center justify-center text-white font-black text-2xl sm:text-3xl shadow-xl border-2 border-white/40 shrink-0">
-                  {activeUser.name.split(" ").map((n) => n[0]).join("")}
+              <div className="flex items-center gap-4 sm:gap-6">
+                {/* Circle Avatar with Upload Option & Camera Button */}
+                <div className="relative group shrink-0">
+                  <div
+                    onClick={() => !avatarUploading && fileInputRef.current?.click()}
+                    className="w-18 h-18 sm:w-22 sm:h-22 md:w-24 md:h-24 rounded-full bg-gradient-to-tr from-sky-400 via-sky-600 to-blue-700 flex items-center justify-center text-white font-black text-2xl sm:text-3xl md:text-4xl shadow-2xl border-4 border-white/40 overflow-hidden relative cursor-pointer select-none transition-transform duration-200 group-hover:scale-105"
+                    title="Click to add or update profile picture"
+                  >
+                    {activeUser.avatar_url || activeUser.avatarUrl ? (
+                      <img
+                        src={getAvatarImageUrl(activeUser.avatar_url || activeUser.avatarUrl) || ""}
+                        alt={activeUser.name}
+                        className="w-full h-full object-cover rounded-full"
+                      />
+                    ) : (
+                      <span>{activeUser.name.split(" ").map((n) => n[0]).join("")}</span>
+                    )}
+
+                    {/* Darkened Hover Overlay */}
+                    <div className="absolute inset-0 bg-black/60 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex flex-col items-center justify-center text-white p-1 text-center backdrop-blur-[2px]">
+                      {avatarUploading ? (
+                        <Loader2 className="w-6 h-6 animate-spin text-white" />
+                      ) : (
+                        <>
+                          <Camera className="w-5 h-5 mb-0.5 text-sky-300 drop-shadow" />
+                          <span className="text-[10px] font-black uppercase tracking-wider text-slate-100">
+                            {activeUser.avatar_url || activeUser.avatarUrl ? "Update" : "Add Pic"}
+                          </span>
+                        </>
+                      )}
+                    </div>
+
+                    {/* Active Uploading Spinner Overlay */}
+                    {avatarUploading && (
+                      <div className="absolute inset-0 bg-slate-900/85 rounded-full flex flex-col items-center justify-center text-white backdrop-blur-sm z-20">
+                        <Loader2 className="w-6 h-6 animate-spin text-sky-400" />
+                        <span className="text-[9px] font-bold text-sky-200 mt-1">Saving...</span>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Camera Action Badge Button */}
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      fileInputRef.current?.click();
+                    }}
+                    disabled={avatarUploading}
+                    className="absolute -bottom-1 -right-1 p-2 sm:p-2.5 rounded-full bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-400 hover:to-blue-500 text-white shadow-xl border-2 border-slate-900 transition-all duration-200 hover:scale-115 active:scale-95 disabled:opacity-50 z-10 cursor-pointer"
+                    title="Upload or update profile picture"
+                    aria-label="Upload profile picture"
+                  >
+                    <Camera className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-white drop-shadow" />
+                  </button>
+
+                  {/* Remove Avatar Button (visible on hover if custom avatar exists) */}
+                  {(activeUser.avatar_url || activeUser.avatarUrl) && !avatarUploading && (
+                    <button
+                      type="button"
+                      onClick={handleRemoveAvatar}
+                      className="absolute -top-1 -right-1 p-1.5 rounded-full bg-rose-600 hover:bg-rose-500 text-white shadow-lg border-2 border-slate-900 transition-all duration-200 hover:scale-115 opacity-0 group-hover:opacity-100 z-10 cursor-pointer"
+                      title="Remove profile picture"
+                      aria-label="Remove profile picture"
+                    >
+                      <Trash2 className="w-3 h-3 text-white" />
+                    </button>
+                  )}
                 </div>
 
                 <div>
@@ -1194,6 +1400,18 @@ export default function ProfileViewContainer({ forcedMode }: ProfileViewContaine
                       <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" />
                       {isSuperOwner ? "PATRON ACCESS" : activeUser.membershipStatus}
                     </span>
+                    {avatarSuccessMsg && (
+                      <span className="px-3 py-0.5 rounded-full text-[11px] font-bold bg-emerald-500/25 text-emerald-300 border border-emerald-400/40 flex items-center gap-1 animate-in fade-in duration-200">
+                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 inline" />
+                        {avatarSuccessMsg}
+                      </span>
+                    )}
+                    {avatarErrorMsg && (
+                      <span className="px-3 py-0.5 rounded-full text-[11px] font-bold bg-rose-500/25 text-rose-300 border border-rose-400/40 flex items-center gap-1 animate-in fade-in duration-200">
+                        <AlertCircle className="w-3.5 h-3.5 text-rose-400 inline" />
+                        {avatarErrorMsg}
+                      </span>
+                    )}
                   </div>
 
                   <div className="flex items-center gap-3 sm:gap-4 text-xs text-slate-300 mt-2 flex-wrap font-medium">

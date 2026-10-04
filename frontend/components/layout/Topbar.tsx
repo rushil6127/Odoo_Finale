@@ -10,7 +10,7 @@ import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { User, LogOut, CreditCard, ChevronDown, Bell, ShieldCheck, Crown, ExternalLink } from "lucide-react";
-import { getStoredUser, logout, AuthUser } from "@/lib/auth";
+import { getStoredUser, logout, AuthUser, getAvatarImageUrl } from "@/lib/auth";
 
 /** Derive a readable page title from the route path. */
 function getPageTitle(pathname: string): string {
@@ -88,8 +88,16 @@ export default function Topbar() {
             aria-label="User menu"
             aria-expanded={menuOpen}
           >
-            <div className="w-8 h-8 rounded-lg bg-slate-900 text-white text-xs font-black flex items-center justify-center shadow-sm">
-              {initials}
+            <div className="w-8 h-8 rounded-full bg-slate-900 text-white text-xs font-black flex items-center justify-center shadow-sm overflow-hidden shrink-0 border border-slate-300">
+              {currentUser && (currentUser.avatar_url || (currentUser as any)?.avatarUrl) ? (
+                <img
+                  src={getAvatarImageUrl(currentUser.avatar_url || (currentUser as any)?.avatarUrl) || ""}
+                  alt={currentUser.first_name || "User"}
+                  className="w-full h-full object-cover rounded-full"
+                />
+              ) : (
+                initials
+              )}
             </div>
             {currentUser && (
               <div className="hidden lg:block text-left pr-1">

@@ -24,7 +24,7 @@ import {
   ArrowRight,
   Check
 } from "lucide-react";
-import { isOwner, type AuthUserProfile } from "@/lib/auth";
+import { isOwner, type AuthUserProfile, getAvatarImageUrl } from "@/lib/auth";
 
 interface UserProfileModalProps {
   isOpen: boolean;
@@ -107,8 +107,16 @@ export default function UserProfileModal({
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-5 relative z-10">
             {/* User Identity */}
             <div className="flex items-center gap-4">
-              <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-gradient-to-tr from-sky-400 via-sky-600 to-blue-700 flex items-center justify-center text-white font-black text-2xl shadow-xl border-2 border-white/40 shrink-0">
-                {user.name.split(" ").map((n) => n[0]).join("")}
+              <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-gradient-to-tr from-sky-400 via-sky-600 to-blue-700 flex items-center justify-center text-white font-black text-2xl shadow-xl border-2 border-white/40 overflow-hidden shrink-0">
+                {user.avatarUrl || user.avatar_url ? (
+                  <img
+                    src={getAvatarImageUrl(user.avatarUrl || user.avatar_url) || ""}
+                    alt={user.name}
+                    className="w-full h-full object-cover rounded-full"
+                  />
+                ) : (
+                  user.name.split(" ").map((n) => n[0]).join("")
+                )}
               </div>
 
               <div>

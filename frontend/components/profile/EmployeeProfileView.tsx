@@ -43,11 +43,12 @@ import {
   Menu,
   X
 } from "lucide-react";
-import type { 
-  AuthUserProfile, 
-  EmployeeCourtSlot, 
-  EmployeeTrainee, 
-  EmployeeMaintenanceTask 
+import {
+  getAvatarImageUrl,
+  type AuthUserProfile, 
+  type EmployeeCourtSlot, 
+  type EmployeeTrainee, 
+  type EmployeeMaintenanceTask
 } from "@/lib/auth";
 
 type EmployeeTabType = "emp_overview" | "emp_calendar" | "emp_trainees" | "emp_maintenance" | "emp_inquiries" | "emp_settings";
@@ -348,8 +349,16 @@ export default function EmployeeProfileView({
               
               {/* Coach Identity */}
               <div className="flex items-center gap-4 sm:gap-5">
-                <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-gradient-to-tr from-sky-400 via-sky-600 to-blue-700 flex items-center justify-center text-white font-black text-2xl sm:text-3xl shadow-xl border-2 border-white/40 shrink-0">
-                  {user.name.split(" ").map((n) => n[0]).join("")}
+                <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-gradient-to-tr from-sky-400 via-sky-600 to-blue-700 flex items-center justify-center text-white font-black text-2xl sm:text-3xl shadow-xl border-2 border-white/40 overflow-hidden shrink-0">
+                  {user.avatarUrl || user.avatar_url ? (
+                    <img
+                      src={getAvatarImageUrl(user.avatarUrl || user.avatar_url) || ""}
+                      alt={user.name}
+                      className="w-full h-full object-cover rounded-full"
+                    />
+                  ) : (
+                    user.name.split(" ").map((n) => n[0]).join("")
+                  )}
                 </div>
 
                 <div>
@@ -472,8 +481,16 @@ export default function EmployeeProfileView({
                   Coach's<br />Workspace
                 </h2>
                 <div className="flex items-center gap-2.5">
-                  <div className="w-9 h-9 rounded-full bg-slate-200 flex items-center justify-center text-slate-700 font-black text-sm shrink-0">
-                    {user.name.split(" ").map((n: string) => n[0]).join("").slice(0,2).toUpperCase()}
+                  <div className="w-9 h-9 rounded-full bg-slate-200 flex items-center justify-center text-slate-700 font-black text-sm overflow-hidden shrink-0">
+                    {user.avatarUrl || user.avatar_url ? (
+                      <img
+                        src={getAvatarImageUrl(user.avatarUrl || user.avatar_url) || ""}
+                        alt={user.name}
+                        className="w-full h-full object-cover rounded-full"
+                      />
+                    ) : (
+                      user.name.split(" ").map((n: string) => n[0]).join("").slice(0,2).toUpperCase()
+                    )}
                   </div>
                   <div>
                     <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Coach</p>

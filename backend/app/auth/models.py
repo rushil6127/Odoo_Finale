@@ -20,6 +20,7 @@ class User(db.Model):
         index=True,
     )
     department = db.Column(db.String(100), nullable=True, default=None, index=True)
+    avatar_url = db.Column(db.Text, nullable=True, default=None)
     is_active = db.Column(db.Boolean, default=True, nullable=False)
     created_at = db.Column(db.DateTime(timezone=True), default=utc_now, nullable=False)
     updated_at = db.Column(
@@ -68,6 +69,7 @@ class User(db.Model):
             "full_name": self.full_name,
             "role": self.role.value if hasattr(self.role, "value") else str(self.role),
             "department": self.department,
+            "avatar_url": self.avatar_url,
             "is_active": self.is_active,
             "created_at": self.created_at.isoformat() if self.created_at else None,
             "updated_at": self.updated_at.isoformat() if self.updated_at else None,

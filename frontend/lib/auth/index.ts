@@ -20,6 +20,7 @@ export interface AuthUser {
   last_name: string;
   full_name: string;
   role: UserRole;
+  avatar_url?: string;
   is_active: boolean;
   created_at?: string;
   updated_at?: string;
@@ -192,6 +193,7 @@ export interface AuthUserProfile {
   walletBalance: number;
   clubTabsOutstanding: number;
   avatarUrl?: string;
+  avatar_url?: string;
   crmInquiries: UserCRMInquiry[];
   orders: UserOrder[];
   bookings: UserBooking[];
@@ -694,6 +696,8 @@ export function enrichUserProfile(parsed: any): (AuthUserProfile & AuthUser) | n
   if (!parsed.orders || !Array.isArray(parsed.orders)) parsed.orders = [];
   if (!parsed.bookings || !Array.isArray(parsed.bookings)) parsed.bookings = [];
   if (!parsed.payments || !Array.isArray(parsed.payments)) parsed.payments = [];
+  if (parsed.avatar_url && !parsed.avatarUrl) parsed.avatarUrl = parsed.avatar_url;
+  if (parsed.avatarUrl && !parsed.avatar_url) parsed.avatar_url = parsed.avatarUrl;
 
   return parsed as (AuthUserProfile & AuthUser);
 }
@@ -798,6 +802,54 @@ export async function fetchMemberProfile(): Promise<MemberProfile> {
 export async function updateMemberProfile(memberId: number, data: Partial<MemberProfile>): Promise<MemberProfile> {
   const res = await apiClient.put<{ member: MemberProfile }>(`/members/${memberId}`, data);
   return res.member;
+}
+
+export function getAvatarImageUrl(url?: string | null): string | null {
+  if (!url) return null;
+  if (url.startsWith("data:") || url.startsWith("http://") || url.startsWith("https://") || url.startsWith("//")) {
+    return url;
+  }
+  const rawBase = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000").replace(/\/api\/v1\/?$/, "").replace(/\/api\/?$/, "").replace(/\/+$/, "");
+  return `${rawBase}${url.startsWith("/") ? "" : "/"}${url}`;
+}
+
+export async function uploadUserAvatar(fileOrDataUrl: File | string): Promise<{ user: AuthUser; avatar_url: string }> {
+  if (typeof fileOrDataUrl === "string") {
+    const res = await apiClient.post<{ user: AuthUser; avatar_url: string }>("/auth/avatar", {
+      avatar_url: fileOrDataUrl,
+    });
+    if (res?.user) {
+      setStoredUser(res.user);
+    }
+    return res;
+  } else {
+    const formData = new FormData();
+    formData.append("file", fileOrDataUrl);
+    const token = getStoredToken();
+    const rawBaseUrl = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api/v1").replace(/\/+$/, "");
+    const base = rawBaseUrl.endsWith("/api/v1") ? rawBaseUrl : `${rawBaseUrl}/api/v1`;
+    const response = await fetch(`${base}/auth/avatar`, {
+      method: "POST",
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+      body: formData,
+    });
+    const result = await response.json();
+    if (!response.ok) {
+      throw new Error(result.message || "Failed to upload avatar");
+    }
+    const data = result.data || result;
+    if (data?.user) {
+      setStoredUser(data.user);
+    }
+    return data;
+  }
+}
+
+export async function deleteUserAvatar(): Promise<void> {
+  const res = await apiClient.delete<{ user: AuthUser }>("/auth/avatar");
+  if (res?.user) {
+    setStoredUser(res.user);
+  }
 }
 
 export function logout(redirectPath: string = "/login"): void {
