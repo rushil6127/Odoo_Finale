@@ -1263,7 +1263,7 @@ def get_club_glance_summary() -> Dict[str, Any]:
 
     # 3. Court allocation and occupancy status
     courts = Court.query.all()
-    total_courts = len(courts) if courts else 12
+    total_courts = len(courts)
 
     today_booked_court_ids = set()
     try:
@@ -1285,12 +1285,38 @@ def get_club_glance_summary() -> Dict[str, Any]:
     maintenance_courts = sum(1 for c in courts if c.status == CourtStatus.MAINTENANCE)
     available_courts = max(0, total_courts - booked_courts_count - maintenance_courts)
 
+    # Calculate synchronized percentages that strictly sum to 100%
     if total_courts > 0:
-        booked_pct = round((booked_courts_count / total_courts) * 100)
-        maintenance_pct = round((maintenance_courts / total_courts) * 100)
-        available_pct = max(0, 100 - booked_pct - maintenance_pct)
+        raw_b = (booked_courts_count / total_courts) * 100.0
+        raw_a = (available_courts / total_courts) * 100.0
+        raw_m = (maintenance_courts / total_courts) * 100.0
+
+        target = 1000
+        scaled = [raw_b * 10, raw_a * 10, raw_m * 10]
+        floored = [int(s) for s in scaled]
+        remainders = [(scaled[i] - floored[i], i) for i in range(3)]
+        remainders.sort(key=lambda x: x[0], reverse=True)
+
+        diff = target - sum(floored)
+        for k in range(diff):
+            floored[remainders[k][1]] += 1
+
+        tenths = [floored[0], floored[1], floored[2]]
+        pct_values = [t / 10.0 for t in tenths]
+
+        if all(t % 10 == 0 for t in tenths):
+            pct_labels = [f"{t // 10}%" for t in tenths]
+        else:
+            pct_labels = [
+                f"{v:.1f}%" if v % 1 != 0 else f"{int(v)}%"
+                for v in pct_values
+            ]
+
+        booked_pct, available_pct, maintenance_pct = pct_values
+        booked_pct_label, available_pct_label, maintenance_pct_label = pct_labels
     else:
-        booked_pct, available_pct, maintenance_pct = 0, 100, 0
+        booked_pct, available_pct, maintenance_pct = 0.0, 100.0, 0.0
+        booked_pct_label, available_pct_label, maintenance_pct_label = "0%", "100%", "0%"
 
     return {
         "today_date": today_local.isoformat(),
@@ -1304,6 +1330,9 @@ def get_club_glance_summary() -> Dict[str, Any]:
             "booked_pct": booked_pct,
             "available_pct": available_pct,
             "maintenance_pct": maintenance_pct,
+            "booked_pct_label": booked_pct_label,
+            "available_pct_label": available_pct_label,
+            "maintenance_pct_label": maintenance_pct_label,
             "total_booking_slots": todays_bookings_count,
         },
     }

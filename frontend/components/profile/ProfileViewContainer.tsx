@@ -92,20 +92,25 @@ interface OwnerGlanceData {
     booked_pct: number;
     available_pct: number;
     maintenance_pct: number;
+    booked_pct_label?: string;
+    available_pct_label?: string;
+    maintenance_pct_label?: string;
     total_booking_slots?: number;
   };
   today_date?: string;
 }
 
 /**
- * Streamlined Court Status Card — Always Live from Backend API
+ * Streamlined Court Status Card — Synchronized Live from Shared Glance Data
  */
 function OwnerCourtStatusCard({
   glanceData,
   loading,
+  error,
 }: {
   glanceData?: OwnerGlanceData | null;
   loading?: boolean;
+  error?: string | null;
 }) {
   const [animated, setAnimated] = useState(false);
   const [animKey, setAnimKey] = useState(0);
@@ -125,19 +130,62 @@ function OwnerCourtStatusCard({
     glanceData?.court_status?.total,
   ]);
 
-  // Always use live data — compute percentages dynamically from counts
-  const totalCourts = glanceData?.court_status?.total ?? 0;
+  // Court counts from shared glanceData (strictly court counts, distinct from booking counts)
   const bookedCourts = glanceData?.court_status?.booked ?? 0;
   const availableCount = glanceData?.court_status?.available ?? 0;
   const maintenanceCount = glanceData?.court_status?.maintenance ?? 0;
-  // Use total booking slots (matching "Today's Bookings" on left card) for legend display
-  const totalBookingSlots = glanceData?.court_status?.total_booking_slots ?? glanceData?.todays_bookings_count ?? bookedCourts;
+  // Center total equals the sum of the three court counts: Booked + Available + Maintenance
+  const totalCourts = glanceData?.court_status?.total ?? (bookedCourts + availableCount + maintenanceCount);
 
-  // Donut chart arcs must use COURT counts (not booking slots) for accurate visual proportions
-  // 6 booked courts + 8 available + 2 maintenance = 16 total
-  const bookedPct = totalCourts > 0 ? Math.round((bookedCourts / totalCourts) * 100) : 0;
-  const maintenancePct = totalCourts > 0 ? Math.round((maintenanceCount / totalCourts) * 100) : 0;
-  const availablePct = totalCourts > 0 ? Math.max(0, 100 - bookedPct - maintenancePct) : 100;
+  // Synchronized percentage calculation:
+  // Each percentage = status count ÷ total courts × 100
+  // Displayed percentages strictly sum to 100% (accounting for rounding)
+  const { bookedPct, availablePct, maintenancePct, bookedPctStr, availablePctStr, maintenancePctStr } = useMemo(() => {
+    if (!glanceData || totalCourts <= 0) {
+      return {
+        bookedPct: 0,
+        availablePct: 100,
+        maintenancePct: 0,
+        bookedPctStr: "0%",
+        availablePctStr: "0%",
+        maintenancePctStr: "0%",
+      };
+    }
+
+    const rawB = (bookedCourts / totalCourts) * 100;
+    const rawA = (availableCount / totalCourts) * 100;
+    const rawM = (maintenanceCount / totalCourts) * 100;
+
+    // Scale to tenths (100.0% = 1000 tenths) to guarantee exact 100% sum
+    const scaled = [rawB * 10, rawA * 10, rawM * 10];
+    const floored = [Math.floor(scaled[0]), Math.floor(scaled[1]), Math.floor(scaled[2])];
+    const remainders = [
+      { rem: scaled[0] - floored[0], idx: 0 },
+      { rem: scaled[1] - floored[1], idx: 1 },
+      { rem: scaled[2] - floored[2], idx: 2 },
+    ].sort((a, b) => b.rem - a.rem);
+
+    const diff = 1000 - (floored[0] + floored[1] + floored[2]);
+    for (let k = 0; k < diff; k++) {
+      floored[remainders[k].idx] += 1;
+    }
+
+    const pctValues = floored.map((t) => t / 10);
+    const allIntegers = floored.every((t) => t % 10 === 0);
+
+    const labels = pctValues.map((v) =>
+      allIntegers || v % 1 === 0 ? `${Math.round(v)}%` : `${v.toFixed(1)}%`
+    );
+
+    return {
+      bookedPct: pctValues[0],
+      availablePct: pctValues[1],
+      maintenancePct: pctValues[2],
+      bookedPctStr: glanceData.court_status?.booked_pct_label || labels[0],
+      availablePctStr: glanceData.court_status?.available_pct_label || labels[1],
+      maintenancePctStr: glanceData.court_status?.maintenance_pct_label || labels[2],
+    };
+  }, [bookedCourts, availableCount, maintenanceCount, totalCourts, glanceData]);
 
   const size = 150;
   const strokeWidth = 22;
@@ -145,12 +193,12 @@ function OwnerCourtStatusCard({
   const radius = 48;
   const circumference = 2 * Math.PI * radius; // 301.59
 
-  // Segment arc lengths — derived directly from live percentage values
+  // Segment arc lengths — derived directly from live percentage values (guaranteed to tile full circle)
   const blueLen = circumference * (bookedPct / 100);
   const greenLen = circumference * (availablePct / 100);
   const orangeLen = circumference * (maintenancePct / 100);
 
-  const isLive = !!glanceData && !loading;
+  const isLive = !!glanceData && !loading && !error;
 
   return (
     <div className="flex flex-col h-full justify-between gap-5">
@@ -162,15 +210,15 @@ function OwnerCourtStatusCard({
         <span
           className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider select-none"
           style={{
-            backgroundColor: isLive ? "#ecfdf5" : "#f1f5f9",
-            color: isLive ? "#047857" : "#64748b",
-            border: isLive ? "1px solid #a7f3d0" : "1px solid #e2e8f0",
+            backgroundColor: loading ? "#f8fafc" : error ? "#fef2f2" : isLive ? "#ecfdf5" : "#f1f5f9",
+            color: loading ? "#64748b" : error ? "#b91c1c" : isLive ? "#047857" : "#64748b",
+            border: loading ? "1px solid #e2e8f0" : error ? "1px solid #fecaca" : isLive ? "1px solid #a7f3d0" : "1px solid #e2e8f0",
           }}
         >
           {isLive && (
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
           )}
-          <span>{loading ? "LOADING…" : isLive ? "LIVE" : "OFFLINE"}</span>
+          <span>{loading ? "LOADING…" : error ? "OFFLINE" : isLive ? "LIVE" : "OFFLINE"}</span>
         </span>
       </div>
 
@@ -195,7 +243,17 @@ function OwnerCourtStatusCard({
               }}
             >
               <g transform="rotate(-90 75 75)">
-                {/* Blue Arc (Booked) */}
+                {/* Background Track Circle */}
+                <circle
+                  cx={center}
+                  cy={center}
+                  r={radius}
+                  fill="none"
+                  stroke="#f1f5f9"
+                  strokeWidth={strokeWidth}
+                />
+
+                {/* Blue Arc (Booked Courts) */}
                 <circle
                   cx={center}
                   cy={center}
@@ -210,7 +268,7 @@ function OwnerCourtStatusCard({
                   }}
                 />
 
-                {/* Green Arc (Available) */}
+                {/* Green Arc (Available Courts) */}
                 <circle
                   cx={center}
                   cy={center}
@@ -225,7 +283,7 @@ function OwnerCourtStatusCard({
                   }}
                 />
 
-                {/* Orange Arc (Maintenance) */}
+                {/* Orange Arc (Maintenance Courts) */}
                 <circle
                   cx={center}
                   cy={center}
@@ -243,7 +301,7 @@ function OwnerCourtStatusCard({
             </svg>
           )}
 
-          {/* Center Hole Content */}
+          {/* Center Hole Content: Total Courts */}
           <div
             className="absolute inset-0 flex flex-col items-center justify-center text-center pointer-events-none select-none"
             style={{
@@ -253,7 +311,7 @@ function OwnerCourtStatusCard({
             }}
           >
             <span className="text-2xl font-black text-slate-900 leading-none font-[family-name:var(--font-outfit)]">
-              {totalCourts}
+              {loading ? "…" : error ? "–" : totalCourts}
             </span>
             <span className="text-[10px] text-slate-400 font-bold leading-tight mt-0.5 uppercase tracking-wider">
               Courts
@@ -261,47 +319,59 @@ function OwnerCourtStatusCard({
           </div>
         </div>
 
-        {/* Legend */}
+        {/* Legend: Displays court counts and percentages */}
         <div className="space-y-3 pr-1 flex-1">
-          {/* Booked — shows total booking slots to match left card */}
+          {/* Booked Courts */}
           <div className="flex items-center justify-between gap-2">
             <div className="flex items-center gap-2">
               <span className="w-2.5 h-2.5 rounded-full bg-[#0070f3] shrink-0" />
               <span className="text-xs font-semibold text-slate-600">Booked</span>
             </div>
             <span className="text-xs font-black text-slate-900 font-mono">
-              {loading ? "…" : totalBookingSlots} <span className="text-[10px] text-slate-400 font-normal">({bookedCourts} courts)</span>
+              {loading ? "…" : error ? "–" : bookedCourts}{" "}
+              <span className="text-[10px] text-slate-400 font-normal">
+                ({loading ? "…" : error ? "–" : bookedPctStr})
+              </span>
             </span>
           </div>
 
-          {/* Available */}
+          {/* Available Courts */}
           <div className="flex items-center justify-between gap-2">
             <div className="flex items-center gap-2">
               <span className="w-2.5 h-2.5 rounded-full bg-[#10b981] shrink-0" />
               <span className="text-xs font-semibold text-slate-600">Available</span>
             </div>
             <span className="text-xs font-black text-slate-900 font-mono">
-              {loading ? "…" : availableCount} <span className="text-[10px] text-slate-400 font-normal">({availablePct}%)</span>
+              {loading ? "…" : error ? "–" : availableCount}{" "}
+              <span className="text-[10px] text-slate-400 font-normal">
+                ({loading ? "…" : error ? "–" : availablePctStr})
+              </span>
             </span>
           </div>
 
-          {/* Maintenance */}
+          {/* Maintenance Courts */}
           <div className="flex items-center justify-between gap-2">
             <div className="flex items-center gap-2">
               <span className="w-2.5 h-2.5 rounded-full bg-[#f97316] shrink-0" />
               <span className="text-xs font-semibold text-slate-600">Maintenance</span>
             </div>
             <span className="text-xs font-black text-slate-900 font-mono">
-              {loading ? "…" : maintenanceCount} <span className="text-[10px] text-slate-400 font-normal">({maintenancePct}%)</span>
+              {loading ? "…" : error ? "–" : maintenanceCount}{" "}
+              <span className="text-[10px] text-slate-400 font-normal">
+                ({loading ? "…" : error ? "–" : maintenancePctStr})
+              </span>
             </span>
           </div>
         </div>
       </div>
 
-      {/* Clean Court Action Footer */}
+      {/* Clean Court Action Footer: Capacity equals available courts */}
       <div className="pt-3 border-t border-slate-100 flex items-center justify-between">
         <span className="text-xs font-semibold text-slate-500">
-          Capacity: <span className="font-bold text-slate-900">{loading ? "…" : availableCount} open</span>
+          Capacity:{" "}
+          <span className="font-bold text-slate-900">
+            {loading ? "…" : error ? "–" : `${availableCount} open`}
+          </span>
         </span>
         <Link
           href="/#courts"
@@ -321,9 +391,11 @@ function OwnerCourtStatusCard({
 function OwnerClubGlanceCard({
   glanceData,
   loading,
+  error,
 }: {
   glanceData?: OwnerGlanceData | null;
   loading?: boolean;
+  error?: string | null;
 }) {
   const todaysBookings = glanceData?.todays_bookings_count ?? 0;
   const pendingMemberships = glanceData?.pending_memberships_count ?? 0;
@@ -356,7 +428,7 @@ function OwnerClubGlanceCard({
                 Today&apos;s Bookings
               </p>
               <p className="text-2xl font-black text-slate-900 font-mono tracking-tight mt-0.5">
-                {loading ? "…" : todaysBookings}
+                {loading ? "…" : error ? "–" : todaysBookings}
               </p>
             </div>
           </div>
@@ -382,7 +454,7 @@ function OwnerClubGlanceCard({
                 Pending Memberships
               </p>
               <p className="text-2xl font-black text-slate-900 font-mono tracking-tight mt-0.5">
-                {loading ? "…" : pendingMemberships}
+                {loading ? "…" : error ? "–" : pendingMemberships}
               </p>
             </div>
           </div>
@@ -427,18 +499,24 @@ export default function ProfileViewContainer({ forcedMode }: ProfileViewContaine
   // Owner Club at a Glance State
   const [glanceData, setGlanceData] = useState<OwnerGlanceData | null>(null);
   const [glanceLoading, setGlanceLoading] = useState(false);
+  const [glanceError, setGlanceError] = useState<string | null>(null);
 
   const fetchGlanceData = useCallback(async () => {
     try {
       setGlanceLoading(true);
+      setGlanceError(null);
       const res = await apiClient.get<any>("/reports/club-glance");
       if (res && res.data) {
         setGlanceData(res.data);
       } else if (res && typeof res.todays_bookings_count === "number") {
         setGlanceData(res);
+      } else {
+        setGlanceData(null);
       }
-    } catch (err) {
+    } catch (err: any) {
       console.warn("Could not fetch club glance summary:", err);
+      setGlanceError(err?.message || "Failed to load club summary");
+      setGlanceData(null);
     } finally {
       setGlanceLoading(false);
     }
@@ -1812,7 +1890,7 @@ export default function ProfileViewContainer({ forcedMode }: ProfileViewContaine
                   {/* Left: Owner Club at a Glance Card OR Member Active Club Membership Card */}
                   {isSuperOwner || activeUser.role === "OWNER" || activeUser.role === "ADMIN" || forcedMode === "owner" ? (
                     // Owner Club at a Glance Card (Matches Reference Image)
-                    <OwnerClubGlanceCard glanceData={glanceData} loading={glanceLoading} />
+                    <OwnerClubGlanceCard glanceData={glanceData} loading={glanceLoading} error={glanceError} />
                   ) : hasActiveMembership ? (
                     // Member Active Club Membership Card
                     <div className="lg:col-span-7 p-6 rounded-3xl bg-white border border-slate-200/90 shadow-sm flex flex-col gap-5">
@@ -1944,7 +2022,7 @@ export default function ProfileViewContainer({ forcedMode }: ProfileViewContaine
                   <div className="lg:col-span-5 p-6 rounded-3xl bg-white border border-slate-200/90 shadow-sm flex flex-col justify-between">
                     {isSuperOwner || activeUser.role === "OWNER" || activeUser.role === "ADMIN" || forcedMode === "owner" ? (
                       // Owner Court Status Donut Card (Matches User Attached Design with Initial Animation)
-                      <OwnerCourtStatusCard glanceData={glanceData} loading={glanceLoading} />
+                      <OwnerCourtStatusCard glanceData={glanceData} loading={glanceLoading} error={glanceError} />
                     ) : nextBooking ? (
                       // Confirmed Next Booking State (Matches User Reference Image 2)
                       <div className="flex flex-col h-full justify-between">
