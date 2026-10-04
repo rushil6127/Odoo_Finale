@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   Sparkles,
   Clock,
@@ -271,9 +272,31 @@ export default function CourtsShowcase() {
   const [guestEmail, setGuestEmail] = useState<string>("");
 
   // Submission State
+  const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [bookingSuccess, setBookingSuccess] = useState<any | null>(null);
   const [bookingError, setBookingError] = useState<string | null>(null);
+  const [bookingDobCountdown, setBookingDobCountdown] = useState<number | null>(null);
+
+  // Auto-redirect to profile settings when date of birth error occurs in court booking
+  useEffect(() => {
+    if (bookingError && bookingError.toLowerCase().includes("date of birth")) {
+      setBookingDobCountdown(3);
+      const interval = setInterval(() => {
+        setBookingDobCountdown((prev) => {
+          if (prev === null || prev <= 1) {
+            clearInterval(interval);
+            router.push("/profile?tab=settings&focus=dob");
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+      return () => clearInterval(interval);
+    } else {
+      setBookingDobCountdown(null);
+    }
+  }, [bookingError, router]);
 
   // 1. Fetch Backend Courts & Pricing Rules on mount
   useEffect(() => {
@@ -399,7 +422,17 @@ export default function CourtsShowcase() {
   // Handle final booking submission
   const handleConfirmReservation = async () => {
     if (!selectedCourtId || !selectedSlot) {
-      setBookingError("Please select a date, court, and time slot.");
+      setBookingError("Please select a reservation date, playing court, and an available 60-minute time slot before booking.");
+      return;
+    }
+
+    if (bookingTab === "member" && !isAuthenticated) {
+      setBookingError("Please sign in to your Champions Club member account to book with your member benefits.");
+      return;
+    }
+
+    if (bookingTab === "guest" && !guestName.trim()) {
+      setBookingError("Guest full name is required for walk-in court reservations.");
       return;
     }
 
@@ -440,12 +473,6 @@ export default function CourtsShowcase() {
         fetchAvailability();
       } else {
         // Guest Walk-In Booking
-        if (!guestName.trim()) {
-          setBookingError("Guest name is required for walk-in bookings.");
-          setIsSubmitting(false);
-          return;
-        }
-
         const res = await apiClient.post<{ booking: any }>("/bookings/guest", {
           court_id: selectedCourtId,
           start_time: selectedSlot.start_datetime,
@@ -459,7 +486,12 @@ export default function CourtsShowcase() {
         fetchAvailability();
       }
     } catch (err: any) {
-      setBookingError(err?.message || "Failed to confirm booking. The slot might already be reserved.");
+      const errMsg =
+        err?.response?.data?.error ||
+        err?.response?.data?.message ||
+        err?.message ||
+        "Failed to confirm court booking. The slot might already be reserved or unavailable.";
+      setBookingError(errMsg);
     } finally {
       setIsSubmitting(false);
     }
@@ -1134,6 +1166,155 @@ export default function CourtsShowcase() {
                   </>
                 )}
               </div>
+            </div>
+          </div>
+        )}
+
+        {/* COURT BOOKING ERROR POPUP MODAL */}
+        {bookingError && (
+          <div
+            className="fixed inset-0 z-[120] flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-md animate-in fade-in duration-200"
+            onClick={() => {
+              setBookingError(null);
+              setBookingDobCountdown(null);
+            }}
+          >
+            <div
+              className="relative w-full max-w-md bg-white rounded-3xl p-6 sm:p-8 shadow-2xl border border-rose-100 flex flex-col items-center text-center animate-in zoom-in-95 duration-200 text-slate-900"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Close 'X' Button */}
+              <button
+                type="button"
+                onClick={() => {
+                  setBookingError(null);
+                  setBookingDobCountdown(null);
+                }}
+                className="absolute top-4 right-4 w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 hover:text-slate-800 flex items-center justify-center transition-all cursor-pointer"
+                aria-label="Close error popup"
+              >
+                <X className="w-4 h-4" />
+              </button>
+
+              {/* Glowing Alert Icon */}
+              <div className="w-16 h-16 rounded-2xl bg-rose-50 border-2 border-rose-200/80 text-rose-500 flex items-center justify-center mb-4 shadow-sm">
+                <AlertCircle className="w-8 h-8 stroke-[2.2]" />
+              </div>
+
+              {/* Modal Title */}
+              <h3 className="text-xl font-black text-slate-900 font-[family-name:var(--font-outfit)] tracking-tight">
+                {bookingError.toLowerCase().includes("date of birth")
+                  ? "Date of Birth Required"
+                  : bookingError.toLowerCase().includes("age")
+                  ? "Age Restriction Notice"
+                  : bookingError.toLowerCase().includes("already booked") || bookingError.toLowerCase().includes("conflict") || bookingError.toLowerCase().includes("occupied")
+                  ? "Court Slot Unavailable"
+                  : bookingError.toLowerCase().includes("limit")
+                  ? "Booking Limit Reached"
+                  : bookingError.toLowerCase().includes("sign in") || bookingError.toLowerCase().includes("login")
+                  ? "Member Sign In Required"
+                  : bookingError.toLowerCase().includes("select") || bookingError.toLowerCase().includes("required")
+                  ? "Booking Details Incomplete"
+                  : "Unable to Complete Booking"}
+              </h3>
+
+              {/* Error Message Description */}
+              <p className="text-xs sm:text-sm font-medium text-slate-600 mt-2 mb-4 leading-relaxed max-w-sm">
+                {bookingError}
+              </p>
+
+              {/* Auto-redirect countdown banner if DOB error */}
+              {bookingError.toLowerCase().includes("date of birth") && (
+                <div className="w-full bg-amber-50/90 border border-amber-200 rounded-2xl p-3.5 mb-5 text-left flex items-start gap-3">
+                  <Clock className="w-4 h-4 text-amber-600 shrink-0 mt-0.5 animate-spin" />
+                  <div className="text-xs text-amber-900 leading-snug">
+                    Redirecting to your profile settings to enter your Date of Birth in{" "}
+                    <strong className="font-extrabold text-amber-800 font-mono text-sm">
+                      {bookingDobCountdown !== null ? `${bookingDobCountdown}s` : "3s"}
+                    </strong>
+                    ...
+                  </div>
+                </div>
+              )}
+
+              {/* Contextual Action Buttons */}
+              {bookingError.toLowerCase().includes("date of birth") ? (
+                <div className="flex flex-col sm:flex-row items-center gap-2.5 w-full">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setBookingError(null);
+                      setBookingDobCountdown(null);
+                      router.push("/profile?tab=settings&focus=dob");
+                    }}
+                    className="w-full py-3 px-5 rounded-2xl bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-600 hover:to-blue-700 text-white font-extrabold text-xs shadow-md shadow-sky-500/20 text-center transition-all flex items-center justify-center gap-2 cursor-pointer"
+                  >
+                    <span>Enter Date of Birth Now</span>
+                    <ArrowRight className="w-4 h-4" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setBookingError(null);
+                      setBookingDobCountdown(null);
+                    }}
+                    className="w-full sm:w-auto py-3 px-5 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition-colors cursor-pointer"
+                  >
+                    Stay Here
+                  </button>
+                </div>
+              ) : bookingError.toLowerCase().includes("already booked") || bookingError.toLowerCase().includes("conflict") || bookingError.toLowerCase().includes("occupied") ? (
+                <div className="flex flex-col sm:flex-row items-center gap-2.5 w-full">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setBookingError(null);
+                      setSelectedSlot(null);
+                      fetchAvailability();
+                    }}
+                    className="w-full py-3 px-5 rounded-2xl bg-sky-600 hover:bg-sky-700 text-white font-extrabold text-xs shadow-md shadow-sky-500/20 text-center transition-all flex items-center justify-center gap-2 cursor-pointer"
+                  >
+                    <RefreshCw className="w-4 h-4" />
+                    <span>Refresh & Choose Another Slot</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setBookingError(null)}
+                    className="w-full sm:w-auto py-3 px-5 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition-colors cursor-pointer"
+                  >
+                    Dismiss
+                  </button>
+                </div>
+              ) : bookingError.toLowerCase().includes("sign in") || bookingError.toLowerCase().includes("login") ? (
+                <div className="flex flex-col sm:flex-row items-center gap-2.5 w-full">
+                  <Link
+                    href="/login"
+                    onClick={() => setBookingError(null)}
+                    className="w-full py-3 px-5 rounded-2xl bg-slate-900 hover:bg-slate-800 text-white font-extrabold text-xs shadow-md text-center transition-all flex items-center justify-center gap-2 cursor-pointer"
+                  >
+                    <span>Sign In to Account</span>
+                    <ArrowRight className="w-4 h-4" />
+                  </Link>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setBookingError(null);
+                      setBookingTab("guest");
+                    }}
+                    className="w-full sm:w-auto py-3 px-5 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition-colors cursor-pointer whitespace-nowrap"
+                  >
+                    Book as Guest
+                  </button>
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => setBookingError(null)}
+                  className="w-full py-3 px-6 rounded-2xl bg-slate-900 hover:bg-slate-800 text-white font-extrabold text-xs shadow-md transition-all active:scale-98 cursor-pointer"
+                >
+                  Okay, Understood
+                </button>
+              )}
             </div>
           </div>
         )}
