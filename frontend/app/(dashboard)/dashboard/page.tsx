@@ -249,16 +249,9 @@ export default function DashboardPage() {
 
       {/* 3. OPERATIONAL MODULES GRID */}
       <div>
-        <div className="flex items-center justify-between mb-4">
-          <div>
-            <h2 className="text-lg font-black text-slate-900 font-[family-name:var(--font-outfit)]">
-              Operational Consoles
-            </h2>
-            <p className="text-xs text-slate-500">
-              Quick access to administrative controls and facility workflows
-            </p>
-          </div>
-        </div>
+        <h2 className="text-xl sm:text-2xl font-black text-slate-900 font-[family-name:var(--font-outfit)] tracking-tight mb-4">
+          Operational Consoles
+        </h2>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {/* Card 1: Staff & Role Delegator */}
@@ -268,23 +261,20 @@ export default function DashboardPage() {
           >
             <div>
               <div className="flex items-center justify-between">
-                <div className="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 border border-amber-200/60 flex items-center justify-center">
+                <div className="w-11 h-11 rounded-xl bg-amber-50 text-amber-600 border border-amber-200/60 flex items-center justify-center">
                   <Crown className="w-5 h-5 text-amber-600" />
                 </div>
-                <span className="text-[10px] font-bold uppercase px-2.5 py-0.5 rounded-full bg-amber-50 text-amber-800 border border-amber-200">
+                <span className="text-[10px] font-black uppercase px-2.5 py-1 rounded-full bg-amber-50 text-amber-800 border border-amber-200/80 tracking-wider">
                   Governance
                 </span>
               </div>
-              <h3 className="text-sm font-black text-slate-900 mt-3.5 group-hover:text-amber-600 transition-colors">
+              <h3 className="text-base sm:text-lg font-black text-slate-900 mt-4 group-hover:text-amber-600 transition-colors font-[family-name:var(--font-outfit)] leading-snug">
                 Staff &amp; Role Governance
               </h3>
-              <p className="text-xs text-slate-500 mt-1.5 leading-relaxed">
-                Appoint administrators, coaches, and staff with role permissions.
-              </p>
             </div>
-            <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs font-bold text-amber-700">
+            <div className="mt-6 flex items-center justify-between text-xs sm:text-sm font-bold text-amber-700">
               <span>Open Staff Console</span>
-              <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+              <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
             </div>
           </Link>
 
@@ -295,23 +285,20 @@ export default function DashboardPage() {
           >
             <div>
               <div className="flex items-center justify-between">
-                <div className="w-10 h-10 rounded-xl bg-sky-50 text-sky-600 border border-sky-200/60 flex items-center justify-center">
+                <div className="w-11 h-11 rounded-xl bg-sky-50 text-sky-600 border border-sky-200/60 flex items-center justify-center">
                   <CalendarDays className="w-5 h-5 text-sky-600" />
                 </div>
-                <span className="text-[10px] font-bold uppercase px-2.5 py-0.5 rounded-full bg-sky-50 text-sky-700 border border-sky-200">
+                <span className="text-[10px] font-black uppercase px-2.5 py-1 rounded-full bg-sky-50 text-sky-700 border border-sky-200/80 tracking-wider">
                   Live Grid
                 </span>
               </div>
-              <h3 className="text-sm font-black text-slate-900 mt-3.5 group-hover:text-sky-600 transition-colors">
+              <h3 className="text-base sm:text-lg font-black text-slate-900 mt-4 group-hover:text-sky-600 transition-colors font-[family-name:var(--font-outfit)] leading-snug">
                 Court Schedules &amp; Bookings
               </h3>
-              <p className="text-xs text-slate-500 mt-1.5 leading-relaxed">
-                Manage court slot reservations, peak pricing, and maintenance locks.
-              </p>
             </div>
-            <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs font-bold text-sky-700">
+            <div className="mt-6 flex items-center justify-between text-xs sm:text-sm font-bold text-sky-700">
               <span>Manage Courts &amp; Slots</span>
-              <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+              <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
             </div>
           </Link>
 
@@ -322,23 +309,20 @@ export default function DashboardPage() {
           >
             <div>
               <div className="flex items-center justify-between">
-                <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 border border-emerald-200/60 flex items-center justify-center">
+                <div className="w-11 h-11 rounded-xl bg-emerald-50 text-emerald-600 border border-emerald-200/60 flex items-center justify-center">
                   <Award className="w-5 h-5 text-emerald-600" />
                 </div>
-                <span className="text-[10px] font-bold uppercase px-2.5 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200">
+                <span className="text-[10px] font-black uppercase px-2.5 py-1 rounded-full bg-amber-50 text-amber-800 border border-amber-200/80 tracking-wider">
                   {pendingApprovals} Pending
                 </span>
               </div>
-              <h3 className="text-sm font-black text-slate-900 mt-3.5 group-hover:text-emerald-600 transition-colors">
+              <h3 className="text-base sm:text-lg font-black text-slate-900 mt-4 group-hover:text-emerald-600 transition-colors font-[family-name:var(--font-outfit)] leading-snug">
                 Membership Approvals &amp; Plans
               </h3>
-              <p className="text-xs text-slate-500 mt-1.5 leading-relaxed">
-                Review payment receipts, approve member tier upgrades, and perks.
-              </p>
             </div>
-            <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs font-bold text-emerald-700">
+            <div className="mt-6 flex items-center justify-between text-xs sm:text-sm font-bold text-emerald-700">
               <span>Review Membership Queue</span>
-              <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+              <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
             </div>
           </Link>
 
@@ -349,23 +333,20 @@ export default function DashboardPage() {
           >
             <div>
               <div className="flex items-center justify-between">
-                <div className="w-10 h-10 rounded-xl bg-teal-50 text-teal-600 border border-teal-200/60 flex items-center justify-center">
+                <div className="w-11 h-11 rounded-xl bg-teal-50 text-teal-600 border border-teal-200/60 flex items-center justify-center">
                   <UtensilsCrossed className="w-5 h-5 text-teal-600" />
                 </div>
-                <span className="text-[10px] font-bold uppercase px-2.5 py-0.5 rounded-full bg-teal-50 text-teal-700 border border-teal-200">
+                <span className="text-[10px] font-black uppercase px-2.5 py-1 rounded-full bg-teal-50 text-teal-700 border border-teal-200/80 tracking-wider">
                   POS
                 </span>
               </div>
-              <h3 className="text-sm font-black text-slate-900 mt-3.5 group-hover:text-teal-600 transition-colors">
+              <h3 className="text-base sm:text-lg font-black text-slate-900 mt-4 group-hover:text-teal-600 transition-colors font-[family-name:var(--font-outfit)] leading-snug">
                 Sports Bar &amp; Café POS
               </h3>
-              <p className="text-xs text-slate-500 mt-1.5 leading-relaxed">
-                Direct terminal orders, member tab charging, and receipt printing.
-              </p>
             </div>
-            <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs font-bold text-teal-700">
+            <div className="mt-6 flex items-center justify-between text-xs sm:text-sm font-bold text-teal-700">
               <span>Launch POS Terminal</span>
-              <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+              <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
             </div>
           </Link>
 
@@ -376,23 +357,20 @@ export default function DashboardPage() {
           >
             <div>
               <div className="flex items-center justify-between">
-                <div className="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-600 border border-indigo-200/60 flex items-center justify-center">
+                <div className="w-11 h-11 rounded-xl bg-indigo-50 text-indigo-600 border border-indigo-200/60 flex items-center justify-center">
                   <Boxes className="w-5 h-5 text-indigo-600" />
                 </div>
-                <span className="text-[10px] font-bold uppercase px-2.5 py-0.5 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200">
+                <span className="text-[10px] font-black uppercase px-2.5 py-1 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200/80 tracking-wider">
                   Stock
                 </span>
               </div>
-              <h3 className="text-sm font-black text-slate-900 mt-3.5 group-hover:text-indigo-600 transition-colors">
+              <h3 className="text-base sm:text-lg font-black text-slate-900 mt-4 group-hover:text-indigo-600 transition-colors font-[family-name:var(--font-outfit)] leading-snug">
                 Equipment &amp; Pro Shop
               </h3>
-              <p className="text-xs text-slate-500 mt-1.5 leading-relaxed">
-                Track sports gear inventory, apparel stocks, and reorder levels.
-              </p>
             </div>
-            <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs font-bold text-indigo-700">
+            <div className="mt-6 flex items-center justify-between text-xs sm:text-sm font-bold text-indigo-700">
               <span>Open Inventory</span>
-              <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+              <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
             </div>
           </Link>
 
@@ -403,23 +381,20 @@ export default function DashboardPage() {
           >
             <div>
               <div className="flex items-center justify-between">
-                <div className="w-10 h-10 rounded-xl bg-purple-50 text-purple-600 border border-purple-200/60 flex items-center justify-center">
+                <div className="w-11 h-11 rounded-xl bg-purple-50 text-purple-600 border border-purple-200/60 flex items-center justify-center">
                   <FileSpreadsheet className="w-5 h-5 text-purple-600" />
                 </div>
-                <span className="text-[10px] font-bold uppercase px-2.5 py-0.5 rounded-full bg-purple-50 text-purple-700 border border-purple-200">
+                <span className="text-[10px] font-black uppercase px-2.5 py-1 rounded-full bg-purple-50 text-purple-700 border border-purple-200/80 tracking-wider">
                   Reports
                 </span>
               </div>
-              <h3 className="text-sm font-black text-slate-900 mt-3.5 group-hover:text-purple-600 transition-colors">
+              <h3 className="text-base sm:text-lg font-black text-slate-900 mt-4 group-hover:text-purple-600 transition-colors font-[family-name:var(--font-outfit)] leading-snug">
                 Financial Reports &amp; Audits
               </h3>
-              <p className="text-xs text-slate-500 mt-1.5 leading-relaxed">
-                Day-end reconciliation, departmental revenue summaries, and audit logs.
-              </p>
             </div>
-            <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs font-bold text-purple-700">
+            <div className="mt-6 flex items-center justify-between text-xs sm:text-sm font-bold text-purple-700">
               <span>View Financial Reports</span>
-              <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+              <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
             </div>
           </Link>
         </div>
