@@ -250,14 +250,6 @@ export default function LoginPage() {
           <button
             type="button"
             disabled={loginLoading}
-            onClick={() => handleQuickFillAndLogin("pushplamba104@gmail.com", "Owner@12345")}
-            className="px-3 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-950 font-black border border-amber-400 shadow-xs transition-all disabled:opacity-50"
-          >
-            Owner Pushp
-          </button>
-          <button
-            type="button"
-            disabled={loginLoading}
             onClick={() => handleQuickFillAndLogin("admin@championsclub.in", "Admin@12345")}
             className="px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-extrabold shadow-xs transition-all disabled:opacity-50"
           >

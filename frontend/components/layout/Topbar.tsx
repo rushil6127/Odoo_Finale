@@ -52,7 +52,7 @@ export default function Topbar() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const isOwner = currentUser?.role === "OWNER" || currentUser?.email === "pushplamba104@gmail.com";
+  const isOwner = currentUser?.role === "OWNER";
   const initials = currentUser?.first_name?.[0] || currentUser?.email?.[0]?.toUpperCase() || "U";
 
   return (

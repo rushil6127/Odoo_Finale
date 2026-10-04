@@ -345,7 +345,7 @@ export default function EmployeesPage() {
     }
   };
 
-  const isOwner = currentUser?.role === "OWNER" || currentUser?.email === "pushplamba104@gmail.com";
+  const isOwner = currentUser?.role === "OWNER";
   const isAdmin = isOwner || currentUser?.role === "ADMIN";
 
   return (
@@ -569,7 +569,7 @@ export default function EmployeesPage() {
                   <tbody className="divide-y divide-slate-100 text-sm">
                     {users.map((user) => {
                       const roleConfig = getRoleBadge(user.role);
-                      const isTargetSuperOwner = user.email.toLowerCase() === "pushplamba104@gmail.com";
+                      const isTargetSuperOwner = user.role === "OWNER";
                       const deptConfig = DEPARTMENTS.find((d) => d.id === user.department) || {
                         id: user.department || "GENERAL",
                         name: user.department || "General Operations",

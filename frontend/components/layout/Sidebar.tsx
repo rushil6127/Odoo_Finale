@@ -64,10 +64,8 @@ const navigation: NavGroup[] = [
   {
     title: "Commerce & Hospitality",
     items: [
-      { label: "Sports Bar & POS", href: "/pos", icon: UtensilsCrossed },
-      { label: "Pro Shop Merchandise", href: "/shop", icon: ShoppingBag },
-      { label: "Equipment Inventory", href: "/inventory", icon: Boxes },
-      { label: "Leads & CRM Funnel", href: "/crm", icon: TrendingUp },
+      { label: "Pro Shop", href: "/inventory", icon: ShoppingBag, badge: "Stock & Rev", badgeColor: "bg-indigo-500/20 text-indigo-400" },
+      { label: "Café Bar", href: "/pos", icon: UtensilsCrossed, badge: "POS & Sales", badgeColor: "bg-teal-500/20 text-teal-400" },
     ],
   },
 ];
@@ -80,7 +78,7 @@ export default function Sidebar() {
     setCurrentUser(getStoredUser());
   }, []);
 
-  const isOwner = currentUser?.role === "OWNER" || currentUser?.email === "pushplamba104@gmail.com";
+  const isOwner = currentUser?.role === "OWNER";
 
   return (
     <aside className="w-64 h-screen bg-slate-950 border-r border-slate-800 text-slate-200 flex flex-col shrink-0 overflow-y-auto z-40 select-none">
