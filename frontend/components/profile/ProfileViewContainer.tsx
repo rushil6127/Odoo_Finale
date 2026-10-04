@@ -82,6 +82,9 @@ interface OwnerGlanceData {
   today_date?: string;
 }
 
+/**
+ * Streamlined Court Status Card
+ */
 function OwnerCourtStatusCard({
   glanceData,
   loading,
@@ -93,7 +96,6 @@ function OwnerCourtStatusCard({
   const [useSampleData, setUseSampleData] = useState(false);
 
   useEffect(() => {
-    // Initial load blossom & sweep animation
     const timer = setTimeout(() => {
       setAnimated(true);
     }, 120);
@@ -110,72 +112,28 @@ function OwnerCourtStatusCard({
   const availablePct = isSample ? 50 : (glanceData?.court_status?.available_pct ?? Math.round((availableCount / totalCourts) * 100));
   const maintenancePct = isSample ? 8 : (glanceData?.court_status?.maintenance_pct ?? Math.max(0, 100 - bookedPct - availablePct));
 
-  const todaysBookings = isSample ? "5" : (loading ? "…" : glanceData?.todays_bookings_count?.toString() ?? "0");
-  const pendingMemberships = isSample ? "2" : (loading ? "…" : glanceData?.pending_memberships_count?.toString() ?? "0");
-
-  const size = 160;
-  const strokeWidth = 24;
-  const center = size / 2; // 80
-  const radius = 52;
-  const circumference = 2 * Math.PI * radius; // 326.726
+  const size = 150;
+  const strokeWidth = 22;
+  const center = size / 2; // 75
+  const radius = 48;
+  const circumference = 2 * Math.PI * radius; // 301.59
 
   // Segment arc lengths
   const blueLen = circumference * (bookedPct / 100);
   const greenLen = circumference * (availablePct / 100);
   const orangeLen = circumference * (maintenancePct / 100);
 
-  // Boundary angles in degrees clockwise from 12 o'clock
-  const a0 = 0;
-  const a1 = (bookedPct / 100) * 360;
-  const a2 = a1 + (availablePct / 100) * 360;
-  const a3 = 360;
-
-  // Midpoint angles for percentages
-  const midBlue = (a0 + a1) / 2;
-  const midGreen = (a1 + a2) / 2;
-  const midOrange = (a2 + a3) / 2;
-
-  const toXY = (deg: number, r: number) => {
-    const rad = (deg * Math.PI) / 180;
-    return {
-      x: Math.round((center + r * Math.sin(rad)) * 10) / 10,
-      y: Math.round((center - r * Math.cos(rad)) * 10) / 10,
-    };
-  };
-
-  const bluePos = toXY(midBlue, radius);
-  const greenPos = toXY(midGreen, radius);
-  const orangePos = toXY(midOrange, radius);
-
-  const div1Start = toXY(a0, radius - strokeWidth / 2);
-  const div1End = toXY(a0, radius + strokeWidth / 2);
-
-  const div2Start = toXY(a1, radius - strokeWidth / 2);
-  const div2End = toXY(a1, radius + strokeWidth / 2);
-
-  const div3Start = toXY(a2, radius - strokeWidth / 2);
-  const div3End = toXY(a2, radius + strokeWidth / 2);
-
   return (
-    <div className="flex flex-col h-full justify-between gap-4">
-      {/* Top Header */}
+    <div className="flex flex-col h-full justify-between gap-5">
+      {/* Header */}
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-1.5">
-          <h3 className="text-xl font-black text-slate-900 font-[family-name:var(--font-outfit)] leading-none">
-            Court status
-          </h3>
-          <button
-            type="button"
-            title="Real-time court allocation and capacity monitor"
-            className="text-slate-400 hover:text-slate-600 transition-colors p-0.5 rounded-full cursor-help"
-          >
-            <Info className="w-4 h-4" />
-          </button>
-        </div>
+        <h3 className="text-2xl font-black text-slate-900 font-[family-name:var(--font-outfit)] leading-tight">
+          Court Status
+        </h3>
         <button
           type="button"
           onClick={() => setUseSampleData((prev) => !prev)}
-          title="Click to toggle between Live and Sample data"
+          title="Toggle Live/Sample Data"
           className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all cursor-pointer select-none"
           style={{
             backgroundColor: isSample ? "#f1f5f9" : "#ecfdf5",
@@ -186,18 +144,18 @@ function OwnerCourtStatusCard({
           {!isSample && (
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
           )}
-          <span>{isSample ? "SAMPLE DATA" : "LIVE DATA"}</span>
+          <span>{isSample ? "SAMPLE" : "LIVE"}</span>
         </button>
       </div>
 
-      {/* Middle: Animated Donut Chart + Legend */}
-      <div className="flex items-center justify-between gap-4 my-auto py-2">
+      {/* Donut Chart + Legend */}
+      <div className="flex items-center justify-between gap-4 my-auto py-1">
         {/* SVG Donut Chart */}
-        <div className="relative w-40 h-40 shrink-0 flex items-center justify-center">
+        <div className="relative w-36 h-36 shrink-0 flex items-center justify-center">
           <svg
-            width="160"
-            height="160"
-            viewBox="0 0 160 160"
+            width="150"
+            height="150"
+            viewBox="0 0 150 150"
             className="overflow-visible select-none"
             style={{
               transform: animated ? "rotate(0deg) scale(1)" : "rotate(-90deg) scale(0.85)",
@@ -205,7 +163,7 @@ function OwnerCourtStatusCard({
               transition: "transform 1.2s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.8s ease",
             }}
           >
-            <g transform="rotate(-90 80 80)">
+            <g transform="rotate(-90 75 75)">
               {/* Blue Arc (Booked) */}
               <circle
                 cx={center}
@@ -251,91 +209,6 @@ function OwnerCourtStatusCard({
                 }}
               />
             </g>
-
-            {/* Crisp white radial segment separators in standard coordinate space */}
-            <g
-              style={{
-                opacity: animated ? 1 : 0,
-                transition: "opacity 0.4s ease 0.6s",
-              }}
-            >
-              {/* Divider 1: between Orange & Blue */}
-              {bookedPct > 0 && maintenancePct > 0 && (
-                <line x1={div1Start.x} y1={div1Start.y} x2={div1End.x} y2={div1End.y} stroke="white" strokeWidth="2.5" strokeLinecap="round" />
-              )}
-              {/* Divider 2: between Blue & Green */}
-              {bookedPct > 0 && availablePct > 0 && (
-                <line x1={div2Start.x} y1={div2Start.y} x2={div2End.x} y2={div2End.y} stroke="white" strokeWidth="2.5" strokeLinecap="round" />
-              )}
-              {/* Divider 3: between Green & Orange */}
-              {availablePct > 0 && maintenancePct > 0 && (
-                <line x1={div3Start.x} y1={div3Start.y} x2={div3End.x} y2={div3End.y} stroke="white" strokeWidth="2.5" strokeLinecap="round" />
-              )}
-            </g>
-
-            {/* Percentage Labels Inside the Arcs */}
-            {bookedPct >= 6 && (
-              <text
-                x={bluePos.x}
-                y={bluePos.y}
-                fill="white"
-                fontSize="10"
-                fontWeight="900"
-                textAnchor="middle"
-                dominantBaseline="central"
-                className="font-sans select-none pointer-events-none"
-                style={{
-                  opacity: animated ? 1 : 0,
-                  transform: animated ? "scale(1)" : "scale(0.5)",
-                  transformOrigin: `${bluePos.x}px ${bluePos.y}px`,
-                  transition: "opacity 0.6s ease-out 0.7s, transform 0.6s ease-out 0.7s",
-                }}
-              >
-                {bookedPct}%
-              </text>
-            )}
-
-            {availablePct >= 6 && (
-              <text
-                x={greenPos.x}
-                y={greenPos.y}
-                fill="white"
-                fontSize="10"
-                fontWeight="900"
-                textAnchor="middle"
-                dominantBaseline="central"
-                className="font-sans select-none pointer-events-none"
-                style={{
-                  opacity: animated ? 1 : 0,
-                  transform: animated ? "scale(1)" : "scale(0.5)",
-                  transformOrigin: `${greenPos.x}px ${greenPos.y}px`,
-                  transition: "opacity 0.6s ease-out 0.7s, transform 0.6s ease-out 0.7s",
-                }}
-              >
-                {availablePct}%
-              </text>
-            )}
-
-            {maintenancePct >= 6 && (
-              <text
-                x={orangePos.x}
-                y={orangePos.y}
-                fill="white"
-                fontSize="9"
-                fontWeight="900"
-                textAnchor="middle"
-                dominantBaseline="central"
-                className="font-sans select-none pointer-events-none"
-                style={{
-                  opacity: animated ? 1 : 0,
-                  transform: animated ? "scale(1)" : "scale(0.5)",
-                  transformOrigin: `${orangePos.x}px ${orangePos.y}px`,
-                  transition: "opacity 0.6s ease-out 0.7s, transform 0.6s ease-out 0.7s",
-                }}
-              >
-                {maintenancePct}%
-              </text>
-            )}
           </svg>
 
           {/* Center Hole Content */}
@@ -350,97 +223,68 @@ function OwnerCourtStatusCard({
             <span className="text-2xl font-black text-slate-900 leading-none font-[family-name:var(--font-outfit)]">
               {totalCourts}
             </span>
-            <span className="text-[10px] text-slate-500 font-bold leading-tight mt-0.5">
-              courts
-            </span>
-            <span className="text-[10px] text-slate-500 font-bold leading-tight">
-              total
+            <span className="text-[10px] text-slate-400 font-bold leading-tight mt-0.5 uppercase tracking-wider">
+              Courts
             </span>
           </div>
         </div>
 
         {/* Legend */}
-        <div className="space-y-3.5 pr-1 flex-1 max-w-[140px]">
+        <div className="space-y-3 pr-1 flex-1">
           {/* Booked */}
-          <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center justify-between gap-2">
             <div className="flex items-center gap-2">
-              <span className="w-3.5 h-3.5 rounded-full bg-[#0070f3] shrink-0" />
-              <span className="text-xs font-bold text-slate-700">Booked</span>
+              <span className="w-2.5 h-2.5 rounded-full bg-[#0070f3] shrink-0" />
+              <span className="text-xs font-semibold text-slate-600">Booked</span>
             </div>
-            <span className="text-sm font-black text-slate-900 font-mono">{bookedCount}</span>
+            <span className="text-xs font-black text-slate-900 font-mono">
+              {bookedCount} <span className="text-[10px] text-slate-400 font-normal">({bookedPct}%)</span>
+            </span>
           </div>
 
           {/* Available */}
-          <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center justify-between gap-2">
             <div className="flex items-center gap-2">
-              <span className="w-3.5 h-3.5 rounded-full bg-[#10b981] shrink-0" />
-              <span className="text-xs font-bold text-slate-700">Available</span>
+              <span className="w-2.5 h-2.5 rounded-full bg-[#10b981] shrink-0" />
+              <span className="text-xs font-semibold text-slate-600">Available</span>
             </div>
-            <span className="text-sm font-black text-slate-900 font-mono">{availableCount}</span>
+            <span className="text-xs font-black text-slate-900 font-mono">
+              {availableCount} <span className="text-[10px] text-slate-400 font-normal">({availablePct}%)</span>
+            </span>
           </div>
 
           {/* Maintenance */}
-          <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center justify-between gap-2">
             <div className="flex items-center gap-2">
-              <span className="w-3.5 h-3.5 rounded-full bg-[#f97316] shrink-0" />
-              <span className="text-xs font-bold text-slate-700">Maintenance</span>
+              <span className="w-2.5 h-2.5 rounded-full bg-[#f97316] shrink-0" />
+              <span className="text-xs font-semibold text-slate-600">Maintenance</span>
             </div>
-            <span className="text-sm font-black text-slate-900 font-mono">{maintenanceCount}</span>
+            <span className="text-xs font-black text-slate-900 font-mono">
+              {maintenanceCount} <span className="text-[10px] text-slate-400 font-normal">({maintenancePct}%)</span>
+            </span>
           </div>
         </div>
       </div>
 
-      {/* Bottom Rows */}
-      <div className="space-y-2.5 pt-1">
-        {/* Today's bookings */}
+      {/* Clean Court Action Footer (No duplicate booking/membership rows!) */}
+      <div className="pt-3 border-t border-slate-100 flex items-center justify-between">
+        <span className="text-xs font-semibold text-slate-500">
+          Capacity: <span className="font-bold text-slate-900">{availableCount} open</span>
+        </span>
         <Link
-          href="/bookings"
-          className="pt-2.5 border-t border-slate-100 flex items-center justify-between text-xs hover:bg-slate-50/70 -mx-1 px-1 rounded transition-colors group cursor-pointer"
+          href="/#courts"
+          className="text-xs font-extrabold text-[#0070f3] hover:text-blue-700 flex items-center gap-1.5 transition-colors cursor-pointer group"
         >
-          <div className="flex items-center gap-2 text-slate-600 font-semibold group-hover:text-sky-600 transition-colors">
-            <Calendar className="w-4 h-4 text-slate-400 group-hover:text-sky-500 shrink-0" />
-            <span>Today&apos;s bookings</span>
-          </div>
-          <span className="text-slate-900 font-black text-sm font-mono">
-            {todaysBookings}
-          </span>
+          <span>View Availability</span>
+          <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
         </Link>
-
-        {/* Pending memberships */}
-        <Link
-          href="/memberships"
-          className="pt-2.5 border-t border-slate-100 flex items-center justify-between text-xs hover:bg-slate-50/70 -mx-1 px-1 rounded transition-colors group cursor-pointer"
-        >
-          <div className="flex items-center gap-2 text-slate-600 font-semibold group-hover:text-emerald-600 transition-colors">
-            <svg className="w-4 h-4 text-slate-400 group-hover:text-emerald-500 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <rect width="18" height="18" x="3" y="3" rx="4" />
-              <path d="m9 12 2 2 4-4" />
-            </svg>
-            <span>Pending memberships</span>
-          </div>
-          <span className="text-slate-900 font-black text-sm font-mono">
-            {pendingMemberships}
-          </span>
-        </Link>
-
-        {/* Manage club link */}
-        <div className="pt-2.5 border-t border-slate-100 flex items-center justify-between">
-          <Link
-            href="/dashboard"
-            className="text-xs font-extrabold text-[#0070f3] hover:text-blue-700 flex items-center gap-1.5 transition-colors cursor-pointer group"
-          >
-            <Settings className="w-4 h-4 text-[#0070f3] group-hover:rotate-45 transition-transform" />
-            <span>Manage club</span>
-            <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
-          </Link>
-        </div>
       </div>
     </div>
   );
 }
 
 /**
- * Club at a Glance Overview Card for Sovereign Owner (Matches User Attached Reference)
+ * Streamlined Club at a Glance Overview Card
  */
 function OwnerClubGlanceCard({
   glanceData,
@@ -449,108 +293,77 @@ function OwnerClubGlanceCard({
   glanceData?: OwnerGlanceData | null;
   loading?: boolean;
 }) {
-  const todaysBookings = glanceData?.todays_bookings_count;
-  const pendingMemberships = glanceData?.pending_memberships_count;
+  const todaysBookings = glanceData?.todays_bookings_count ?? 0;
+  const pendingMemberships = glanceData?.pending_memberships_count ?? 0;
 
   return (
     <div className="lg:col-span-7 p-6 rounded-3xl bg-white border border-slate-200/90 shadow-sm flex flex-col justify-between gap-6">
-      {/* Top Header */}
-      <div>
-        <p className="text-[10px] font-black uppercase tracking-[0.12em] text-slate-400 mb-1">
-          CLUB AT A GLANCE
-        </p>
-        <h3 className="text-4xl font-black text-slate-900 font-[family-name:var(--font-outfit)] leading-none mb-2">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <h3 className="text-2xl font-black text-slate-900 font-[family-name:var(--font-outfit)] leading-tight">
           Club at a Glance
         </h3>
-        <p className="text-xs text-slate-400 font-medium">
-          Key activity and status for your club
-        </p>
+        <span className="text-[11px] font-bold text-slate-400">
+          Daily Overview
+        </span>
       </div>
 
-      {/* 3 Metric Columns */}
-      <div className="grid grid-cols-3 gap-4 my-auto py-6">
-        {/* Col 1: Today's bookings */}
+      {/* 2 Scannable Metric Tiles */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 my-auto">
+        {/* Today's Bookings Tile */}
         <Link
           href="/bookings"
-          className="flex flex-col items-center text-center group cursor-pointer"
+          className="p-4 rounded-2xl bg-slate-50/80 hover:bg-sky-50/60 border border-slate-100 hover:border-sky-200/80 transition-all group flex items-center justify-between cursor-pointer"
         >
-          <div className="w-14 h-14 rounded-full bg-sky-50 text-sky-500 group-hover:bg-sky-100 group-hover:scale-105 flex items-center justify-center mb-3 transition-all">
-            <svg className="w-6 h-6 text-sky-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M8 2v4" />
-              <path d="M16 2v4" />
-              <rect width="18" height="18" x="3" y="4" rx="2" />
-              <path d="M3 10h18" />
-              <path d="m8 15 2 2 3-3 3 2" />
-            </svg>
+          <div className="flex items-center gap-3.5">
+            <div className="w-12 h-12 rounded-xl bg-sky-500/10 text-sky-600 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+              <Calendar className="w-6 h-6 text-sky-600" />
+            </div>
+            <div>
+              <p className="text-xs font-semibold text-slate-500">
+                Today&apos;s Bookings
+              </p>
+              <p className="text-2xl font-black text-slate-900 font-mono tracking-tight mt-0.5">
+                {loading ? "…" : todaysBookings}
+              </p>
+            </div>
           </div>
-          <p className="text-xs font-black text-slate-900 leading-snug group-hover:text-sky-600 transition-colors">
-            Today&apos;s bookings
-          </p>
-          <p className="text-xl font-black text-slate-900 mt-2 font-mono">
-            {loading ? (
-              <span className="inline-block w-4 h-4 border-2 border-sky-400 border-t-transparent rounded-full animate-spin" />
-            ) : todaysBookings !== undefined ? (
-              todaysBookings
-            ) : (
-              "—"
-            )}
-          </p>
+          <ArrowRight className="w-4 h-4 text-slate-300 group-hover:text-sky-600 group-hover:translate-x-1 transition-all" />
         </Link>
 
-        {/* Col 2: Pending memberships */}
+        {/* Pending Memberships Tile */}
         <Link
           href="/memberships"
-          className="flex flex-col items-center text-center group cursor-pointer"
+          className="p-4 rounded-2xl bg-slate-50/80 hover:bg-emerald-50/60 border border-slate-100 hover:border-emerald-200/80 transition-all group flex items-center justify-between cursor-pointer"
         >
-          <div className="w-14 h-14 rounded-full bg-emerald-50 text-emerald-500 group-hover:bg-emerald-100 group-hover:scale-105 flex items-center justify-center mb-3 transition-all">
-            <svg className="w-6 h-6 text-emerald-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
-              <circle cx="9" cy="7" r="4" />
-              <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
-              <path d="M16 3.13a4 4 0 0 1 0 7.75" />
-            </svg>
+          <div className="flex items-center gap-3.5">
+            <div className="w-12 h-12 rounded-xl bg-emerald-500/10 text-emerald-600 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+              <svg className="w-6 h-6 text-emerald-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+                <circle cx="9" cy="7" r="4" />
+                <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
+                <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+              </svg>
+            </div>
+            <div>
+              <p className="text-xs font-semibold text-slate-500">
+                Pending Memberships
+              </p>
+              <p className="text-2xl font-black text-slate-900 font-mono tracking-tight mt-0.5">
+                {loading ? "…" : pendingMemberships}
+              </p>
+            </div>
           </div>
-          <p className="text-xs font-black text-slate-900 leading-snug group-hover:text-emerald-600 transition-colors">
-            Pending memberships
-          </p>
-          <p className="text-xl font-black text-slate-900 mt-2 font-mono">
-            {loading ? (
-              <span className="inline-block w-4 h-4 border-2 border-emerald-400 border-t-transparent rounded-full animate-spin" />
-            ) : pendingMemberships !== undefined ? (
-              pendingMemberships
-            ) : (
-              "—"
-            )}
-          </p>
+          <ArrowRight className="w-4 h-4 text-slate-300 group-hover:text-emerald-600 group-hover:translate-x-1 transition-all" />
         </Link>
-
-        {/* Col 3: Court status */}
-        <div className="flex flex-col items-center text-center">
-          <div className="w-14 h-14 rounded-full bg-sky-50 text-sky-500 flex items-center justify-center mb-3">
-            <svg className="w-6 h-6 text-sky-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <rect width="18" height="18" x="3" y="3" rx="2" />
-              <path d="M3 12h18" />
-              <path d="M12 3v18" />
-            </svg>
-          </div>
-          <p className="text-xs font-black text-slate-900 leading-snug">
-            Court status
-          </p>
-          <Link
-            href="/#courts"
-            className="text-xs font-bold text-sky-600 hover:text-sky-700 underline block mt-2"
-          >
-            View availability
-          </Link>
-        </div>
       </div>
 
-      {/* Manage Club CTA Button */}
+      {/* Primary Action Button */}
       <Link
         href="/dashboard"
-        className="w-full inline-flex items-center justify-center gap-2 px-5 py-3 rounded-2xl bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-600 hover:to-blue-700 text-white font-extrabold text-sm shadow-md shadow-sky-500/25 transition-all mt-auto cursor-pointer"
+        className="w-full inline-flex items-center justify-center gap-2 px-5 py-3 rounded-2xl bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-600 hover:to-blue-700 text-white font-extrabold text-sm shadow-md shadow-sky-500/20 transition-all mt-auto cursor-pointer"
       >
-        <span>Manage club</span>
+        <span>Manage Club</span>
         <ArrowRight className="w-4 h-4" />
       </Link>
     </div>
