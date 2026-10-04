@@ -688,7 +688,7 @@ class TestStage5CommercePOSAndDashboard:
 
         resp_menu = client.get("/api/v1/pos/menu", headers=bar_headers)
         menu_items = resp_menu.get_json()["data"]
-        coffee = next(i for i in menu_items if i["code"] == "COF-01")
+        coffee = next(i for i in menu_items if i["code"] in ("COF-01", "B01"))
 
         # Add item
         resp_add = client.post(f"/api/v1/pos/tabs/{tab_id}/items", headers=bar_headers, json={

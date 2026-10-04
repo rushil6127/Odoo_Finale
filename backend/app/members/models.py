@@ -63,6 +63,15 @@ class Member(db.Model):
         """Check if the member has any active membership right now."""
         return self.get_active_membership() is not None
 
+    def to_dict(
+        self,
+        include_user: bool = True,
+        include_membership: bool = True,
+        **kwargs,
+    ) -> dict:
+        """Serialize Member model to dictionary format for JSON responses."""
+        active_ms = self.get_active_membership() if include_membership else None
+
         # Compute real total spend and bookings from database
         from backend.app.payments.models import Payment, PaymentStatus
         from backend.app.bookings.models import Booking, BookingStatus

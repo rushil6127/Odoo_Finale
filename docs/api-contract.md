@@ -331,7 +331,41 @@ The system enforces 7 distinct hierarchical roles:
 }
 ```
 
+### 3.12 Upload or Update User Avatar
+- **Endpoint:** `POST /api/v1/auth/avatar`
+- **Endpoint:** `PUT /api/v1/auth/avatar`
+- **Authentication:** Required (`jwt_required`)
+- **Success Response (`200 OK`):**
+```json
+{
+  "success": true,
+  "data": {
+    "user": { "id": 1, "email": "user@example.com", "avatar_url": "/api/v1/auth/avatar/file/avatar_1_abc.png" },
+    "avatar_url": "/api/v1/auth/avatar/file/avatar_1_abc.png"
+  },
+  "message": "Profile picture updated successfully."
+}
+```
+
+### 3.13 Remove User Avatar
+- **Endpoint:** `DELETE /api/v1/auth/avatar`
+- **Authentication:** Required (`jwt_required`)
+- **Success Response (`200 OK`):**
+```json
+{
+  "success": true,
+  "data": { "user": { "id": 1, "avatar_url": null }, "avatar_url": null },
+  "message": "Profile picture removed successfully."
+}
+```
+
+### 3.14 Serve Uploaded Avatar Image File
+- **Endpoint:** `GET /api/v1/auth/avatar/file/<filename>`
+- **Authentication:** None (Public)
+- **Success Response (`200 OK`):** Serves binary image file stream.
+
 ---
+
 
 ## 4. Members Endpoints (`/api/v1/members`)
 

@@ -142,6 +142,11 @@ EXPLICIT_PUBLIC_ENDPOINTS = {
     "shop.list_categories",
     # Public reports glance
     "reports.get_club_glance_route",
+    # Public POS menu and categories (read-only for Cafe/Lounge visitors)
+    "pos.api_list_menu",
+    "pos.api_list_categories",
+    # Public avatar static file serving
+    "auth.serve_avatar",
 }
 
 
