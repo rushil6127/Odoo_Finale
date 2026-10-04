@@ -458,26 +458,40 @@ class TestStage5BusinessRuleRejectionsAndFailurePaths:
         assert "conflict" in error_msg or "not available" in error_msg or "overlap" in error_msg or "already booked" in error_msg
 
     def test_daily_booking_limit_enforcement(self, client, seeded_club):
-        """Attempting a 3rd booking on the same day for a member exceeding MAX_DAILY_BOOKINGS (2) fails."""
-        # active.player@championsclub.example.com has 2 bookings seeded today
+        """Attempting bookings exceeding MAX_DAILY_BOOKINGS_PER_MEMBER (5) on the same day fails."""
+        # active.player@championsclub.example.com has 2 bookings seeded today (10:00 and 16:00)
         player_headers, _ = api_login(client, "active.player@championsclub.example.com")
 
         resp_courts = client.get("/api/v1/courts?sport=TABLE_TENNIS")
         tt_court = resp_courts.get_json()["data"]["courts"][0]
 
-        # Attempt to create a 3rd booking for today
-        third_booking_time = datetime.now().replace(hour=21, minute=0, second=0, microsecond=0)
-        resp3 = client.post(
+        # Book 3rd, 4th, and 5th session on different non-conflicting times today (e.g. 18:00, 19:00, 20:00)
+        for h in (18, 19, 20):
+            t_time = datetime.now().replace(hour=h, minute=0, second=0, microsecond=0)
+            res = client.post(
+                "/api/v1/bookings",
+                headers=player_headers,
+                json={
+                    "court_id": tt_court["id"],
+                    "start_time": t_time.isoformat(),
+                    "notes": f"Booking slot at {h}:00",
+                },
+            )
+            assert res.status_code == 201
+
+        # Attempt to create a 6th booking for today (exceeds limit 5)
+        sixth_booking_time = datetime.now().replace(hour=21, minute=0, second=0, microsecond=0)
+        resp_sixth = client.post(
             "/api/v1/bookings",
             headers=player_headers,
             json={
                 "court_id": tt_court["id"],
-                "start_time": third_booking_time.isoformat(),
-                "notes": "Attempting 3rd booking in a single day",
+                "start_time": sixth_booking_time.isoformat(),
+                "notes": "Attempting 6th booking in a single day",
             },
         )
-        assert resp3.status_code in (400, 422)
-        err = resp3.get_json()
+        assert resp_sixth.status_code in (400, 422)
+        err = resp_sixth.get_json()
         assert err["success"] is False
         error_msg = err.get("error", {}).get("message", "").lower()
         assert "daily" in error_msg or "limit" in error_msg or "maximum" in error_msg

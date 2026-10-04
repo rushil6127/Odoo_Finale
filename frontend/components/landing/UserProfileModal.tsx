@@ -20,9 +20,11 @@ import {
   Mail, 
   Receipt, 
   ExternalLink, 
-  Plus
+  Plus,
+  ArrowRight,
+  Check
 } from "lucide-react";
-import type { AuthUserProfile } from "@/lib/auth";
+import { isOwner, type AuthUserProfile } from "@/lib/auth";
 
 interface UserProfileModalProps {
   isOpen: boolean;
@@ -279,14 +281,25 @@ export default function UserProfileModal({
                   <ShoppingBag className="w-3.5 h-3.5" />
                   <span>Pro Shop Catalog</span>
                 </Link>
-                <Link
-                  href="/dashboard"
-                  onClick={onClose}
-                  className="px-5 py-2.5 rounded-xl bg-lime-100 hover:bg-lime-200 text-lime-900 border border-lime-300 font-bold text-xs transition-all flex items-center gap-2"
-                >
-                  <TrendingUp className="w-3.5 h-3.5" />
-                  <span>Staff & Club Management Console</span>
-                </Link>
+                {isOwner(user) ? (
+                  <Link
+                    href="/dashboard"
+                    onClick={onClose}
+                    className="px-5 py-2.5 rounded-xl bg-lime-100 hover:bg-lime-200 text-lime-900 border border-lime-300 font-bold text-xs transition-all flex items-center gap-2"
+                  >
+                    <TrendingUp className="w-3.5 h-3.5" />
+                    <span>Owner Console Dashboard</span>
+                  </Link>
+                ) : (
+                  <Link
+                    href="/profile/member?tab=bookings"
+                    onClick={onClose}
+                    className="px-5 py-2.5 rounded-xl bg-sky-100 hover:bg-sky-200 text-sky-900 border border-sky-300 font-bold text-xs transition-all flex items-center gap-2"
+                  >
+                    <Calendar className="w-3.5 h-3.5" />
+                    <span>My Court Bookings</span>
+                  </Link>
+                )}
               </div>
             </div>
           )}
@@ -396,69 +409,98 @@ export default function UserProfileModal({
           {/* TAB 3: ORDERS */}
           {activeTab === "orders" && (
             <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500">
-                  Pro Shop, Stringing & Café Orders
-                </h4>
+              {/* Header */}
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex items-center gap-2">
+                  <h4 className="text-lg font-black text-slate-900 font-[family-name:var(--font-outfit)]">
+                    Club orders
+                  </h4>
+                  <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-slate-100 text-slate-600 text-[11px] font-black">
+                    {user.orders.length}
+                  </span>
+                </div>
                 <Link
                   href="#shop"
                   onClick={onClose}
-                  className="text-xs font-bold text-sky-600 hover:underline flex items-center gap-1"
+                  className="text-xs font-bold text-sky-600 hover:text-sky-700 flex items-center gap-1 transition-colors"
                 >
-                  <span>Order Gear</span> &rarr;
+                  Order Gear <ArrowRight className="w-3.5 h-3.5" />
                 </Link>
               </div>
 
-              {user.orders.map((order) => (
-                <div
-                  key={order.id}
-                  className="p-4 rounded-2xl bg-white border border-slate-200/90 shadow-sm space-y-3"
-                >
-                  <div className="flex items-center justify-between gap-3 pb-2 border-b border-slate-100">
-                    <div className="flex items-center gap-2">
-                      <span className="font-mono text-xs font-bold text-slate-900">
-                        {order.orderNumber}
+              {/* Order list */}
+              <div className="space-y-3">
+                {user.orders.map((order) => (
+                  <div
+                    key={order.id}
+                    className="p-4 rounded-2xl bg-white border border-slate-200 shadow-sm space-y-3"
+                  >
+                    {/* Order header */}
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="font-mono text-sm font-black text-slate-900">
+                            {order.orderNumber}
+                          </span>
+                          <span className={`text-[11px] font-bold px-2 py-0.5 rounded-full border ${
+                            order.type === "PRO_SHOP"
+                              ? "bg-sky-50 text-sky-700 border-sky-200"
+                              : order.type === "CAFE"
+                              ? "bg-amber-50 text-amber-700 border-amber-200"
+                              : "bg-purple-50 text-purple-700 border-purple-200"
+                          }`}>
+                            {order.type === "PRO_SHOP" ? "Pro Shop" : order.type.charAt(0) + order.type.slice(1).toLowerCase()}
+                          </span>
+                        </div>
+                        <p className="text-[11px] text-slate-400 mt-0.5">{order.date}</p>
+                      </div>
+
+                      <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold shrink-0 ${
+                        order.status === "COMPLETED"
+                          ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                          : order.status === "READY_FOR_PICKUP"
+                          ? "bg-sky-50 text-sky-700 border border-sky-200"
+                          : "bg-amber-50 text-amber-700 border border-amber-200"
+                      }`}>
+                        {order.status === "COMPLETED" && <Check className="w-3 h-3" />}
+                        {order.status === "COMPLETED" ? "Completed" : order.status === "READY_FOR_PICKUP" ? "Ready for pickup" : order.status.replace(/_/g, " ")}
                       </span>
-                      <span className="text-[10px] font-bold bg-slate-100 text-slate-700 px-2 py-0.5 rounded-full">
-                        {order.type.replace("_", " ")}
-                      </span>
-                      <span className="text-[11px] text-slate-400">&bull; {order.date}</span>
                     </div>
 
-                    <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
-                      order.status === "COMPLETED"
-                        ? "bg-green-100 text-green-800"
-                        : order.status === "READY_FOR_PICKUP"
-                        ? "bg-sky-100 text-sky-800 animate-pulse"
-                        : "bg-amber-100 text-amber-800"
-                    }`}>
-                      {order.status.replace(/_/g, " ")}
-                    </span>
-                  </div>
+                    {/* Items */}
+                    <div className="space-y-1.5">
+                      {order.items.map((item, i) => (
+                        <div key={i} className="flex items-center justify-between text-sm">
+                          <span className="text-slate-700 text-xs">
+                            <span className="font-bold text-slate-400 mr-1.5">{item.quantity}×</span>
+                            {item.name}
+                          </span>
+                          <span className="font-semibold text-slate-900 text-xs tabular-nums">
+                            ₹{(item.price * item.quantity).toLocaleString("en-IN")}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
 
-                  <div className="space-y-1">
-                    {order.items.map((item, i) => (
-                      <div key={i} className="flex items-center justify-between text-xs text-slate-700">
-                        <span>
-                          {item.quantity}x {item.name}
-                        </span>
-                        <span className="font-mono font-medium">
-                          ₹{(item.price * item.quantity).toLocaleString("en-IN")}
+                    {/* Footer */}
+                    <div className="flex items-center justify-between pt-2.5 border-t border-slate-100 text-xs">
+                      <span className="flex items-center gap-1.5 text-slate-500">
+                        <CreditCard className="w-3.5 h-3.5 text-slate-400" />
+                        Paid via {order.paymentMethod}
+                      </span>
+                      <div className="flex items-center gap-2">
+                        <span className="text-slate-400">Total</span>
+                        <span className="font-black text-slate-900 text-sm">
+                          ₹{order.totalAmount.toLocaleString("en-IN")}
                         </span>
                       </div>
-                    ))}
+                    </div>
                   </div>
-
-                  <div className="flex items-center justify-between pt-2 border-t border-slate-100 text-xs">
-                    <span className="text-slate-500">Paid via {order.paymentMethod}</span>
-                    <span className="font-bold text-slate-900 text-sm">
-                      Total: ₹{order.totalAmount.toLocaleString("en-IN")}
-                    </span>
-                  </div>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
           )}
+
 
           {/* TAB 4: BOOKINGS */}
           {activeTab === "bookings" && (

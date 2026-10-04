@@ -49,93 +49,6 @@ interface MemberRecord {
   avatarBg: string;
 }
 
-const INITIAL_MEMBERS: MemberRecord[] = [
-  {
-    id: 1,
-    user_id: 101,
-    name: "Pushp Lamba",
-    email: "pushplamba104@gmail.com",
-    phone: "+91 98765 43210",
-    tier: "BLACK_CARD",
-    status: "ACTIVE",
-    joinedDate: "Jan 15, 2024",
-    expiresDate: "Lifetime Sovereign",
-    totalSpend: 245000,
-    totalBookings: 88,
-    avatarBg: "from-amber-400 to-amber-600",
-  },
-  {
-    id: 2,
-    user_id: 102,
-    name: "Aarav Sharma",
-    email: "aarav.sharma@gmail.com",
-    phone: "+91 98111 22334",
-    tier: "PLATINUM",
-    status: "ACTIVE",
-    joinedDate: "Mar 10, 2024",
-    expiresDate: "Mar 10, 2025",
-    totalSpend: 78500,
-    totalBookings: 42,
-    avatarBg: "from-sky-400 to-blue-600",
-  },
-  {
-    id: 3,
-    user_id: 103,
-    name: "Rohan Verma",
-    email: "rohan.v@gmail.com",
-    phone: "+91 98222 33445",
-    tier: "GOLD",
-    status: "ACTIVE",
-    joinedDate: "Feb 01, 2024",
-    expiresDate: "Feb 01, 2025",
-    totalSpend: 42000,
-    totalBookings: 29,
-    avatarBg: "from-emerald-400 to-teal-600",
-  },
-  {
-    id: 4,
-    user_id: 104,
-    name: "Ananya Iyer",
-    email: "ananya.iyer@outlook.com",
-    phone: "+91 98333 44556",
-    tier: "STANDARD",
-    status: "ACTIVE",
-    joinedDate: "Jul 20, 2024",
-    expiresDate: "Jul 20, 2025",
-    totalSpend: 15400,
-    totalBookings: 14,
-    avatarBg: "from-purple-400 to-indigo-600",
-  },
-  {
-    id: 5,
-    user_id: 105,
-    name: "Vikram Malhotra",
-    email: "v.malhotra@corp.com",
-    phone: "+91 98444 55667",
-    tier: "BLACK_CARD",
-    status: "PENDING_VERIFICATION",
-    joinedDate: "Oct 01, 2024",
-    expiresDate: "Pending Review",
-    totalSpend: 120000,
-    totalBookings: 5,
-    avatarBg: "from-amber-500 to-red-600",
-  },
-  {
-    id: 6,
-    user_id: 106,
-    name: "Kavita Rao",
-    email: "kavita.rao@gmail.com",
-    phone: "+91 98555 66778",
-    tier: "GOLD",
-    status: "ACTIVE",
-    joinedDate: "May 12, 2024",
-    expiresDate: "May 12, 2025",
-    totalSpend: 36800,
-    totalBookings: 21,
-    avatarBg: "from-pink-400 to-rose-600",
-  },
-];
-
 const TIER_BADGES: Record<string, { bg: string; icon: React.ReactNode; label: string }> = {
   BLACK_CARD: { bg: "bg-slate-900 text-amber-300 border-amber-400/40", icon: <Crown className="w-3 h-3 text-amber-400 fill-amber-400" />, label: "Black Card VIP" },
   PLATINUM: { bg: "bg-slate-100 text-slate-800 border-slate-200", icon: <Sparkles className="w-3 h-3 text-slate-600" />, label: "Platinum Elite" },
@@ -144,7 +57,7 @@ const TIER_BADGES: Record<string, { bg: string; icon: React.ReactNode; label: st
 };
 
 export default function MembersPage() {
-  const [members, setMembers] = useState<MemberRecord[]>(INITIAL_MEMBERS);
+  const [members, setMembers] = useState<MemberRecord[]>([]);
   const [loading, setLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedTier, setSelectedTier] = useState<string>("ALL");
@@ -183,9 +96,11 @@ export default function MembersPage() {
           };
         });
         setMembers(mapped);
+      } else {
+        setMembers([]);
       }
     } catch (err) {
-      console.log("Using seeded fallback members:", err);
+      setMembers([]);
     } finally {
       setLoading(false);
     }
@@ -582,29 +497,34 @@ export default function MembersPage() {
               </button>
               <button
                 type="button"
-                onClick={() => {
+                onClick={async () => {
                   const nameInput = document.getElementById("new-mem-name") as HTMLInputElement;
                   const emailInput = document.getElementById("new-mem-email") as HTMLInputElement;
                   const phoneInput = document.getElementById("new-mem-phone") as HTMLInputElement;
                   const tierInput = document.getElementById("new-mem-tier") as HTMLSelectElement;
 
-                  if (nameInput?.value && emailInput?.value) {
-                    const newMem: MemberRecord = {
-                      id: members.length + 1,
-                      user_id: 200 + members.length,
-                      name: nameInput.value,
-                      email: emailInput.value,
-                      phone: phoneInput?.value || "+91 90000 00000",
-                      tier: (tierInput?.value as any) || "STANDARD",
-                      status: "ACTIVE",
-                      joinedDate: "Today",
-                      expiresDate: "1 Year",
-                      totalSpend: 0,
-                      totalBookings: 0,
-                      avatarBg: "bg-slate-900",
-                    };
-                    setMembers([newMem, ...members]);
+                  if (!nameInput?.value || !emailInput?.value) {
+                    alert("Please enter a valid Name and Email.");
+                    return;
+                  }
+
+                  const nameParts = nameInput.value.trim().split(" ");
+                  const firstName = nameParts[0];
+                  const lastName = nameParts.slice(1).join(" ") || "Member";
+
+                  try {
+                    await apiClient.post<any>("/auth/users", {
+                      email: emailInput.value.trim(),
+                      password: "Member@12345",
+                      first_name: firstName,
+                      last_name: lastName,
+                      phone: phoneInput?.value || "+91 98765 00000",
+                      role: "MEMBER",
+                    });
                     setShowAddModal(false);
+                    await fetchMembers();
+                  } catch (err: any) {
+                    alert(err?.message || "Failed to register member in database.");
                   }
                 }}
                 className="flex-1 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs shadow-sm transition-colors"

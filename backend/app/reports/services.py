@@ -51,8 +51,14 @@ from backend.app.payments.models import (
     PaymentItemType,
 )
 from backend.app.bookings.models import Booking, BookingStatus, CourtOccupancy
-from backend.app.courts.models import Court, SportType
-from backend.app.memberships.models import Membership, MembershipPlan, MembershipStatus
+from backend.app.courts.models import Court, SportType, CourtStatus
+from backend.app.memberships.models import (
+    Membership,
+    MembershipPlan,
+    MembershipStatus,
+    MembershipRequest,
+    MembershipRequestStatus,
+)
 from backend.app.members.models import Member
 from backend.app.shop.models import ShopOrder, ShopOrderItem, ShopOrderStatus, OrderType
 from backend.app.pos.models import (
@@ -1201,3 +1207,87 @@ def get_operational_summary() -> Dict[str, Any]:
             "items": pending_followup_items,
         },
     }
+
+
+def get_club_glance_summary() -> Dict[str, Any]:
+    """
+    Lightweight, real-time overview metrics for owner/admin glance bar:
+    - Today's confirmed court bookings count
+    - Pending membership requests count
+    - Court status breakdown (total, booked, available, maintenance, percentages)
+    """
+    club_tz = get_club_timezone()
+    today_local = datetime.now(club_tz).date()
+
+    # 1. Today's confirmed bookings
+    todays_bookings_count = Booking.query.filter(
+        Booking.booking_date == today_local,
+        Booking.status != BookingStatus.CANCELLED,
+    ).count()
+
+    # 2. Pending memberships count (offline requests awaiting review + CRM membership inquiries)
+    pending_membership_requests = 0
+    try:
+        pending_membership_requests = MembershipRequest.query.filter(
+            MembershipRequest.status == MembershipRequestStatus.PENDING
+        ).count()
+    except Exception:
+        pass
+
+    pending_crm_leads = 0
+    try:
+        pending_crm_leads = CRMLead.query.filter(
+            CRMLead.status == LeadStatus.NEW,
+            func.lower(CRMLead.preferred_sport).like("%membership%"),
+        ).count()
+    except Exception:
+        pass
+
+    total_pending_memberships = pending_membership_requests + pending_crm_leads
+
+    # 3. Court allocation and occupancy status
+    courts = Court.query.all()
+    total_courts = len(courts) if courts else 12
+
+    today_booked_court_ids = set()
+    try:
+        rows = (
+            db.session.query(Booking.court_id)
+            .filter(
+                Booking.booking_date == today_local,
+                Booking.status != BookingStatus.CANCELLED,
+                Booking.court_id.isnot(None),
+            )
+            .distinct()
+            .all()
+        )
+        today_booked_court_ids = {r[0] for r in rows if r[0]}
+    except Exception:
+        pass
+
+    booked_courts = len(today_booked_court_ids)
+    maintenance_courts = sum(1 for c in courts if c.status == CourtStatus.MAINTENANCE)
+    available_courts = max(0, total_courts - booked_courts - maintenance_courts)
+
+    if total_courts > 0:
+        booked_pct = round((booked_courts / total_courts) * 100)
+        maintenance_pct = round((maintenance_courts / total_courts) * 100)
+        available_pct = max(0, 100 - booked_pct - maintenance_pct)
+    else:
+        booked_pct, available_pct, maintenance_pct = 0, 100, 0
+
+    return {
+        "today_date": today_local.isoformat(),
+        "todays_bookings_count": todays_bookings_count,
+        "pending_memberships_count": total_pending_memberships,
+        "court_status": {
+            "total": total_courts,
+            "booked": booked_courts,
+            "available": available_courts,
+            "maintenance": maintenance_courts,
+            "booked_pct": booked_pct,
+            "available_pct": available_pct,
+            "maintenance_pct": maintenance_pct,
+        },
+    }
+

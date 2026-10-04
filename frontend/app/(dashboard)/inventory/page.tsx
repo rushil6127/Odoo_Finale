@@ -33,17 +33,8 @@ interface InventoryItem {
   status: "ADEQUATE" | "LOW_STOCK" | "CRITICAL";
 }
 
-const INVENTORY_DATA: InventoryItem[] = [
-  { id: 1, sku: "EQ-YNX-AERO50", name: "Yonex Aerosensa 50 Feather Shuttles (Tubes)", category: "SHUTTLES_BALLS", currentStock: 8, minThreshold: 20, unit: "Tubes", location: "Badminton Storage Bay A", lastRestocked: "Oct 01, 2024", status: "LOW_STOCK" },
-  { id: 2, sku: "EQ-SLAZ-WIMB", name: "Slazenger Championship Tennis Balls (Cans)", category: "SHUTTLES_BALLS", currentStock: 34, minThreshold: 15, unit: "Cans", location: "Tennis Pro Pavilion", lastRestocked: "Sep 28, 2024", status: "ADEQUATE" },
-  { id: 3, sku: "MAINT-SYNTH-CLEAN", name: "Badminton Court Anti-Slip Mat Cleanser", category: "COURT_MAINTENANCE", currentStock: 2, minThreshold: 5, unit: "Gallons", location: "Janitorial Vault", lastRestocked: "Sep 15, 2024", status: "CRITICAL" },
-  { id: 4, sku: "FB-WHEY-ISOLATE", name: "Optimum Nutrition Gold Whey Protein (5kg)", category: "FB_SUPPLIES", currentStock: 14, minThreshold: 6, unit: "Tubs", location: "Café Pantry Dry Storage", lastRestocked: "Sep 30, 2024", status: "ADEQUATE" },
-  { id: 5, sku: "EQ-STR-BG65TI", name: "Yonex BG65 Titanium Racket String Reels (200m)", category: "EQUIPMENT", currentStock: 5, minThreshold: 3, unit: "Reels", location: "Pro Stringing Workshop", lastRestocked: "Sep 20, 2024", status: "ADEQUATE" },
-  { id: 6, sku: "POOL-CHLOR-TABS", name: "Aquatic Pavilion Pure Chlorine Stabilizer", category: "COURT_MAINTENANCE", currentStock: 22, minThreshold: 10, unit: "Drums", location: "Pool Pump Filtration Hub", lastRestocked: "Oct 02, 2024", status: "ADEQUATE" },
-];
-
 export default function InventoryPage() {
-  const [items, setItems] = useState<InventoryItem[]>(INVENTORY_DATA);
+  const [items, setItems] = useState<InventoryItem[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCat, setSelectedCat] = useState<string>("ALL");
   const [loading, setLoading] = useState(false);
@@ -80,9 +71,11 @@ export default function InventoryPage() {
           };
         });
         setItems(mapped);
+      } else {
+        setItems([]);
       }
     } catch (err) {
-      console.log("Using seeded fallback inventory items:", err);
+      setItems([]);
     } finally {
       setLoading(false);
     }
@@ -102,17 +95,9 @@ export default function InventoryPage() {
         notes: "Restock from console",
       });
       setShowRestockModal(false);
-      fetchInventory();
-    } catch (err) {
-      // Local optimistic update
-      setItems((prev) =>
-        prev.map((i) =>
-          i.id === selectedItemForRestock.id
-            ? { ...i, currentStock: i.currentStock + Number(restockQty), status: "ADEQUATE" }
-            : i
-        )
-      );
-      setShowRestockModal(false);
+      await fetchInventory();
+    } catch (err: any) {
+      alert(err?.message || "Failed to update stock in database.");
     }
   };
 

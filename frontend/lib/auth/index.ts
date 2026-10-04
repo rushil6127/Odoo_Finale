@@ -5,7 +5,7 @@
  * with support for client-side Demo member sessions and reactive hooks.
  */
 
-import { useSyncExternalStore } from "react";
+import { useSyncExternalStore, useMemo } from "react";
 import { apiClient } from "@/lib/api/client";
 import type { UserRole, MembershipPlan, MembershipStatus } from "@/types";
 
@@ -85,15 +85,23 @@ export interface UserOrder {
 }
 
 export interface UserBooking {
-  id: string;
+  id: string | number;
+  numericId?: number;
+  bookingId?: number;
   bookingCode: string;
   courtName: string;
   sport: string;
   surface: string;
   date: string;
   timeSlot: string;
+  startTime?: string;
+  endTime?: string;
   status: "CONFIRMED" | "COMPLETED" | "CANCELLED";
   amount: number;
+  title?: string;
+  matchType?: string;
+  cancellationReason?: string | null;
+  cancelledAt?: string | null;
 }
 
 export interface UserPayment {
@@ -610,6 +618,8 @@ export const DEMO_MEMBERS: Record<string, AuthUserProfile> = {
   },
 };
 
+export const DEFAULT_COACH_EMPLOYEE_DATA: EmployeeData = DEMO_MEMBERS.coach_david.employeeData!;
+
 // ============================================================================
 // STORAGE KEYS & EVENT DISPATCHER
 // ============================================================================
@@ -639,7 +649,6 @@ export function enrichUserProfile(parsed: any): (AuthUserProfile & AuthUser) | n
   }
   if (!parsed.memberCode) parsed.memberCode = `CC-${(parsed.role || "MEM").toUpperCase()}-${parsed.id || 101}`;
   if (!parsed.phone) parsed.phone = "+91 98765 43210";
-
   // Dynamic membership plan binding
   if (parsed.membership_plan) {
     parsed.membershipPlan = parsed.membership_plan.toUpperCase();
@@ -822,7 +831,14 @@ function getServerSnapshot(): string | null {
 
 export function useCurrentUser() {
   const userJson = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
-  const user: AuthUserProfile | null = userJson ? enrichUserProfile(JSON.parse(userJson)) : null;
+  const user = useMemo(() => {
+    if (!userJson) return null;
+    try {
+      return enrichUserProfile(JSON.parse(userJson));
+    } catch {
+      return null;
+    }
+  }, [userJson]);
 
   return {
     user,

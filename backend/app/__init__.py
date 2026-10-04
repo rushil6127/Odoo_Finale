@@ -1,7 +1,7 @@
 import os
 from flask import Flask
 from backend.app.config import config_by_name, DevelopmentConfig
-from backend.app.extensions import db, migrate, jwt, bcrypt, ma, cors
+from backend.app.extensions import db, migrate, jwt, bcrypt, ma, cors, limiter
 from backend.app.middleware import init_middleware
 from backend.app.health.routes import health_bp
 from backend.app.auth import auth_bp, create_owner_command, User  # noqa: F401
@@ -74,11 +74,16 @@ def create_app(config_name: str = None) -> Flask:
     # Configure database engine options based on SQLite vs PostgreSQL
     db_uri = app.config.get("SQLALCHEMY_DATABASE_URI", "")
     if db_uri.startswith("sqlite"):
-        from sqlalchemy.pool import StaticPool
-        app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
-            "connect_args": {"check_same_thread": False},
-            "poolclass": StaticPool,
-        }
+        if ":memory:" in db_uri:
+            from sqlalchemy.pool import StaticPool
+            app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
+                "connect_args": {"check_same_thread": False},
+                "poolclass": StaticPool,
+            }
+        else:
+            app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
+                "connect_args": {"check_same_thread": False, "timeout": 30},
+            }
     else:
         app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
             "pool_pre_ping": True,
@@ -97,6 +102,7 @@ def create_app(config_name: str = None) -> Flask:
     jwt.init_app(app)
     bcrypt.init_app(app)
     ma.init_app(app)
+    limiter.init_app(app)
 
     cors_origins = app.config.get("CORS_ORIGINS", "*")
     cors.init_app(

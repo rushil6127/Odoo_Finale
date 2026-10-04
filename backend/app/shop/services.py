@@ -491,3 +491,73 @@ def list_shop_orders(
         .all()
     )
     return orders, total
+
+
+def calculate_shop_quote(
+    items_data: List[Dict[str, Any]],
+    requesting_user: Optional[Any] = None,
+) -> Dict[str, Any]:
+    """Calculate a read-only price quote and member discount breakdown.
+    
+    Reuses existing calculate_item_discount_pct and pricing logic.
+    Does NOT deduct inventory stock and does NOT create database records.
+    """
+    if not items_data:
+        raise ValidationException("Quote request must contain at least one item.", code="EMPTY_QUOTE")
+
+    member = None
+    plan_code = None
+    if requesting_user and hasattr(requesting_user, "id"):
+        member = Member.query.filter_by(user_id=requesting_user.id).first()
+        if member:
+            active_ms = get_active_membership(member.id)
+            if active_ms and active_ms.plan:
+                plan_code = active_ms.plan.code
+
+    quote_items = []
+    subtotal = Decimal("0.00")
+    total_discount = Decimal("0.00")
+
+    for item in items_data:
+        pid = item.get("product_id")
+        qty = item.get("quantity", 1)
+
+        product = db.session.get(Product, pid)
+        if not product or not product.is_active:
+            continue
+
+        category_slug = product.category.slug if product.category else None
+        disc_pct = calculate_item_discount_pct(plan_code, category_slug, product.name)
+
+        unit_price = Decimal(str(product.price))
+        item_subtotal = unit_price * Decimal(qty)
+        item_discount = (item_subtotal * (disc_pct / Decimal("100.00"))).quantize(Decimal("0.01"))
+        item_total = item_subtotal - item_discount
+
+        quote_items.append({
+            "product_id": product.id,
+            "product_sku": product.sku,
+            "product_name": product.name,
+            "unit_price": float(unit_price),
+            "quantity": qty,
+            "stock_quantity": product.stock_quantity,
+            "is_out_of_stock": product.stock_quantity < qty,
+            "discount_pct": float(disc_pct),
+            "discount_amount": float(item_discount),
+            "total_price": float(item_total),
+        })
+
+        subtotal += item_subtotal
+        total_discount += item_discount
+
+    return {
+        "items": quote_items,
+        "subtotal_amount": float(subtotal),
+        "discount_amount": float(total_discount),
+        "delivery_fee": 0.0,
+        "tax_amount": 0.0,
+        "total_amount": float(subtotal - total_discount),
+        "plan_code": plan_code,
+        "member_discount_applied": member is not None and plan_code is not None,
+    }
+

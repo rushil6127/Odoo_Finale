@@ -11,7 +11,7 @@ Covers:
 
 import os
 from datetime import date, datetime, timedelta
-from typing import Dict, Any, List
+from typing import Dict, Any, List, Optional
 from decimal import Decimal
 
 from flask import current_app
@@ -280,6 +280,30 @@ def seed_core_demo() -> Dict[str, Any]:
             "role": RoleEnum.COACH,
             "department": "BADMINTON",
         },
+        {
+            "email": "pushplamba104@gmail.com",
+            "first_name": "Pushp",
+            "last_name": "Lamba",
+            "role": RoleEnum.OWNER,
+            "department": "Executive",
+            "password": "Owner@12345",
+        },
+        {
+            "email": "admin@championsclub.in",
+            "first_name": "Priya",
+            "last_name": "Admin",
+            "role": RoleEnum.ADMIN,
+            "department": "Operations",
+            "password": "Admin@12345",
+        },
+        {
+            "email": "coach@championsclub.in",
+            "first_name": "David",
+            "last_name": "Warner",
+            "role": RoleEnum.COACH,
+            "department": "LAWN_TENNIS",
+            "password": "Coach@12345",
+        },
     ]
 
     staff_users = {}
@@ -288,7 +312,7 @@ def seed_core_demo() -> Dict[str, Any]:
         if not u:
             u = create_user(
                 email=s["email"],
-                password=DEMO_PASSWORD,
+                password=s.get("password", DEMO_PASSWORD),
                 first_name=s["first_name"],
                 last_name=s["last_name"],
                 role=s["role"],
@@ -413,7 +437,7 @@ def seed_core_demo() -> Dict[str, Any]:
         if not u:
             u = create_user(
                 email=m_def["email"],
-                password=DEMO_PASSWORD,
+                password=m_def.get("password", DEMO_PASSWORD),
                 first_name=m_def["first_name"],
                 last_name=m_def["last_name"],
                 role=RoleEnum.MEMBER,
@@ -467,7 +491,7 @@ def seed_core_demo() -> Dict[str, Any]:
                     member_id=m_profile.id,
                     notes=f"Annual membership fee for {plan_target.name}",
                 )
-                ord_id = p.gateway_order_id or "order_seed_ms"
+                ord_id = p.gateway_order_id or f"order_seed_ms_{ms.id}"
                 p_id = f"pay_seed_ms_{ms.id}"
                 fake_prov.payments[p_id] = {
                     "id": p_id,
@@ -578,7 +602,7 @@ def seed_core_demo() -> Dict[str, Any]:
                 notes=f"Payment for {court.name} reservation",
             )
             if pay_method == "ONLINE":
-                bk_ord_id = pay.gateway_order_id or "order_seed_bk"
+                bk_ord_id = pay.gateway_order_id or f"order_seed_bk_{b.id}"
                 bk_pay_id = f"pay_seed_bk_{b.id}"
                 fake_prov.payments[bk_pay_id] = {
                     "id": bk_pay_id,
@@ -676,7 +700,7 @@ def seed_core_demo() -> Dict[str, Any]:
 
     seed_safe_booking(
         court=centre_court,
-        booking_dt=datetime.combine(last_friday, datetime.min.time()).replace(hour=18, minute=0),
+        booking_dt=datetime.combine(last_friday, datetime.min.time()).replace(hour=19, minute=0),
         user=silver_user,
         member=silver_member,
         is_social_play=True,
@@ -684,7 +708,7 @@ def seed_core_demo() -> Dict[str, Any]:
     )
     seed_safe_booking(
         court=centre_court,
-        booking_dt=datetime.combine(last_friday, datetime.min.time()).replace(hour=19, minute=0),
+        booking_dt=datetime.combine(last_friday, datetime.min.time()).replace(hour=20, minute=0),
         user=junior_user,
         member=junior_member,
         is_social_play=True,

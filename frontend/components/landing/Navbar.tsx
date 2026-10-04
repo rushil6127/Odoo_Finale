@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { 
   Menu, 
   X, 
@@ -18,18 +19,19 @@ interface NavLink {
 }
 
 const navLinks: NavLink[] = [
-  { name: "Home", href: "#hero" },
-  { name: "Courts", href: "#courts" },
+  { name: "Home", href: "/" },
+  { name: "Courts", href: "/#courts" },
   { name: "Memberships", href: "/membership" },
-  { name: "Facilities", href: "#facilities" },
-  { name: "Gallery", href: "#gallery" },
-  { name: "Pro Shop", href: "#shop" },
-  { name: "Café", href: "#cafe" },
-  { name: "Contact", href: "#contact" },
+  { name: "Facilities", href: "/#facilities" },
+  { name: "Gallery", href: "/#gallery" },
+  { name: "Pro Shop", href: "/#shop" },
+  { name: "Café", href: "/#cafe" },
+  { name: "Contact", href: "/#contact" },
 ];
 
 export default function Navbar() {
-  const [activeSection, setActiveSection] = useState("Home");
+  const pathname = usePathname();
+  const [activeSection, setActiveSection] = useState(pathname === "/membership" ? "Memberships" : "Home");
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -37,35 +39,48 @@ export default function Navbar() {
   const { user, isAuthenticated } = useCurrentUser();
   const profileHref = getRoleProfilePath(user);
 
-
   useEffect(() => {
     if (typeof window !== "undefined") {
       setIsLoggedIn(!!localStorage.getItem("cc_token"));
     }
 
+    if (pathname === "/membership") {
+      setActiveSection("Memberships");
+      return;
+    }
+
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 20);
 
-      // Simple active section detection
-      const sections = navLinks.map((link) => link.href.substring(1));
-      const current = sections.find((section) => {
-        const el = document.getElementById(section);
+      // Section mapping
+      const sectionMap: Record<string, string> = {
+        hero: "Home",
+        courts: "Courts",
+        facilities: "Facilities",
+        gallery: "Gallery",
+        shop: "Pro Shop",
+        cafe: "Café",
+        contact: "Contact",
+      };
+
+      const keys = ["hero", "courts", "facilities", "gallery", "shop", "cafe", "contact"];
+      const current = keys.find((key) => {
+        const el = document.getElementById(key);
         if (el) {
           const rect = el.getBoundingClientRect();
-          return rect.top <= 120 && rect.bottom >= 120;
+          return rect.top <= 140 && rect.bottom >= 140;
         }
         return false;
       });
 
-      if (current) {
-        const found = navLinks.find((l) => l.href === `#${current}`);
-        if (found) setActiveSection(found.name);
+      if (current && sectionMap[current]) {
+        setActiveSection(sectionMap[current]);
       }
     };
 
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
+  }, [pathname]);
 
   return (
     <>
@@ -78,7 +93,7 @@ export default function Navbar() {
             }`}
           >
             {/* Brand Emblem & Name */}
-            <Link href="#hero" className="flex items-center gap-2.5 sm:gap-3 group shrink-0">
+            <Link href="/" className="flex items-center gap-2.5 sm:gap-3 group shrink-0">
               <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-gradient-to-br from-sky-500 via-sky-600 to-blue-700 flex items-center justify-center text-white font-black text-sm sm:text-base tracking-wider shadow-md shadow-sky-500/25 border-2 border-white group-hover:scale-105 transition-transform duration-200">
                 <span className="text-[#CCFF00] drop-shadow-sm font-extrabold">CC</span>
               </div>
@@ -146,7 +161,7 @@ export default function Navbar() {
               )}
 
               <Link
-                href="#courts"
+                href="/#courts"
                 className="inline-flex items-center gap-1.5 text-xs font-bold text-white bg-gradient-to-r from-sky-500 to-sky-600 hover:from-sky-600 hover:to-blue-700 px-4 py-2 rounded-full shadow-md shadow-sky-500/20 hover:shadow-sky-500/35 transition-all duration-200 active:scale-95 border border-sky-400/30"
               >
                 <Calendar className="w-3.5 h-3.5 text-[#CCFF00]" />
@@ -221,7 +236,7 @@ export default function Navbar() {
                 )}
 
                 <Link
-                  href="#courts"
+                  href="/#courts"
                   onClick={() => setMobileMenuOpen(false)}
                   className="flex items-center justify-center gap-2 py-2.5 rounded-xl text-xs font-bold text-white bg-sky-600 hover:bg-sky-700 shadow-md shadow-sky-500/20"
                 >

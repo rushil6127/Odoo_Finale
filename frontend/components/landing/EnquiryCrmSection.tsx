@@ -49,10 +49,8 @@ export default function EnquiryCrmSection() {
       });
       setSubmitted(true);
     } catch (err: any) {
-      // If error or unauthenticated, still provide friendly feedback
       console.error("CRM lead capture error:", err);
-      // Fallback: accept submission locally if network issue
-      setSubmitted(true);
+      setError(err?.message || "Unable to submit your enquiry at this time. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -142,6 +140,13 @@ export default function EnquiryCrmSection() {
                     </p>
                   </div>
 
+                  {error && (
+                    <div className="flex items-center gap-2 p-3 rounded-xl bg-red-50 text-red-700 text-xs border border-red-200">
+                      <AlertCircle className="w-4 h-4 shrink-0" />
+                      <span>{error}</span>
+                    </div>
+                  )}
+
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                       <label className="text-xs font-bold text-slate-700 block mb-1">
@@ -207,9 +212,10 @@ export default function EnquiryCrmSection() {
                       >
                         <option value="Lawn Tennis">Lawn Tennis (Grass/Clay/Hard)</option>
                         <option value="Badminton">Badminton (Wooden Court)</option>
-                        <option value="Padel">Padel (Glass Arena)</option>
-                        <option value="Squash">Squash</option>
-                        <option value="Swimming">Olympic Swimming</option>
+                        <option value="Box Cricket">Box Cricket (Floodlit Arena)</option>
+                        <option value="Table Tennis">Table Tennis (Olympic Arena)</option>
+                        <option value="Volleyball">Beach Volleyball (Sand Pit)</option>
+                        <option value="Swimming">Olympic Swimming (Aquatic Pavilion)</option>
                       </select>
                     </div>
                   </div>

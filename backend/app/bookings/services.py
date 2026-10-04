@@ -14,6 +14,8 @@ from backend.app.common.errors import (
 from backend.app.courts.models import Court, CourtStatus, SportType
 from backend.app.courts.services import parse_time_str
 from backend.app.members.models import Member
+from backend.app.auth.models import User
+from backend.app.common.permissions import RoleEnum
 from backend.app.bookings.models import (
     Booking,
     BookingStatus,
@@ -88,8 +90,8 @@ def validate_slot_timing(
                 f"Social Play sessions are only held on Fridays (requested day is {start_time.strftime('%A')}).",
                 code="INVALID_SOCIAL_PLAY_DAY",
             )
-        social_start = parse_time_str(config.get("FRIDAY_SOCIAL_PLAY_START_TIME", "18:00"))
-        social_end = parse_time_str(config.get("FRIDAY_SOCIAL_PLAY_END_TIME", "21:00"))
+        social_start = parse_time_str(config.get("FRIDAY_SOCIAL_PLAY_START_TIME", "19:00"))
+        social_end = parse_time_str(config.get("FRIDAY_SOCIAL_PLAY_END_TIME", "22:00"))
         if start_t < social_start or end_t > social_end:
             raise ValidationException(
                 f"Friday Social Play is only scheduled between {social_start.strftime('%H:%M')} and {social_end.strftime('%H:%M')}.",
@@ -119,7 +121,7 @@ def calculate_booking_price(
 
     # 1. Determine base rate
     if is_social_play:
-        base_rate = float(config.get("FRIDAY_SOCIAL_PLAY_BASE_RATE", 200.0))
+        base_rate = float(config.get("FRIDAY_SOCIAL_PLAY_BASE_RATE", 300.0))
         rate_source = "FRIDAY_SOCIAL_PLAY_BASE_RATE"
     else:
         sport_rates = config.get("DEFAULT_SPORT_RATES", {
@@ -179,10 +181,38 @@ def check_daily_booking_limit(
     member_id: Optional[int],
     booking_date: date,
     is_social_play: bool = False,
+    user_id: Optional[int] = None,
 ) -> None:
-    """Verify that a member does not exceed the maximum allowed active bookings per day."""
+    """Verify that a member does not exceed the maximum allowed active bookings per day.
+    
+    Owners and Admins have unlimited bookings (no daily limit applied).
+    Members can book up to the configured daily limit (default 5 slots per day).
+    """
     if not member_id:
         return
+
+    # 1. Check if user or member is an Owner/Admin - owners have unlimited booking privileges
+    if user_id:
+        user = db.session.get(User, user_id)
+        if user:
+            role_val = user.role.value if hasattr(user.role, "value") else str(user.role)
+            if role_val in (RoleEnum.OWNER.value, RoleEnum.ADMIN.value, "OWNER", "ADMIN"):
+                return
+
+    member = db.session.get(Member, member_id)
+    if member and member.user:
+        role_val = member.user.role.value if hasattr(member.user.role, "value") else str(member.user.role)
+        if role_val in (RoleEnum.OWNER.value, RoleEnum.ADMIN.value, "OWNER", "ADMIN"):
+            return
+
+    try:
+        from flask_jwt_extended import current_user
+        if current_user:
+            role_val = current_user.role.value if hasattr(current_user.role, "value") else str(current_user.role)
+            if role_val in (RoleEnum.OWNER.value, RoleEnum.ADMIN.value, "OWNER", "ADMIN"):
+                return
+    except Exception:
+        pass
 
     config = current_app.config if current_app else {}
     social_counts = config.get("SOCIAL_PLAY_COUNTS_TOWARDS_DAILY_LIMIT", False)
@@ -190,7 +220,7 @@ def check_daily_booking_limit(
     if is_social_play and not social_counts:
         return
 
-    max_limit = int(config.get("MAX_DAILY_BOOKINGS_PER_MEMBER", 2))
+    max_limit = int(config.get("MAX_DAILY_BOOKINGS_PER_MEMBER", 5))
 
     # Count CONFIRMED bookings for this member on the given booking_date
     query = Booking.query.filter(
@@ -204,13 +234,14 @@ def check_daily_booking_limit(
     active_count = query.count()
     if active_count >= max_limit:
         raise ValidationException(
-            f"Daily booking limit of {max_limit} active session(s) reached for {booking_date.isoformat()}.",
+            f"Daily booking limit reached. You can book a maximum of {max_limit} slots per day.",
             code="DAILY_LIMIT_EXCEEDED",
             details={
                 "member_id": [f"Member already has {active_count} confirmed booking(s) on this date."],
                 "max_limit": max_limit,
             },
         )
+
 
 
 # ---------------------------------------------------------
@@ -273,6 +304,7 @@ def create_booking(
                 member_id=member_id,
                 booking_date=booking_date,
                 is_social_play=is_social_play,
+                user_id=user_id,
             )
 
         # 4. Calculate pricing snapshot
@@ -366,6 +398,9 @@ def cancel_booking(
 
     if booking.status == BookingStatus.CANCELLED:
         raise ValidationException("This booking has already been cancelled.", code="ALREADY_CANCELLED")
+
+    if booking.status == BookingStatus.COMPLETED:
+        raise ValidationException("Completed bookings cannot be cancelled.", code="CANNOT_CANCEL_COMPLETED")
 
     # Free the occupancy half-slots
     CourtOccupancy.query.filter_by(booking_id=booking.id).delete()

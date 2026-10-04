@@ -2633,3 +2633,395 @@ The system enforces 7 distinct hierarchical roles:
 ```
 - **Business Rules:** N/A
 
+
+---
+
+## Employees Endpoints (`/api/v1/employees`)
+
+### Export Employees Excel
+- **Endpoint:** `GET /api/v1/employees/export`
+- **Authentication:** Required
+- **Role Requirement:** (TODO: Fill role)
+- **Query Parameters:** (TODO: Fill params)
+- **Success Response:**
+```json
+{
+  "success": true,
+  "data": {}
+}
+```
+- **Business Rules:** (TODO: Add rules)
+
+### Export Employees Excel
+- **Endpoint:** `GET /api/v1/employees/export/excel`
+- **Authentication:** Required
+- **Role Requirement:** (TODO: Fill role)
+- **Query Parameters:** (TODO: Fill params)
+- **Success Response:**
+```json
+{
+  "success": true,
+  "data": {}
+}
+```
+- **Business Rules:** (TODO: Add rules)
+
+
+---
+
+## Members Endpoints (`/api/v1/members`)
+
+### Export Members Excel
+- **Endpoint:** `GET /api/v1/members/export`
+- **Authentication:** Required
+- **Role Requirement:** (TODO: Fill role)
+- **Query Parameters:** (TODO: Fill params)
+- **Success Response:**
+```json
+{
+  "success": true,
+  "data": {}
+}
+```
+- **Business Rules:** (TODO: Add rules)
+
+### Export Members Excel
+- **Endpoint:** `GET /api/v1/members/export/excel`
+- **Authentication:** Required
+- **Role Requirement:** (TODO: Fill role)
+- **Query Parameters:** (TODO: Fill params)
+- **Success Response:**
+```json
+{
+  "success": true,
+  "data": {}
+}
+```
+- **Business Rules:** (TODO: Add rules)
+
+
+---
+
+## Reports Endpoints (`/api/v1/reports`)
+
+### Export Excel Download
+- **Endpoint:** `GET /api/v1/reports/export/download`
+- **Authentication:** Required
+- **Role Requirement:** (TODO: Fill role)
+- **Query Parameters:** (TODO: Fill params)
+- **Success Response:**
+```json
+{
+  "success": true,
+  "data": {}
+}
+```
+- **Business Rules:** (TODO: Add rules)
+
+### Export Excel Download
+- **Endpoint:** `GET /api/v1/reports/export/excel`
+- **Authentication:** Required
+- **Role Requirement:** (TODO: Fill role)
+- **Query Parameters:** (TODO: Fill params)
+- **Success Response:**
+```json
+{
+  "success": true,
+  "data": {}
+}
+```
+- **Business Rules:** (TODO: Add rules)
+
+
+---
+
+## Auth Endpoints (`/api/v1/auth`)
+
+### Demo Login
+- **Endpoint:** `POST /api/v1/auth/demo-login`
+- **Authentication:** Required
+- **Role Requirement:** (TODO: Fill role)
+- **Request Body:**
+```json
+{
+}
+```
+- **Success Response:**
+```json
+{
+  "success": true,
+  "data": {}
+}
+```
+- **Business Rules:** (TODO: Add rules)
+
+
+---
+
+## Bookings Endpoints (`/api/v1/bookings`)
+
+### Calculate Price Route
+- **Endpoint:** `GET /api/v1/bookings/calculate-price`
+- **Authentication:** Required
+- **Role Requirement:** (TODO: Fill role)
+- **Query Parameters:** (TODO: Fill params)
+- **Success Response:**
+```json
+{
+  "success": true,
+  "data": {}
+}
+```
+- **Business Rules:** (TODO: Add rules)
+
+### Create Guest Booking Route
+- **Endpoint:** `POST /api/v1/bookings/guest`
+- **Authentication:** Required
+- **Role Requirement:** (TODO: Fill role)
+- **Request Body:**
+```json
+{
+}
+```
+- **Success Response:**
+```json
+{
+  "success": true,
+  "data": {}
+}
+```
+- **Business Rules:** (TODO: Add rules)
+
+### Get Pricing Rules Route
+- **Endpoint:** `GET /api/v1/bookings/pricing-rules`
+- **Authentication:** Required
+- **Role Requirement:** (TODO: Fill role)
+- **Query Parameters:** (TODO: Fill params)
+- **Success Response:**
+```json
+{
+  "success": true,
+  "data": {}
+}
+```
+- **Business Rules:** (TODO: Add rules)
+
+
+---
+
+## Membership_Plans Endpoints (`/api/v1/membership_plans`)
+
+### Get My Membership Status
+- **Endpoint:** `GET /api/v1/membership-plans/my-status`
+- **Authentication:** Required
+- **Role Requirement:** (TODO: Fill role)
+- **Query Parameters:** (TODO: Fill params)
+- **Success Response:**
+```json
+{
+  "success": true,
+  "data": {}
+}
+```
+- **Business Rules:** (TODO: Add rules)
+
+### Create Subscription Order
+- **Endpoint:** `POST /api/v1/membership-plans/subscribe/order`
+- **Authentication:** Required
+- **Role Requirement:** (TODO: Fill role)
+- **Request Body:**
+```json
+{
+}
+```
+- **Success Response:**
+```json
+{
+  "success": true,
+  "data": {}
+}
+```
+- **Business Rules:** (TODO: Add rules)
+
+### Verify Subscription Payment
+- **Endpoint:** `POST /api/v1/membership-plans/subscribe/verify`
+- **Authentication:** Required
+- **Role Requirement:** (TODO: Fill role)
+- **Request Body:**
+```json
+{
+}
+```
+- **Success Response:**
+```json
+{
+  "success": true,
+  "data": {}
+}
+```
+- **Business Rules:** (TODO: Add rules)
+
+---
+
+## 25. Pro Shop Endpoints (`/api/v1/shop`)
+
+### 25.1 Real-Time Price & Discount Quote Preview
+- **Endpoint:** `POST /api/v1/shop/quote`
+- **Authentication:** Optional (`jwt_required(optional=True)`)
+- **Role Requirement:** Any (Guest or Member)
+- **Request Body:**
+```json
+{
+  "items": [
+    {
+      "product_id": 1,
+      "quantity": 2
+    }
+  ]
+}
+```
+- **Success Response (`200 OK`):**
+```json
+{
+  "success": true,
+  "data": {
+    "quote": {
+      "items": [
+        {
+          "product_id": 1,
+          "product_sku": "RCK-WIL-PRO97",
+          "product_name": "Wilson Pro Staff 97 v14",
+          "unit_price": 22000.0,
+          "quantity": 2,
+          "stock_quantity": 12,
+          "is_out_of_stock": false,
+          "discount_pct": 20.0,
+          "discount_amount": 8800.0,
+          "total_price": 35200.0
+        }
+      ],
+      "subtotal_amount": 44000.0,
+      "discount_amount": 8800.0,
+      "delivery_fee": 0.0,
+      "tax_amount": 0.0,
+      "total_amount": 35200.0,
+      "plan_code": "GOLD",
+      "member_discount_applied": true
+    }
+  },
+  "status_code": 200
+}
+```
+- **Business Rules:**
+  - Reuses backend order pricing logic and membership benefit discount matrix.
+  - Does NOT deduct inventory stock and does NOT create orders.
+
+### 25.2 Create Shop Order
+- **Endpoint:** `POST /api/v1/shop/orders`
+- **Authentication:** Required
+- **Role Requirement:** `MEMBER`, `OWNER`, `ADMIN`, `SHOP_STAFF`, `FRONT_DESK`
+- **Request Body:**
+```json
+{
+  "order_type": "ONLINE",
+  "fulfillment_type": "DELIVERY",
+  "items": [
+    {
+      "product_id": 1,
+      "quantity": 1
+    }
+  ],
+  "delivery_address": "402 Palm Meadows, Bangalore",
+  "payment_method": "ONLINE",
+  "notes": "Careful packaging"
+}
+```
+- **Success Response (`201 Created`):**
+```json
+{
+  "success": true,
+  "data": {
+    "order": {
+      "id": 15,
+      "order_reference": "ORD-A1B2C3D4",
+      "order_type": "ONLINE",
+      "fulfillment_type": "DELIVERY",
+      "status": "PENDING",
+      "subtotal_amount": 22000.0,
+      "discount_amount": 4400.0,
+      "total_amount": 17600.0,
+      "payment_status": "PENDING",
+      "payment_method": "ONLINE",
+      "items": [...]
+    }
+  },
+  "message": "Shop order 'ORD-A1B2C3D4' created successfully.",
+  "status_code": 201
+}
+```
+
+### 25.3 Member Order History
+- **Endpoint:** `GET /api/v1/shop/orders/my-orders`
+- **Authentication:** Required
+- **Query Parameters:** `page` (default 1), `per_page` (default 20)
+- **Success Response (`200 OK`):**
+```json
+{
+  "success": true,
+  "data": {
+    "orders": [...]
+  },
+  "meta": {
+    "total": 5,
+    "page": 1,
+    "per_page": 20,
+    "pages": 1
+  },
+  "status_code": 200
+}
+```
+
+### 25.4 Cancel Shop Order
+- **Endpoint:** `POST /api/v1/shop/orders/<int:order_id>/cancel`
+- **Authentication:** Required
+- **Request Body:**
+```json
+{
+  "reason": "Customer cancelled before shipment"
+}
+```
+- **Success Response (`200 OK`):**
+```json
+{
+  "success": true,
+  "data": {
+    "order": {
+      "id": 15,
+      "status": "CANCELLED",
+      "payment_status": "REFUNDED"
+    }
+  },
+  "message": "Order 'ORD-A1B2C3D4' has been cancelled and stock restored."
+}
+```
+
+
+
+---
+
+## Reports Endpoints (`/api/v1/reports`)
+
+### Get Club Glance Route
+- **Endpoint:** `GET /api/v1/reports/club-glance`
+- **Authentication:** Required
+- **Role Requirement:** (TODO: Fill role)
+- **Query Parameters:** (TODO: Fill params)
+- **Success Response:**
+```json
+{
+  "success": true,
+  "data": {}
+}
+```
+- **Business Rules:** (TODO: Add rules)
+

@@ -1,7 +1,7 @@
 from datetime import date
 from flask import Blueprint
 from flask_jwt_extended import jwt_required, current_user
-from backend.app.extensions import db
+from backend.app.extensions import db, limiter
 from backend.app.common.responses import success_response
 from backend.app.common.validation import validate_schema
 from backend.app.common.permissions import roles_required, RoleEnum
@@ -94,6 +94,7 @@ def get_my_membership_status():
 
 
 @membership_plans_bp.route("/subscribe/order", methods=["POST"])
+@limiter.limit("20 per minute")
 @jwt_required()
 def create_subscription_order():
     """Create a Razorpay order for online membership subscription."""
@@ -197,6 +198,7 @@ def create_subscription_order():
 
 
 @membership_plans_bp.route("/subscribe/verify", methods=["POST"])
+@limiter.limit("20 per minute")
 @jwt_required()
 def verify_subscription_payment():
     """Verify online payment for membership and activate/change plan in database."""

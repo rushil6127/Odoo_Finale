@@ -129,12 +129,7 @@ export default function BookingsPage() {
         const cList = Array.isArray(courtsRes.value) ? courtsRes.value : courtsRes.value?.courts || courtsRes.value?.data || [];
         setCourts(cList);
       } else {
-        // Fallback default court items
-        setCourts([
-          { id: 1, name: `${selectedSport} Arena 1`, sport_type: selectedSport, is_indoor: true, status: "ACTIVE" },
-          { id: 2, name: `${selectedSport} Arena 2`, sport_type: selectedSport, is_indoor: true, status: "ACTIVE" },
-          { id: 3, name: `${selectedSport} Center Court`, sport_type: selectedSport, is_indoor: false, status: "MAINTENANCE", features: { last_maintenance_note: "Scheduled line marking and cleaning." } },
-        ]);
+        setCourts([]);
       }
 
       if (bookingsRes.status === "fulfilled" && bookingsRes.value) {
@@ -156,6 +151,8 @@ export default function BookingsPage() {
           notes: b.notes,
         }));
         setBookings(mapped);
+      } else {
+        setBookings([]);
       }
     } catch (err: any) {
       console.error("Failed to load schedule:", err);
@@ -187,24 +184,7 @@ export default function BookingsPage() {
       setMaintenanceNote("");
       fetchSchedule();
     } catch (err: any) {
-      // Optimistic local state update
-      setCourts((prev) =>
-        prev.map((c) =>
-          c.id === selectedCourtForMaint.id
-            ? {
-                ...c,
-                status: newCourtStatus,
-                features: {
-                  ...c.features,
-                  last_maintenance_note: maintenanceNote,
-                  last_maintenance_date: new Date().toLocaleDateString(),
-                },
-              }
-            : c
-        )
-      );
-      showToast("success", `Court updated to ${newCourtStatus}.`);
-      setSelectedCourtForMaint(null);
+      showToast("error", err?.message || "Failed to update court status in database.");
     } finally {
       setActionLoading(false);
     }

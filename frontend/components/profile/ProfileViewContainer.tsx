@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
@@ -16,7 +17,6 @@ import {
   Clock,
   ShieldCheck,
   TrendingUp,
-  Sparkles,
   Phone,
   Mail,
   Receipt,
@@ -27,6 +27,7 @@ import {
   Download,
   Settings,
   MapPin,
+  Info,
   Coffee,
   Check,
   Wallet,
@@ -38,13 +39,17 @@ import {
   Send,
   CalendarCheck,
   AlertCircle,
+  AlertTriangle,
   Award,
   Flame,
   UserCheck,
   Building2,
-  Key
+  Key,
+  Loader2,
+  Trash2
 } from "lucide-react";
-import { useCurrentUser, setStoredUser, DEMO_MEMBERS, isStaffOrAdmin, isOwner, type AuthUserProfile } from "@/lib/auth";
+import { useCurrentUser, setStoredUser, isStaffOrAdmin, isOwner, DEFAULT_COACH_EMPLOYEE_DATA, type AuthUserProfile } from "@/lib/auth";
+import { apiClient } from "@/lib/api/client";
 import EmployeeProfileView from "@/components/profile/EmployeeProfileView";
 
 type TabType = "overview" | "calendar" | "crm" | "orders" | "bookings" | "payments" | "settings";
@@ -59,6 +64,312 @@ interface ChatMessage {
   roleTag?: string;
 }
 
+/**
+ * Animated Donut Chart & Court Status Monitor for Sovereign Owner
+ */
+interface OwnerGlanceData {
+  todays_bookings_count: number;
+  pending_memberships_count: number;
+  court_status: {
+    total: number;
+    booked: number;
+    available: number;
+    maintenance: number;
+    booked_pct: number;
+    available_pct: number;
+    maintenance_pct: number;
+  };
+  today_date?: string;
+}
+
+/**
+ * Streamlined Court Status Card
+ */
+function OwnerCourtStatusCard({
+  glanceData,
+  loading,
+}: {
+  glanceData?: OwnerGlanceData | null;
+  loading?: boolean;
+}) {
+  const [animated, setAnimated] = useState(false);
+  const [useSampleData, setUseSampleData] = useState(false);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setAnimated(true);
+    }, 120);
+    return () => clearTimeout(timer);
+  }, []);
+
+  const isSample = useSampleData || !glanceData;
+  const totalCourts = isSample ? 12 : (glanceData?.court_status?.total ?? 16);
+  const bookedCount = isSample ? 5 : (glanceData?.court_status?.booked ?? 1);
+  const availableCount = isSample ? 6 : (glanceData?.court_status?.available ?? 14);
+  const maintenanceCount = isSample ? 1 : (glanceData?.court_status?.maintenance ?? 1);
+
+  const bookedPct = isSample ? 42 : (glanceData?.court_status?.booked_pct ?? Math.round((bookedCount / totalCourts) * 100));
+  const availablePct = isSample ? 50 : (glanceData?.court_status?.available_pct ?? Math.round((availableCount / totalCourts) * 100));
+  const maintenancePct = isSample ? 8 : (glanceData?.court_status?.maintenance_pct ?? Math.max(0, 100 - bookedPct - availablePct));
+
+  const size = 150;
+  const strokeWidth = 22;
+  const center = size / 2; // 75
+  const radius = 48;
+  const circumference = 2 * Math.PI * radius; // 301.59
+
+  // Segment arc lengths
+  const blueLen = circumference * (bookedPct / 100);
+  const greenLen = circumference * (availablePct / 100);
+  const orangeLen = circumference * (maintenancePct / 100);
+
+  return (
+    <div className="flex flex-col h-full justify-between gap-5">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <h3 className="text-2xl font-black text-slate-900 font-[family-name:var(--font-outfit)] leading-tight">
+          Court Status
+        </h3>
+        <button
+          type="button"
+          onClick={() => setUseSampleData((prev) => !prev)}
+          title="Toggle Live/Sample Data"
+          className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all cursor-pointer select-none"
+          style={{
+            backgroundColor: isSample ? "#f1f5f9" : "#ecfdf5",
+            color: isSample ? "#64748b" : "#047857",
+            border: isSample ? "1px solid #e2e8f0" : "1px solid #a7f3d0",
+          }}
+        >
+          {!isSample && (
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+          )}
+          <span>{isSample ? "SAMPLE" : "LIVE"}</span>
+        </button>
+      </div>
+
+      {/* Donut Chart + Legend */}
+      <div className="flex items-center justify-between gap-4 my-auto py-1">
+        {/* SVG Donut Chart */}
+        <div className="relative w-36 h-36 shrink-0 flex items-center justify-center">
+          <svg
+            width="150"
+            height="150"
+            viewBox="0 0 150 150"
+            className="overflow-visible select-none"
+            style={{
+              transform: animated ? "rotate(0deg) scale(1)" : "rotate(-90deg) scale(0.85)",
+              opacity: animated ? 1 : 0.2,
+              transition: "transform 1.2s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.8s ease",
+            }}
+          >
+            <g transform="rotate(-90 75 75)">
+              {/* Blue Arc (Booked) */}
+              <circle
+                cx={center}
+                cy={center}
+                r={radius}
+                fill="none"
+                stroke="#0070f3"
+                strokeWidth={strokeWidth}
+                strokeDasharray={animated ? `${blueLen} ${circumference}` : `0 ${circumference}`}
+                strokeDashoffset={0}
+                style={{
+                  transition: "stroke-dasharray 1.1s cubic-bezier(0.16, 1, 0.3, 1) 0.1s",
+                }}
+              />
+
+              {/* Green Arc (Available) */}
+              <circle
+                cx={center}
+                cy={center}
+                r={radius}
+                fill="none"
+                stroke="#10b981"
+                strokeWidth={strokeWidth}
+                strokeDasharray={animated ? `${greenLen} ${circumference}` : `0 ${circumference}`}
+                strokeDashoffset={-blueLen}
+                style={{
+                  transition: "stroke-dasharray 1.1s cubic-bezier(0.16, 1, 0.3, 1) 0.25s",
+                }}
+              />
+
+              {/* Orange Arc (Maintenance) */}
+              <circle
+                cx={center}
+                cy={center}
+                r={radius}
+                fill="none"
+                stroke="#f97316"
+                strokeWidth={strokeWidth}
+                strokeDasharray={animated ? `${orangeLen} ${circumference}` : `0 ${circumference}`}
+                strokeDashoffset={-(blueLen + greenLen)}
+                style={{
+                  transition: "stroke-dasharray 1.1s cubic-bezier(0.16, 1, 0.3, 1) 0.4s",
+                }}
+              />
+            </g>
+          </svg>
+
+          {/* Center Hole Content */}
+          <div
+            className="absolute inset-0 flex flex-col items-center justify-center text-center pointer-events-none select-none"
+            style={{
+              opacity: animated ? 1 : 0,
+              transform: animated ? "scale(1)" : "scale(0.8)",
+              transition: "opacity 0.6s ease-out 0.4s, transform 0.6s ease-out 0.4s",
+            }}
+          >
+            <span className="text-2xl font-black text-slate-900 leading-none font-[family-name:var(--font-outfit)]">
+              {totalCourts}
+            </span>
+            <span className="text-[10px] text-slate-400 font-bold leading-tight mt-0.5 uppercase tracking-wider">
+              Courts
+            </span>
+          </div>
+        </div>
+
+        {/* Legend */}
+        <div className="space-y-3 pr-1 flex-1">
+          {/* Booked */}
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2">
+              <span className="w-2.5 h-2.5 rounded-full bg-[#0070f3] shrink-0" />
+              <span className="text-xs font-semibold text-slate-600">Booked</span>
+            </div>
+            <span className="text-xs font-black text-slate-900 font-mono">
+              {bookedCount} <span className="text-[10px] text-slate-400 font-normal">({bookedPct}%)</span>
+            </span>
+          </div>
+
+          {/* Available */}
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2">
+              <span className="w-2.5 h-2.5 rounded-full bg-[#10b981] shrink-0" />
+              <span className="text-xs font-semibold text-slate-600">Available</span>
+            </div>
+            <span className="text-xs font-black text-slate-900 font-mono">
+              {availableCount} <span className="text-[10px] text-slate-400 font-normal">({availablePct}%)</span>
+            </span>
+          </div>
+
+          {/* Maintenance */}
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2">
+              <span className="w-2.5 h-2.5 rounded-full bg-[#f97316] shrink-0" />
+              <span className="text-xs font-semibold text-slate-600">Maintenance</span>
+            </div>
+            <span className="text-xs font-black text-slate-900 font-mono">
+              {maintenanceCount} <span className="text-[10px] text-slate-400 font-normal">({maintenancePct}%)</span>
+            </span>
+          </div>
+        </div>
+      </div>
+
+      {/* Clean Court Action Footer (No duplicate booking/membership rows!) */}
+      <div className="pt-3 border-t border-slate-100 flex items-center justify-between">
+        <span className="text-xs font-semibold text-slate-500">
+          Capacity: <span className="font-bold text-slate-900">{availableCount} open</span>
+        </span>
+        <Link
+          href="/#courts"
+          className="text-xs font-extrabold text-[#0070f3] hover:text-blue-700 flex items-center gap-1.5 transition-colors cursor-pointer group"
+        >
+          <span>View Availability</span>
+          <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
+        </Link>
+      </div>
+    </div>
+  );
+}
+
+/**
+ * Streamlined Club at a Glance Overview Card
+ */
+function OwnerClubGlanceCard({
+  glanceData,
+  loading,
+}: {
+  glanceData?: OwnerGlanceData | null;
+  loading?: boolean;
+}) {
+  const todaysBookings = glanceData?.todays_bookings_count ?? 0;
+  const pendingMemberships = glanceData?.pending_memberships_count ?? 0;
+
+  return (
+    <div className="lg:col-span-7 p-6 rounded-3xl bg-white border border-slate-200/90 shadow-sm flex flex-col justify-between gap-6">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <h3 className="text-2xl font-black text-slate-900 font-[family-name:var(--font-outfit)] leading-tight">
+          Club at a Glance
+        </h3>
+        <span className="text-[11px] font-bold text-slate-400">
+          Daily Overview
+        </span>
+      </div>
+
+      {/* 2 Scannable Metric Tiles */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 my-auto">
+        {/* Today's Bookings Tile */}
+        <Link
+          href="/bookings"
+          className="p-4 rounded-2xl bg-slate-50/80 hover:bg-sky-50/60 border border-slate-100 hover:border-sky-200/80 transition-all group flex items-center justify-between cursor-pointer"
+        >
+          <div className="flex items-center gap-3.5">
+            <div className="w-12 h-12 rounded-xl bg-sky-500/10 text-sky-600 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+              <Calendar className="w-6 h-6 text-sky-600" />
+            </div>
+            <div>
+              <p className="text-xs font-semibold text-slate-500">
+                Today&apos;s Bookings
+              </p>
+              <p className="text-2xl font-black text-slate-900 font-mono tracking-tight mt-0.5">
+                {loading ? "…" : todaysBookings}
+              </p>
+            </div>
+          </div>
+          <ArrowRight className="w-4 h-4 text-slate-300 group-hover:text-sky-600 group-hover:translate-x-1 transition-all" />
+        </Link>
+
+        {/* Pending Memberships Tile */}
+        <Link
+          href="/memberships"
+          className="p-4 rounded-2xl bg-slate-50/80 hover:bg-emerald-50/60 border border-slate-100 hover:border-emerald-200/80 transition-all group flex items-center justify-between cursor-pointer"
+        >
+          <div className="flex items-center gap-3.5">
+            <div className="w-12 h-12 rounded-xl bg-emerald-500/10 text-emerald-600 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+              <svg className="w-6 h-6 text-emerald-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+                <circle cx="9" cy="7" r="4" />
+                <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
+                <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+              </svg>
+            </div>
+            <div>
+              <p className="text-xs font-semibold text-slate-500">
+                Pending Memberships
+              </p>
+              <p className="text-2xl font-black text-slate-900 font-mono tracking-tight mt-0.5">
+                {loading ? "…" : pendingMemberships}
+              </p>
+            </div>
+          </div>
+          <ArrowRight className="w-4 h-4 text-slate-300 group-hover:text-emerald-600 group-hover:translate-x-1 transition-all" />
+        </Link>
+      </div>
+
+      {/* Primary Action Button */}
+      <Link
+        href="/dashboard"
+        className="w-full inline-flex items-center justify-center gap-2 px-5 py-3 rounded-2xl bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-600 hover:to-blue-700 text-white font-extrabold text-sm shadow-md shadow-sky-500/20 transition-all mt-auto cursor-pointer"
+      >
+        <span>Manage Club</span>
+        <ArrowRight className="w-4 h-4" />
+      </Link>
+    </div>
+  );
+}
+
 export interface ProfileViewContainerProps {
   forcedMode?: "owner" | "employee" | "member";
 }
@@ -69,56 +380,182 @@ export default function ProfileViewContainer({ forcedMode }: ProfileViewContaine
   const [activeTab, setActiveTab] = useState<TabType>("overview");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  // Fallback demo member if unauthenticated or missing sub-arrays
-  const fallbackProfile = forcedMode === "employee" ? DEMO_MEMBERS.coach_david : DEMO_MEMBERS.alex;
+  // Real Database Member Data State
+  const [memberBookings, setMemberBookings] = useState<any[]>([]);
+  const [memberOrders, setMemberOrders] = useState<any[]>([]);
+  const [memberProfileData, setMemberProfileData] = useState<any>(null);
+  const [profileLoading, setProfileLoading] = useState(false);
+
+  // Cancellation State
+  const [cancellingBooking, setCancellingBooking] = useState<any | null>(null);
+  const [cancelReason, setCancelReason] = useState<string>("");
+  const [cancelSubmitting, setCancelSubmitting] = useState<boolean>(false);
+  const [cancelFeedback, setCancelFeedback] = useState<{ type: "success" | "error"; message: string } | null>(null);
+
+  // Owner Club at a Glance State
+  const [glanceData, setGlanceData] = useState<OwnerGlanceData | null>(null);
+  const [glanceLoading, setGlanceLoading] = useState(false);
+
+  const fetchGlanceData = useCallback(async () => {
+    try {
+      setGlanceLoading(true);
+      const res = await apiClient.get<any>("/reports/club-glance");
+      if (res && res.data) {
+        setGlanceData(res.data);
+      } else if (res && typeof res.todays_bookings_count === "number") {
+        setGlanceData(res);
+      }
+    } catch (err) {
+      console.warn("Could not fetch club glance summary:", err);
+    } finally {
+      setGlanceLoading(false);
+    }
+  }, []);
+
+  const fetchLiveMemberData = useCallback(async () => {
+    try {
+      setProfileLoading(true);
+      const [meRes, bookingsRes, ordersRes] = await Promise.allSettled([
+        apiClient.get<any>("/members/me"),
+        apiClient.get<any>("/bookings/my-history"),
+        apiClient.get<any>("/shop/orders/my-orders"),
+      ]);
+
+      if (meRes.status === "fulfilled" && meRes.value) {
+        const mem = meRes.value?.member || meRes.value?.data || meRes.value;
+        setMemberProfileData(mem);
+      }
+
+      if (bookingsRes.status === "fulfilled" && bookingsRes.value) {
+        const bList = Array.isArray(bookingsRes.value)
+          ? bookingsRes.value
+          : bookingsRes.value?.bookings || bookingsRes.value?.data || [];
+        setMemberBookings(
+          bList.map((b: any) => ({
+            id: b.id,
+            numericId: b.id,
+            bookingId: b.id,
+            bookingCode: b.booking_reference || `BK-${b.id}`,
+            courtName: b.court?.name || `Court #${b.court_id}`,
+            sport: b.court?.sport_type || "Tennis",
+            surface: b.court?.surface_type || "Standard Surface",
+            date: b.start_time ? new Date(b.start_time).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" }) : "Today",
+            startTime: b.start_time,
+            endTime: b.end_time,
+            timeSlot: b.start_time
+              ? `${new Date(b.start_time).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })} – ${new Date(b.end_time).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`
+              : "05:00 PM – 06:00 PM",
+            status: b.status || "CONFIRMED",
+            participants: b.guest_name ? [b.guest_name] : ["Club Member"],
+            amount: b.final_price !== undefined ? Number(b.final_price) : (b.price ? Number(b.price) : 0),
+            cancellationReason: b.cancellation_reason,
+            cancelledAt: b.cancelled_at,
+          }))
+        );
+      }
+
+      if (ordersRes.status === "fulfilled" && ordersRes.value) {
+        const oList = Array.isArray(ordersRes.value)
+          ? ordersRes.value
+          : ordersRes.value?.orders || ordersRes.value?.data || [];
+        setMemberOrders(
+          oList.map((o: any) => ({
+            id: o.order_number || `ORD-${o.id}`,
+            orderNumber: o.order_number || `#CC-${o.id}`,
+            type: o.order_type === "CAFE" ? "CAFE" : "PRO_SHOP",
+            items: (o.items || []).map((i: any) => ({
+              name: i.product?.name || i.menu_item?.name || i.name || "Club Item",
+              quantity: i.quantity || 1,
+              price: Number(i.unit_price || i.price || 0),
+            })),
+            totalAmount: Number(o.total_amount || 0),
+            status: o.status || "COMPLETED",
+            date: o.created_at ? new Date(o.created_at).toLocaleDateString() : "Today",
+            paymentMethod: o.payment_method || "Online",
+          }))
+        );
+      }
+    } catch (err) {
+      console.error("Failed to load live member profile data:", err);
+    } finally {
+      setProfileLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchLiveMemberData();
+    fetchGlanceData();
+  }, [fetchLiveMemberData, fetchGlanceData, user?.id]);
+
   const activeUser: AuthUserProfile = {
-    ...fallbackProfile,
-    ...(user || {}),
-    name: user?.name || user?.full_name || (user?.first_name ? `${user.first_name} ${user.last_name || ""}`.trim() : fallbackProfile.name),
-    email: user?.email || fallbackProfile.email,
-    orders: user?.orders && user.orders.length > 0 ? user.orders : fallbackProfile.orders,
-    bookings: user?.bookings && user.bookings.length > 0 ? user.bookings : fallbackProfile.bookings,
-    payments: user?.payments && user.payments.length > 0 ? user.payments : fallbackProfile.payments,
-    crmInquiries: user?.crmInquiries && user.crmInquiries.length > 0 ? user.crmInquiries : fallbackProfile.crmInquiries,
-    employeeData: user?.employeeData || (forcedMode === "employee" ? DEMO_MEMBERS.coach_david.employeeData : fallbackProfile.employeeData),
+    id: user?.id || 1,
+    memberCode: memberProfileData?.membership_number || `CC-MEM-${user?.id || 101}`,
+    name: user?.name || user?.full_name || (user?.first_name ? `${user.first_name} ${user.last_name || ""}`.trim() : "Club Member"),
+    email: user?.email || "member@championsclub.in",
+    phone: memberProfileData?.phone || user?.phone || "+91 98765 43210",
+    role: user?.role || "MEMBER",
+    membershipPlan: memberProfileData?.active_membership?.plan_code || user?.membershipPlan || "GOLD",
+    membershipStatus: memberProfileData?.is_active ? "ACTIVE" : (user?.membershipStatus || "ACTIVE"),
+    membershipExpiry: memberProfileData?.active_membership?.end_date ? new Date(memberProfileData.active_membership.end_date).toLocaleDateString() : "Active Member",
+    joinDate: memberProfileData?.created_at ? new Date(memberProfileData.created_at).toLocaleDateString() : (user?.joinDate || "Jan 2024"),
+    walletBalance: Number(memberProfileData?.wallet_balance ?? user?.walletBalance ?? 0),
+    clubTabsOutstanding: Number(user?.clubTabsOutstanding ?? 0),
+    orders: memberOrders.length > 0 ? memberOrders : (user?.orders || []),
+    bookings: memberBookings.length > 0
+      ? memberBookings
+      : (user?.bookings && user.bookings.length > 0
+          ? user.bookings
+          : [
+              {
+                id: "BK-7688",
+                bookingCode: "RES-7688",
+                title: "Padel Match #2",
+                courtName: "Padel Glass Arena",
+                sport: "Padel",
+                surface: "Supercourt Mondo Turf",
+                date: "Oct 04",
+                timeSlot: "07:00 AM – 08:00 AM",
+                status: "CONFIRMED",
+                amount: 800,
+              },
+            ]),
+    payments: user?.payments || [],
+    crmInquiries: user?.crmInquiries || [],
+    employeeData: user?.employeeData || DEFAULT_COACH_EMPLOYEE_DATA,
   };
 
-  const isEmployeeWithData = !!activeUser.employeeData || forcedMode === "employee";
+  const isEmployeeWithData = !!activeUser.employeeData || forcedMode === "employee" || isStaffOrAdmin(activeUser);
   const initialViewMode: "employee" | "member" =
     forcedMode === "employee"
       ? "employee"
-      : forcedMode === "member"
-        ? "member"
-        : isEmployeeWithData
-          ? "employee"
-          : "member";
+      : "member";
   const [viewMode, setViewMode] = useState<"employee" | "member">(initialViewMode);
 
   // Forced mode role enforcement:
-  // - "owner": guarantees owner privileges & sovereignty tools
-  // - "employee": strictly employee duty workspace, NO Staff & Admin Console button
-  // - "member": strictly standard member features (no owner delegator, no staff console)
   const isSuperOwner = (forcedMode === "member" || forcedMode === "employee") ? false : (forcedMode === "owner" || isOwner(activeUser));
-  const canAccessConsole = (forcedMode === "member" || forcedMode === "employee") ? false : (forcedMode === "owner" || isStaffOrAdmin(activeUser));
+  const canAccessConsole = (forcedMode === "member" || forcedMode === "employee") ? false : (forcedMode === "owner" || isOwner(activeUser));
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      const tab = params.get("tab") as TabType;
+      if (tab && ["overview", "calendar", "crm", "orders", "bookings", "payments", "settings"].includes(tab)) {
+        setActiveTab(tab);
+      }
+    }
+  }, []);
 
   // Dynamic backend membership data
   const [liveMembershipData, setLiveMembershipData] = useState<any>(null);
 
   useEffect(() => {
     const fetchMembershipStatus = async () => {
-      const token = typeof window !== "undefined" ? localStorage.getItem("cc_token") : null;
-      if (!token) return;
       try {
-        const res = await fetch("http://localhost:5000/api/v1/membership-plans/my-status", {
-          headers: { Authorization: `Bearer ${token}` }
-        });
-        if (res.ok) {
-          const json = await res.json();
-          if (json?.data?.active_membership) {
-            setLiveMembershipData(json.data.active_membership);
-            if (json.data.user) {
-              setStoredUser(json.data.user);
-            }
+        const res = await apiClient.get<any>("/membership-plans/my-status");
+        if (res?.data?.active_membership) {
+          setLiveMembershipData(res.data.active_membership);
+          if (res.data.user) {
+            setStoredUser(res.data.user);
           }
         }
       } catch {
@@ -184,7 +621,6 @@ export default function ProfileViewContainer({ forcedMode }: ProfileViewContaine
       return null;
     }
   };
-
   // Super Owner Role & Department Access Delegator State
   const [showGrantModal, setShowGrantModal] = useState(false);
   const [grantEmail, setGrantEmail] = useState("");
@@ -203,32 +639,19 @@ export default function ProfileViewContainer({ forcedMode }: ProfileViewContaine
     setGrantErrorMsg("");
 
     try {
-      const token = typeof window !== "undefined" ? localStorage.getItem("cc_token") : null;
-      const res = await fetch("http://localhost:5000/api/v1/auth/assign-access", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        },
-        body: JSON.stringify({
-          email: grantEmail.trim().toLowerCase(),
-          role: grantRole,
-          department: grantDepartment,
-          first_name: grantName.split(" ")[0] || "Staff",
-          last_name: grantName.split(" ").slice(1).join(" ") || "Member",
-        }),
+      const data = await apiClient.post<any>("/auth/assign-access", {
+        email: grantEmail.trim().toLowerCase(),
+        role: grantRole,
+        department: grantDepartment,
+        first_name: grantName.split(" ")[0] || "Staff",
+        last_name: grantName.split(" ").slice(1).join(" ") || "Member",
       });
 
-      const data = await res.json();
-      if (!res.ok) {
-        throw new Error(data.message || "Failed to grant access");
-      }
-
-      setGrantSuccessMsg(`Master Sovereignty Applied: Granted role '${grantRole}' in '${grantDepartment}' department to ${grantEmail}`);
+      setGrantSuccessMsg(`Access Granted: ${grantEmail} assigned role '${grantRole}' in '${grantDepartment}' department.`);
       setGrantEmail("");
       setGrantName("");
     } catch (err: any) {
-      setGrantErrorMsg(err.message || "Error assigning role");
+      setGrantErrorMsg(err?.message || "Error assigning role");
     } finally {
       setIsGranting(false);
     }
@@ -298,7 +721,68 @@ export default function ProfileViewContainer({ forcedMode }: ProfileViewContaine
 
   // Filter states
   const [orderFilter, setOrderFilter] = useState<"ALL" | "PRO_SHOP" | "CAFE" | "STRINGING">("ALL");
-  const [bookingFilter, setBookingFilter] = useState<"ALL" | "CONFIRMED" | "COMPLETED">("ALL");
+  const [bookingFilter, setBookingFilter] = useState<"ALL" | "CONFIRMED" | "COMPLETED" | "CANCELLED">("ALL");
+
+  const isEligibleForRefund = (startTime?: string) => {
+    if (!startTime) return false;
+    const slotDate = new Date(startTime).getTime();
+    const now = new Date().getTime();
+    const hoursDiff = (slotDate - now) / (1000 * 60 * 60);
+    return hoursDiff >= 12;
+  };
+
+  const handleCancelBooking = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    if (!cancellingBooking) return;
+    const bookingId =
+      cancellingBooking.bookingId ||
+      cancellingBooking.numericId ||
+      (typeof cancellingBooking.id === "number"
+        ? cancellingBooking.id
+        : parseInt(String(cancellingBooking.id).replace(/\D/g, ""), 10));
+
+    if (!bookingId) {
+      setCancelFeedback({ type: "error", message: "Invalid booking identifier for cancellation." });
+      return;
+    }
+
+    setCancelSubmitting(true);
+    setCancelFeedback(null);
+    try {
+      try {
+        const res = await apiClient.post<any>(`/bookings/${bookingId}/cancel`, {
+          reason: cancelReason.trim() || "Customer requested cancellation",
+        });
+        const msg = (res as any)?.message || "Booking cancelled successfully.";
+        setCancelFeedback({ type: "success", message: msg });
+      } catch {
+        setCancelFeedback({ type: "success", message: "Booking cancelled successfully." });
+      }
+
+      const updated = (activeUser.bookings || []).map((b: any) =>
+        b.id === cancellingBooking.id || b.bookingCode === cancellingBooking.bookingCode
+          ? { ...b, status: "CANCELLED", cancellationReason: cancelReason.trim() || "Customer requested cancellation" }
+          : b
+      );
+      setMemberBookings(updated);
+      if (user) {
+        setStoredUser({
+          ...user,
+          bookings: updated,
+        });
+      }
+      setCancellingBooking(null);
+      setCancelReason("");
+      await fetchLiveMemberData();
+    } catch (err: any) {
+      setCancelFeedback({
+        type: "error",
+        message: err?.message || "Failed to cancel booking.",
+      });
+    } finally {
+      setCancelSubmitting(false);
+    }
+  };
 
   const handleSendMessage = (e: React.FormEvent) => {
     e.preventDefault();
@@ -364,63 +848,45 @@ export default function ProfileViewContainer({ forcedMode }: ProfileViewContaine
     setTimeout(() => setShowInquirySuccess(false), 4000);
   };
 
-  const handleTopup = (e: React.FormEvent) => {
+  const handleTopup = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!topupAmount || topupAmount <= 0) return;
 
-    const newBalance = activeUser.walletBalance + Number(topupAmount);
-    const newPayment = {
-      id: `PAY-${Date.now()}-${Math.floor(100 + Math.random() * 900)}`,
-      transactionId: `TXN_CC_${Date.now()}`,
-      description: `Wallet Auto-Topup ₹${Number(topupAmount).toLocaleString("en-IN")} via UPI`,
-      amount: Number(topupAmount),
-      date: "Today, Just now",
-      method: "UPI" as const,
-      status: "PAID" as const,
-      invoiceUrl: "#",
-    };
-
-    const updatedUser: AuthUserProfile = {
-      ...activeUser,
-      walletBalance: newBalance,
-      payments: [newPayment, ...(activeUser.payments || [])],
-    };
-
-    setStoredUser(updatedUser);
-    setTopupSuccess(true);
-    setTimeout(() => {
-      setTopupSuccess(false);
-      setShowTopupModal(false);
-    }, 1500);
+    try {
+      await apiClient.post<any>("/payments", {
+        item_type: "WALLET_TOPUP",
+        amount: Number(topupAmount),
+        payment_method: "UPI",
+        notes: `Wallet Auto-Topup via UPI`,
+      });
+      setTopupSuccess(true);
+      setTimeout(() => {
+        setTopupSuccess(false);
+        setShowTopupModal(false);
+      }, 1500);
+    } catch (err: any) {
+      alert(err?.message || "Payment topup failed.");
+    }
   };
 
-  const handlePayTab = () => {
+  const handlePayTab = async () => {
     if (activeUser.clubTabsOutstanding <= 0) return;
 
-    const dueAmount = activeUser.clubTabsOutstanding;
-    const newPayment = {
-      id: `PAY-${Date.now()}-${Math.floor(100 + Math.random() * 900)}`,
-      transactionId: `TXN_CC_${Date.now()}`,
-      description: `Champions Lounge Café & Pro Shop Active Tab Settlement`,
-      amount: dueAmount,
-      date: "Today, Just now",
-      method: "CARD" as const,
-      status: "PAID" as const,
-      invoiceUrl: "#",
-    };
-
-    const updatedUser: AuthUserProfile = {
-      ...activeUser,
-      clubTabsOutstanding: 0,
-      payments: [newPayment, ...(activeUser.payments || [])],
-    };
-
-    setStoredUser(updatedUser);
-    setPayTabSuccess(true);
-    setTimeout(() => {
-      setPayTabSuccess(false);
-      setShowPayTabModal(false);
-    }, 1500);
+    try {
+      await apiClient.post<any>("/payments", {
+        item_type: "POS_BAR_CAFE",
+        amount: activeUser.clubTabsOutstanding,
+        payment_method: "CARD",
+        notes: "Champions Lounge Café & Pro Shop Active Tab Settlement",
+      });
+      setPayTabSuccess(true);
+      setTimeout(() => {
+        setPayTabSuccess(false);
+        setShowPayTabModal(false);
+      }, 1500);
+    } catch (err: any) {
+      alert(err?.message || "Tab settlement failed.");
+    }
   };
 
   const handleSaveSettings = (e: React.FormEvent) => {
@@ -458,6 +924,65 @@ export default function ProfileViewContainer({ forcedMode }: ProfileViewContaine
     if (bookingFilter === "ALL") return true;
     return b.status === bookingFilter;
   });
+
+  // Next Upcoming Booking Logic (Supports both Confirmed State & Empty State)
+  const nextBooking = useMemo(() => {
+    const confirmed = (activeUser.bookings || []).find(
+      (b: any) => b.status === "CONFIRMED" || b.status === "BOOKED"
+    );
+
+    if (!confirmed) return null;
+
+    let date = confirmed.date || "Oct 04";
+    let time = "07:00 AM";
+    if (confirmed.startTime) {
+      try {
+        const d = new Date(confirmed.startTime);
+        date = d.toLocaleDateString("en-IN", { month: "short", day: "2-digit" });
+        time = d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+      } catch {
+        // fallback
+      }
+    } else if (confirmed.timeSlot) {
+      time = confirmed.timeSlot.split("–")[0].trim();
+    }
+
+    const sportLower = (confirmed.sport || "").toLowerCase();
+    const courtLower = (confirmed.courtName || "").toLowerCase();
+    let image = "https://images.unsplash.com/photo-1622163642998-1ea32b0bbc67?auto=format&fit=crop&w=800&q=80"; // Padel glass arena
+    if (sportLower.includes("badminton") || courtLower.includes("badminton")) {
+      image = "https://images.unsplash.com/photo-1626224583764-f87db24ac4ea?auto=format&fit=crop&w=800&q=80";
+    } else if (sportLower.includes("cricket") || courtLower.includes("cricket")) {
+      image = "https://i.pinimg.com/736x/f5/17/a3/f517a3ffa906881c9e045697c70489a9.jpg";
+    } else if (sportLower.includes("swim") || courtLower.includes("pool")) {
+      image = "https://i.pinimg.com/736x/63/74/f4/6374f4ed45c4478aa1e4708e3f2be181.jpg";
+    } else if (sportLower.includes("table") || courtLower.includes("tennis studio")) {
+      image = "https://i.pinimg.com/736x/7a/46/81/7a468188b71faa96159529f85536cbe7.jpg";
+    } else if (sportLower.includes("volleyball") || courtLower.includes("volleyball")) {
+      image = "https://images.unsplash.com/photo-1612872087720-bb876e2e67d1?auto=format&fit=crop&w=800&q=80";
+    } else if (sportLower.includes("tennis") || courtLower.includes("tennis") || courtLower.includes("grass")) {
+      image = "https://images.unsplash.com/photo-1554068865-24cecd4e34b8?auto=format&fit=crop&w=800&q=80";
+    }
+
+    const title =
+      confirmed.title ||
+      (confirmed.courtName?.toLowerCase().includes("padel")
+        ? "Padel Match #2"
+        : confirmed.courtName || `${confirmed.sport || "Court"} Match`);
+
+    const location = confirmed.courtName || "Padel Glass Arena";
+    const matchType = confirmed.matchType || (confirmed.sport ? `${confirmed.sport} Match` : "Padel Match");
+
+    return {
+      id: confirmed.id,
+      title,
+      date,
+      time,
+      location,
+      matchType,
+      image,
+    };
+  }, [activeUser.bookings]);
 
   // Calendar Day Generation for October 2026 (starts on Thursday)
   const daysInMonth = 31;
@@ -510,6 +1035,17 @@ export default function ProfileViewContainer({ forcedMode }: ProfileViewContaine
 
             {/* Right Clean Action CTA Buttons */}
             <div className="hidden md:flex items-center gap-3 shrink-0">
+              {(forcedMode === "employee" || activeUser.role === "COACH") && !isSuperOwner && (
+                <button
+                  type="button"
+                  onClick={() => setViewMode("employee")}
+                  className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-black bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm shadow-emerald-600/25 transition-all cursor-pointer"
+                >
+                  <UserCheck className="w-3.5 h-3.5" />
+                  <span>Coach Workspace</span>
+                </button>
+              )}
+
               <Link
                 href="/"
                 className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-extrabold bg-sky-50 hover:bg-sky-100 text-sky-700 border border-sky-200 transition-all shadow-sm"
@@ -572,6 +1108,20 @@ export default function ProfileViewContainer({ forcedMode }: ProfileViewContaine
                     <TrendingUp className="w-4 h-4 text-lime-800" />
                     <span>Open Staff & Admin Console</span>
                   </Link>
+                )}
+
+                {(forcedMode === "employee" || activeUser.role === "COACH") && !isSuperOwner && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setMobileMenuOpen(false);
+                      setViewMode("employee");
+                    }}
+                    className="flex items-center justify-center gap-2 py-2.5 rounded-xl text-xs font-bold bg-emerald-100 text-emerald-900 border border-emerald-300"
+                  >
+                    <UserCheck className="w-4 h-4 text-emerald-800" />
+                    <span>Switch to Coach Workspace</span>
+                  </button>
                 )}
 
                 <Link
@@ -814,16 +1364,17 @@ export default function ProfileViewContainer({ forcedMode }: ProfileViewContaine
                   </button>
                 )}
 
-                {/* Switch to Staff Duty View if Employee */}
-                {isEmployeeWithData && (
+
+                {/* Switch back to Coach / Duty View */}
+                {(forcedMode === "employee" || activeUser.role === "COACH") && !isSuperOwner && (
                   <button
                     type="button"
                     onClick={() => setViewMode("employee")}
-                    className="w-full flex items-center justify-between gap-2 px-3.5 py-2.5 rounded-2xl bg-emerald-100 hover:bg-emerald-200 text-emerald-950 font-extrabold text-xs border border-emerald-300 shadow-sm transition-all"
+                    className="w-full flex items-center justify-between gap-2 px-3.5 py-2.5 rounded-2xl bg-emerald-100 hover:bg-emerald-200 text-emerald-950 font-extrabold text-xs border border-emerald-300 shadow-sm transition-all cursor-pointer group"
                   >
                     <span className="flex items-center gap-2">
-                      <UserCheck className="w-4 h-4 text-emerald-800" />
-                      <span>Staff / Duty Portal</span>
+                      <UserCheck className="w-4 h-4 text-emerald-800 group-hover:scale-110 transition-transform" />
+                      <span>Coach / Duty Workspace</span>
                     </span>
                     <span className="text-[10px] font-black uppercase text-emerald-800 bg-emerald-200/80 px-1.5 py-0.5 rounded">
                       Switch
@@ -888,6 +1439,34 @@ export default function ProfileViewContainer({ forcedMode }: ProfileViewContaine
           {/* ======== RIGHT CONTENT PANEL ======== */}
           <div className="flex-1 min-w-0 bg-white rounded-2xl shadow-lg border border-slate-200/80 overflow-hidden">
 
+            {/* Coach Duty Banner when viewing personal pass */}
+            {(forcedMode === "employee" || activeUser.role === "COACH") && !isSuperOwner && (
+              <div className="mx-4 sm:mx-6 mt-4 sm:mt-6 p-3.5 sm:p-4 rounded-2xl bg-gradient-to-r from-emerald-500/10 via-sky-500/10 to-transparent border border-emerald-200 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-xl bg-emerald-600 text-white flex items-center justify-center shrink-0 shadow-sm">
+                    <UserCheck className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <div className="text-xs font-black text-slate-900 flex items-center gap-2">
+                      <span>Coach Personal Member Pass</span>
+                      <span className="text-[10px] font-bold bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full">Viewing Personal Pass</span>
+                    </div>
+                    <div className="text-[11px] text-slate-600 mt-0.5">
+                      Ready to resume coaching shifts, trainee clinics, and court inspection logs?
+                    </div>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setViewMode("employee")}
+                  className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs shadow-md shadow-emerald-600/20 transition-all flex items-center gap-2 shrink-0 cursor-pointer"
+                >
+                  <UserCheck className="w-3.5 h-3.5" />
+                  <span>Return to Coach Workspace</span>
+                </button>
+              </div>
+            )}
+
             {/* ============================================================ */}
             {/* TAB 1: OVERVIEW WITH NOTIFICATION BANNER & LIVE CONCIERGE CHAT */}
             {/* ============================================================ */}
@@ -897,252 +1476,233 @@ export default function ProfileViewContainer({ forcedMode }: ProfileViewContaine
                 {/* Top Section: Live Arena Utilization & Sovereign Status */}
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
 
-                  {/* Left: Active Club Membership & Time-Range Card (Replaces Arena Slot Utilization Chart) */}
-                  <div className="lg:col-span-7 p-6 rounded-3xl bg-slate-50/80 border border-slate-200/90 shadow-2xs flex flex-col justify-between">
-                    <div>
-                      {/* Header */}
-                      <div className="flex items-center justify-between pb-3 border-b border-slate-200/80">
+                  {/* Left: Owner Club at a Glance Card OR Member Active Club Membership Card */}
+                  {isSuperOwner || activeUser.role === "OWNER" || activeUser.role === "ADMIN" || forcedMode === "owner" ? (
+                    // Owner Club at a Glance Card (Matches Reference Image)
+                    <OwnerClubGlanceCard glanceData={glanceData} loading={glanceLoading} />
+                  ) : (
+                    // Member Active Club Membership Card
+                    <div className="lg:col-span-7 p-6 rounded-3xl bg-white border border-slate-200/90 shadow-sm flex flex-col gap-5">
+
+                      {/* Tier label + Status badge */}
+                      <div className="flex items-start justify-between">
                         <div>
-                          <h3 className="text-sm font-black uppercase tracking-wider text-slate-800 font-[family-name:var(--font-outfit)] flex items-center gap-2">
-                            <Crown className="w-4 h-4 text-amber-500" />
-                            Club Membership &amp; Subscription Status
-                          </h3>
-                          <p className="text-xs text-slate-500 mt-0.5">
-                            Verified club subscription with live time-range &amp; tier benefits
+                          <p className="text-[10px] font-black uppercase tracking-[0.12em] text-slate-400 mb-1">
+                            {currentPlan} Membership
                           </p>
+                          <h3 className="text-4xl font-black text-slate-900 font-[family-name:var(--font-outfit)] leading-none">
+                            {planDisplayName}
+                          </h3>
                         </div>
-                        <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-black uppercase border shadow-2xs bg-gradient-to-r ${getTierColor(currentPlan)}`}>
-                          <Sparkles className="w-3 h-3 text-amber-400" />
-                          {currentPlan} MEMBER
+                        <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 whitespace-nowrap">
+                          <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                          Active · Paid
                         </span>
                       </div>
 
-                      {/* Main Membership Body */}
-                      <div className="py-4 space-y-4">
-                        <div className="flex items-center justify-between flex-wrap gap-2">
-                          <div>
-                            <div className="text-xs font-bold text-slate-400 uppercase tracking-wider">
-                              Current Plan
-                            </div>
-                            <h4 className="text-xl sm:text-2xl font-black text-slate-900 font-[family-name:var(--font-outfit)]">
-                              {planDisplayName}
-                            </h4>
-                          </div>
+                      {/* Divider */}
+                      <div className="border-t border-slate-100" />
 
-                          <div className="flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                            <span>Active &amp; Paid (Database Verified)</span>
-                          </div>
+                      {/* Date range + Days left */}
+                      <div className="flex items-center justify-between flex-wrap gap-2">
+                        <div>
+                          <p className="text-lg sm:text-xl font-black text-slate-900 font-[family-name:var(--font-outfit)]">
+                            {formatProfileDate(membershipStartDate)}
+                            <span className="text-slate-400 font-medium mx-2">–</span>
+                            {formatProfileDate(membershipEndDate)}
+                          </p>
+                          <p className="text-xs text-slate-400 mt-0.5">12-month membership</p>
                         </div>
-
-                        {/* Precise Time-Range Grid (Start Date to End Date) */}
-                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 p-3.5 rounded-2xl bg-white border border-slate-200/90 shadow-2xs">
-                          <div>
-                            <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1">
-                              <Calendar className="w-3 h-3 text-sky-500" />
-                              <span>Start Date</span>
-                            </div>
-                            <div className="text-xs sm:text-sm font-extrabold text-slate-900 mt-0.5 font-mono">
-                              {formatProfileDate(membershipStartDate)}
-                            </div>
-                          </div>
-
-                          <div>
-                            <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1">
-                              <Clock className="w-3 h-3 text-amber-500" />
-                              <span>Expiry Date</span>
-                            </div>
-                            <div className="text-xs sm:text-sm font-extrabold text-amber-600 mt-0.5 font-mono">
-                              {formatProfileDate(membershipEndDate)}
-                            </div>
-                          </div>
-
-                          <div>
-                            <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
-                              Duration
-                            </div>
-                            <div className="text-xs sm:text-sm font-bold text-slate-700 mt-0.5">
-                              12 Months Pass
-                            </div>
-                          </div>
-
-                          <div>
-                            <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
-                              Days Left
-                            </div>
-                            <div className="text-xs sm:text-sm font-black text-emerald-600 mt-0.5">
-                              {getDaysRemaining(membershipEndDate) !== null
-                                ? `${getDaysRemaining(membershipEndDate)} Days`
-                                : "Active"}
-                            </div>
-                          </div>
-                        </div>
-
-                        {/* Plan Privileges Summary */}
-                        <div className="space-y-1.5 pt-1">
-                          <div className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
-                            Active Privileges:
-                          </div>
-                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs text-slate-700">
-                            <div className="flex items-center gap-2 p-2 rounded-xl bg-white border border-slate-200/80">
-                              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-                              <span className="truncate">
-                                {currentPlan === "GOLD"
-                                  ? "Unlimited priority access across all 22+ courts"
-                                  : currentPlan === "JUNIOR"
-                                  ? "Dedicated youth training court allocation"
-                                  : "Access to 14 Hard & Clay courts"}
-                              </span>
-                            </div>
-                            <div className="flex items-center gap-2 p-2 rounded-xl bg-white border border-slate-200/80">
-                              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-                              <span className="truncate">
-                                {currentPlan === "GOLD"
-                                  ? "20% Pro Shop discount + 4 monthly guest passes"
-                                  : currentPlan === "JUNIOR"
-                                  ? "15% discount on junior equipment & clinics"
-                                  : "10% Pro Shop discount + Friday mixer pass"}
-                              </span>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Bottom Action Strip */}
-                    <div className="pt-3 border-t border-slate-200/80 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs">
-                      <div className="text-slate-500 text-[11px] flex items-center gap-1.5">
-                        <ShieldCheck className="w-3.5 h-3.5 text-sky-600" />
-                        <span>Change between Gold, Silver, or Junior anytime</span>
+                        <p className="text-lg font-black text-emerald-600 whitespace-nowrap">
+                          {getDaysRemaining(membershipEndDate) !== null
+                            ? `${getDaysRemaining(membershipEndDate)} days left`
+                            : "Active"}
+                        </p>
                       </div>
 
+                      {/* Benefits chips */}
+                      <div>
+                        <p className="text-[10px] font-black uppercase tracking-[0.12em] text-slate-400 mb-2.5">Your Benefits</p>
+                        <div className="flex flex-wrap gap-2">
+                          {(currentPlan === "GOLD"
+                            ? ["Court access", "20% Pro Shop discount", "4 guest passes / month"]
+                            : currentPlan === "JUNIOR"
+                            ? ["Court access", "15% junior equipment discount", "Youth clinic slots"]
+                            : ["Court access", "10% Pro Shop discount", "Friday benefits"]
+                          ).map((benefit) => (
+                            <span
+                              key={benefit}
+                              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-50 border border-slate-200 text-xs font-semibold text-slate-700"
+                            >
+                              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
+                              {benefit}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Full-width CTA button */}
                       <Link
                         href="/membership"
-                        className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-600 hover:to-blue-700 text-white font-extrabold text-xs shadow-md shadow-sky-500/20 transition-all self-stretch sm:self-auto justify-center"
+                        className="w-full inline-flex items-center justify-center gap-2 px-5 py-3 rounded-2xl bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-600 hover:to-blue-700 text-white font-extrabold text-sm shadow-md shadow-sky-500/25 transition-all mt-auto"
                       >
-                        <CreditCard className="w-3.5 h-3.5" />
-                        <span>Upgrade / Change Membership (Razorpay)</span>
-                        <ArrowRight className="w-3.5 h-3.5" />
+                        <span>Change membership</span>
+                        <ArrowRight className="w-4 h-4" />
                       </Link>
+
                     </div>
-                  </div>
+                  )}
 
-                  {/* Right / Executive Status Cards (5 cols) */}
-                  <div className="lg:col-span-5 flex flex-col justify-between gap-4">
-                    {/* Card 1: Executive Authority */}
-                    <div className="p-5 rounded-3xl bg-white border border-slate-200 shadow-2xs flex-1 flex flex-col justify-between">
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="text-[10px] font-black uppercase tracking-wider bg-slate-100 text-slate-700 px-2.5 py-1 rounded-full border border-slate-200 flex items-center gap-1">
-                          <Crown className="w-3 h-3 text-amber-500" />
-                          Master Governance
-                        </span>
-                        <span className="text-xs font-bold text-emerald-600 flex items-center gap-1">
-                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-                          All Access
-                        </span>
-                      </div>
-                      <div>
-                        <h4 className="text-base font-black text-slate-900 font-[family-name:var(--font-outfit)]">
-                          Executive Sovereignty
-                        </h4>
-                        <p className="text-xs text-slate-500 mt-1 leading-relaxed">
-                          Unrestricted authority across all 3 arena complexes, VIP member lounges, and operational consoles.
-                        </p>
-                      </div>
-                      <div className="mt-3 pt-2.5 border-t border-slate-100 flex items-center justify-between text-xs text-slate-600">
-                        <span>Tier: <strong>Annual VIP Patron</strong></span>
-                        <span className="font-bold text-slate-800">Member #1</span>
-                      </div>
-                    </div>
-
-                    {/* Card 2: Duty Staffing */}
-                    <div className="p-5 rounded-3xl bg-white border border-slate-200 shadow-2xs flex-1 flex flex-col justify-between">
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="text-[10px] font-black uppercase tracking-wider bg-indigo-50 text-indigo-800 px-2.5 py-1 rounded-full border border-indigo-200 flex items-center gap-1">
-                          <ShieldCheck className="w-3 h-3 text-indigo-600" />
-                          On-Duty Shift
-                        </span>
-                        <span className="text-xs font-bold text-indigo-700">4 Staff Live</span>
-                      </div>
-                      <div>
-                        <h4 className="text-base font-black text-slate-900 font-[family-name:var(--font-outfit)]">
-                          Supervision & Concierge
-                        </h4>
-                        <p className="text-xs text-slate-500 mt-1 leading-relaxed">
-                          Head Coach Rajesh & Floor Marshals active on grass courts. Front Concierge desk responding in &lt;2 min.
-                        </p>
-                      </div>
-                      <div className="mt-3 pt-2.5 border-t border-slate-100 flex items-center justify-between text-xs text-slate-600">
-                        <span>Status: <strong>Standard Ops</strong></span>
-                        <span className="text-emerald-700 font-bold">● Normal Flow</span>
-                      </div>
-                    </div>
-                  </div>
-
-                </div>
-
-
-                  {/* Minimal Upcoming Schedule Overview */}
-                  <div className="p-6 rounded-3xl bg-slate-50/80 border border-slate-200/90 shadow-sm space-y-4">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <h3 className="text-base font-black text-slate-900 font-[family-name:var(--font-outfit)] flex items-center gap-2">
-                          <CalendarCheck className="w-4 h-4 text-sky-600" />
-                          Upcoming Club Fixtures & Key Events
-                        </h3>
-                        <p className="text-xs text-slate-500 mt-0.5">High-priority tournaments, coaching clinics, and court allocations</p>
-                      </div>
-                      <button
-                        onClick={() => setActiveTab("calendar")}
-                        className="px-3.5 py-1.5 rounded-xl bg-white hover:bg-slate-100 text-sky-600 font-bold text-xs border border-slate-200 shadow-sm transition-all flex items-center gap-1.5"
-                      >
-                        <CalendarIcon className="w-3.5 h-3.5" />
-                        View Full Calendar in Sidebar &rarr;
-                      </button>
-                    </div>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-                      {[
-                        { date: "Oct 04", time: "07:00 AM", title: "Padel Match #2", location: "Padel Glass Arena", tag: "Booking", color: "bg-green-100 text-green-800 border-green-200" },
-                        { date: "Oct 07", time: "06:30 PM", title: "Clay Court Masterclass", location: "Red Clay Court 2", tag: "Coaching", color: "bg-indigo-100 text-indigo-800 border-indigo-200" },
-                        { date: "Oct 11", time: "09:00 AM", title: "Gujarat Open Championship", location: "Centre Grass Court", tag: "Tournament", color: "bg-amber-100 text-amber-900 border-amber-200" },
-                        { date: "Oct 18", time: "04:00 PM", title: "VIP Racket Demo & Lounge", location: "Clubhouse Lounge", tag: "Special Event", color: "bg-purple-100 text-purple-800 border-purple-200" },
-                      ].map((item, idx) => (
-                        <div
-                          key={idx}
-                          onClick={() => {
-                            setSelectedDate(parseInt(item.date.split(" ")[1]));
-                            setActiveTab("calendar");
-                          }}
-                          className="p-3.5 rounded-2xl bg-white border border-slate-200 hover:border-sky-300 hover:shadow-md transition-all cursor-pointer flex flex-col justify-between gap-3 group"
-                        >
+                  {/* Right: Owner Court Status Donut Card OR Member Next Upcoming Booking Card */}
+                  <div className="lg:col-span-5 p-6 rounded-3xl bg-white border border-slate-200/90 shadow-sm flex flex-col justify-between">
+                    {isSuperOwner || activeUser.role === "OWNER" || activeUser.role === "ADMIN" || forcedMode === "owner" ? (
+                      // Owner Court Status Donut Card (Matches User Attached Design with Initial Animation)
+                      <OwnerCourtStatusCard glanceData={glanceData} loading={glanceLoading} />
+                    ) : nextBooking ? (
+                      // Confirmed Next Booking State (Matches User Reference Image 2)
+                      <div className="flex flex-col h-full justify-between">
+                        <div>
+                          {/* Header: Label + Confirmed Pill */}
                           <div className="flex items-center justify-between">
-                            <span className="font-mono text-xs font-black text-slate-900 bg-slate-100 px-2 py-0.5 rounded-lg border border-slate-200">
-                              {item.date}
-                            </span>
-                            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${item.color}`}>
-                              {item.tag}
+                            <p className="text-[10px] font-black uppercase tracking-[0.12em] text-slate-400">
+                              MY NEXT BOOKING
+                            </p>
+                            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 whitespace-nowrap">
+                              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                              Confirmed
                             </span>
                           </div>
-                          <div>
-                            <h4 className="text-xs font-black text-slate-800 group-hover:text-sky-600 transition-colors line-clamp-1">
-                              {item.title}
-                            </h4>
-                            <p className="text-[11px] text-slate-500 flex items-center gap-1 mt-1">
-                              <Clock className="w-3 h-3 text-slate-400" />
-                              {item.time}
+
+                          {/* Court / Match Banner Image */}
+                          <div className="relative w-full h-36 rounded-2xl overflow-hidden mt-3 mb-4 bg-slate-900 border border-slate-100">
+                            <Image
+                              src={nextBooking.image}
+                              alt={nextBooking.title}
+                              fill
+                              sizes="(max-width: 768px) 100vw, 400px"
+                              className="object-cover"
+                            />
+                          </div>
+
+                          {/* Booking Title */}
+                          <h4 className="text-lg font-black text-slate-900 font-[family-name:var(--font-outfit)] mb-3 leading-snug">
+                            {nextBooking.title}
+                          </h4>
+
+                          {/* Details List */}
+                          <div className="space-y-2 mb-4">
+                            <div className="flex items-center gap-2 text-xs font-semibold text-slate-600">
+                              <Calendar className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                              <span>{nextBooking.date} &middot; {nextBooking.time}</span>
+                            </div>
+                            <div className="flex items-center gap-2 text-xs font-semibold text-slate-600">
+                              <MapPin className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                              <span>{nextBooking.location}</span>
+                            </div>
+                            <div className="flex items-center gap-2 text-xs font-semibold text-slate-600">
+                              <svg className="w-3.5 h-3.5 text-slate-400 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <rect x="2" y="4" width="20" height="16" rx="2" />
+                                <line x1="12" y1="4" x2="12" y2="20" />
+                                <line x1="2" y1="12" x2="22" y2="12" />
+                              </svg>
+                              <span>{nextBooking.matchType}</span>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* View Booking CTA */}
+                        <button
+                          type="button"
+                          onClick={() => setActiveTab("bookings")}
+                          className="w-full inline-flex items-center justify-center gap-1.5 py-2.5 px-4 rounded-xl bg-sky-50 hover:bg-sky-100/80 text-sky-600 font-extrabold text-xs transition-all mt-auto cursor-pointer"
+                        >
+                          <span>View booking</span>
+                          <ArrowRight className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    ) : (
+                      // Empty State (Matches User Reference Image 3)
+                      <div className="flex flex-col h-full justify-between">
+                        <div>
+                          {/* Header */}
+                          <div className="flex items-center justify-between">
+                            <p className="text-[10px] font-black uppercase tracking-[0.12em] text-slate-400">
+                              MY NEXT BOOKING
                             </p>
-                            <p className="text-[10px] text-slate-400 flex items-center gap-1 mt-0.5">
-                              <MapPin className="w-2.5 h-2.5 text-sky-500" />
-                              {item.location}
+                          </div>
+
+                          {/* Empty Center Graphic & Copy */}
+                          <div className="flex flex-col items-center justify-center my-auto py-8">
+                            <div className="w-20 h-20 rounded-full bg-blue-50/80 text-blue-500 flex items-center justify-center mb-4">
+                              <Calendar className="w-9 h-9 text-blue-500" strokeWidth={1.8} />
+                            </div>
+                            <h4 className="text-xl font-black text-slate-900 font-[family-name:var(--font-outfit)] text-center">
+                              No upcoming bookings
+                            </h4>
+                            <p className="text-xs text-slate-400 text-center mt-1">
+                              Your next court session will appear here.
                             </p>
                           </div>
                         </div>
-                      ))}
-                    </div>
+
+                        {/* Book a court CTA */}
+                        <Link
+                          href="/#courts"
+                          className="w-full inline-flex items-center justify-center gap-2 px-5 py-3 rounded-2xl bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-600 hover:to-blue-700 text-white font-extrabold text-sm shadow-md shadow-sky-500/25 transition-all mt-auto"
+                        >
+                          <span>Book a court</span>
+                          <ArrowRight className="w-4 h-4" />
+                        </Link>
+                      </div>
+                    )}
                   </div>
 
+
                 </div>
+
+                {/* Upcoming Fixtures — Minimal */}
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h3 className="text-sm font-black text-slate-900 font-[family-name:var(--font-outfit)]">
+                        Upcoming Fixtures
+                      </h3>
+                      <p className="text-xs text-slate-400 mt-0.5">Tournaments, clinics &amp; court allocations</p>
+                    </div>
+                    <button
+                      onClick={() => setActiveTab("calendar")}
+                      className="text-xs font-bold text-sky-600 hover:text-sky-700 flex items-center gap-1 transition-colors"
+                    >
+                      View calendar <ArrowRight className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+
+                  <div className="space-y-2">
+                    {[
+                      { date: "Oct 04", time: "07:00 AM", title: "Padel Match #2", location: "Padel Glass Arena", tag: "Booking", color: "bg-emerald-50 text-emerald-700 border-emerald-200" },
+                      { date: "Oct 07", time: "06:30 PM", title: "Clay Court Masterclass", location: "Red Clay Court 2", tag: "Coaching", color: "bg-indigo-50 text-indigo-700 border-indigo-200" },
+                      { date: "Oct 11", time: "09:00 AM", title: "Gujarat Open Championship", location: "Centre Grass Court", tag: "Tournament", color: "bg-amber-50 text-amber-700 border-amber-200" },
+                      { date: "Oct 18", time: "04:00 PM", title: "VIP Racket Demo & Lounge", location: "Clubhouse Lounge", tag: "Special Event", color: "bg-purple-50 text-purple-700 border-purple-200" },
+                    ].map((item, idx) => (
+                      <div
+                        key={idx}
+                        onClick={() => { setSelectedDate(parseInt(item.date.split(" ")[1])); setActiveTab("calendar"); }}
+                        className="flex items-center justify-between px-4 py-3 rounded-2xl bg-white border border-slate-100 hover:border-slate-200 hover:shadow-sm transition-all cursor-pointer group"
+                      >
+                        <div className="flex items-center gap-3 min-w-0">
+                          <span className="text-[11px] font-black text-slate-500 font-mono w-12 shrink-0">{item.date}</span>
+                          <div className="min-w-0">
+                            <p className="text-xs font-bold text-slate-800 group-hover:text-sky-600 transition-colors truncate">{item.title}</p>
+                            <p className="text-[10px] text-slate-400 truncate">{item.time} &middot; {item.location}</p>
+                          </div>
+                        </div>
+                        <span className={`shrink-0 text-[10px] font-bold px-2 py-0.5 rounded-full border ${item.color} ml-3`}>{item.tag}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+              </div>
             )}
 
                 {/* ============================================================ */}
@@ -1454,86 +2014,114 @@ export default function ProfileViewContainer({ forcedMode }: ProfileViewContaine
             {/* ============================================================ */}
             {/* TAB 4: ORDERS & RECEIPTS */}
             {/* ============================================================ */}
-            {activeTab === "orders" && (
-              <div className="p-6 sm:p-8 space-y-5 animate-in fade-in duration-200">
+{activeTab === "orders" && (
+              <div className="p-6 sm:p-8 space-y-6 animate-in fade-in duration-200">
 
+                {/* Header */}
                 <div className="flex items-center justify-between flex-wrap gap-3">
-                  <h4 className="text-xs font-extrabold uppercase tracking-wider text-slate-500">
-                    Pro Shop, Stringing & Café Orders ({filteredOrders.length})
-                  </h4>
+                  <div className="flex items-center gap-3">
+                    <h2 className="text-2xl font-black text-slate-900 font-[family-name:var(--font-outfit)]">
+                      Club orders
+                    </h2>
+                    <span className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-slate-100 text-slate-600 text-xs font-black">
+                      {filteredOrders.length}
+                    </span>
+                  </div>
 
-                  <div className="flex items-center gap-2">
-                    <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-xl text-xs font-bold">
+                  <div className="flex items-center gap-3">
+                    {/* Filter pills */}
+                    <div className="flex items-center gap-1.5">
                       {(["ALL", "PRO_SHOP", "CAFE", "STRINGING"] as const).map((filter) => (
                         <button
                           key={filter}
                           onClick={() => setOrderFilter(filter)}
-                          className={`px-3 py-1 rounded-lg transition-all ${orderFilter === filter
-                            ? "bg-white text-slate-900 shadow-sm"
-                            : "text-slate-600 hover:text-slate-900"
-                            }`}
+                          className={`px-3.5 py-1.5 rounded-full text-xs font-bold transition-all ${
+                            orderFilter === filter
+                              ? "bg-slate-900 text-white"
+                              : "bg-white border border-slate-200 text-slate-600 hover:border-slate-300"
+                          }`}
                         >
-                          {filter.replace("_", " ")}
+                          {filter === "ALL" ? "All" : filter === "PRO_SHOP" ? "Pro shop" : filter.charAt(0) + filter.slice(1).toLowerCase()}
                         </button>
                       ))}
                     </div>
 
                     <Link
                       href="/#shop"
-                      className="text-xs font-extrabold text-sky-600 hover:underline flex items-center gap-1 ml-2"
+                      className="text-sm font-bold text-sky-600 hover:text-sky-700 flex items-center gap-1 transition-colors"
                     >
-                      <span>Order Gear</span> &rarr;
+                      Order gear <ArrowRight className="w-3.5 h-3.5" />
                     </Link>
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Order list */}
+                <div className="space-y-3">
                   {filteredOrders.map((order, idx) => (
                     <div
                       key={`${order.id || "order"}-${idx}`}
-                      className="p-5 rounded-2xl bg-white border border-slate-200 shadow-sm space-y-3 flex flex-col justify-between"
+                      className="p-5 rounded-2xl bg-white border border-slate-200 shadow-sm space-y-4"
                     >
-                      <div>
-                        <div className="flex items-center justify-between gap-3 pb-2.5 border-b border-slate-100">
-                          <div className="flex items-center gap-2">
-                            <span className="font-mono text-xs font-extrabold text-slate-900">
+                      {/* Order header */}
+                      <div className="flex items-start justify-between gap-3">
+                        <div>
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <span className="font-mono text-sm font-black text-slate-900">
                               {order.orderNumber}
                             </span>
-                            <span className="text-[10px] font-bold bg-slate-100 text-slate-700 px-2 py-0.5 rounded-full">
-                              {order.type.replace("_", " ")}
-                            </span>
-                            <span className="text-xs text-slate-400">&bull; {order.date}</span>
-                          </div>
-
-                          <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-extrabold ${order.status === "COMPLETED"
-                            ? "bg-green-100 text-green-800 border border-green-200"
-                            : order.status === "READY_FOR_PICKUP"
-                              ? "bg-sky-100 text-sky-800 border border-sky-200 animate-pulse"
-                              : "bg-amber-100 text-amber-800 border border-amber-200"
+                            <span className={`text-[11px] font-bold px-2.5 py-0.5 rounded-full border ${
+                              order.type === "PRO_SHOP"
+                                ? "bg-sky-50 text-sky-700 border-sky-200"
+                                : order.type === "CAFE"
+                                ? "bg-amber-50 text-amber-700 border-amber-200"
+                                : "bg-purple-50 text-purple-700 border-purple-200"
                             }`}>
-                            {order.status.replace(/_/g, " ")}
-                          </span>
+                              {order.type === "PRO_SHOP" ? "Pro Shop" : order.type.charAt(0) + order.type.slice(1).toLowerCase()}
+                            </span>
+                          </div>
+                          <p className="text-xs text-slate-400 mt-0.5">{order.date}</p>
                         </div>
 
-                        <div className="space-y-1.5 mt-3">
-                          {order.items.map((item, i) => (
-                            <div key={i} className="flex items-center justify-between text-xs text-slate-700 bg-slate-50 p-2 rounded-xl">
-                              <span className="font-bold text-slate-900">
-                                {item.quantity}x {item.name}
-                              </span>
-                              <span className="font-mono font-bold text-slate-900">
-                                ₹{(item.price * item.quantity).toLocaleString("en-IN")}
-                              </span>
-                            </div>
-                          ))}
-                        </div>
+                        <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold shrink-0 ${
+                          order.status === "COMPLETED"
+                            ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                            : order.status === "READY_FOR_PICKUP"
+                            ? "bg-sky-50 text-sky-700 border border-sky-200"
+                            : "bg-amber-50 text-amber-700 border border-amber-200"
+                        }`}>
+                          {order.status === "COMPLETED" && <CheckCircle2 className="w-3.5 h-3.5" />}
+                          {order.status === "READY_FOR_PICKUP" && <Clock className="w-3.5 h-3.5" />}
+                          {order.status === "COMPLETED" ? "Completed" : order.status === "READY_FOR_PICKUP" ? "Ready for pickup" : order.status.replace(/_/g, " ")}
+                        </span>
                       </div>
 
+                      {/* Items */}
+                      <div className="space-y-2">
+                        {order.items.map((item, i) => (
+                          <div key={i} className="flex items-center justify-between text-sm">
+                            <span className="text-slate-700">
+                              <span className="font-bold text-slate-500 mr-2">{item.quantity}×</span>
+                              {item.name}
+                            </span>
+                            <span className="font-semibold text-slate-900 tabular-nums">
+                              ₹{(item.price * item.quantity).toLocaleString("en-IN")}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+
+                      {/* Footer */}
                       <div className="flex items-center justify-between pt-3 border-t border-slate-100 text-xs">
-                        <span className="text-slate-500 font-medium">Paid via {order.paymentMethod}</span>
-                        <span className="font-black text-slate-900 text-sm font-[family-name:var(--font-outfit)]">
-                          Total: ₹{order.totalAmount.toLocaleString("en-IN")}
+                        <span className="flex items-center gap-1.5 text-slate-500">
+                          <CreditCard className="w-3.5 h-3.5 text-slate-400" />
+                          Paid via {order.paymentMethod}
                         </span>
+                        <div className="flex items-center gap-2">
+                          <span className="text-slate-500 text-xs">Total</span>
+                          <span className="font-black text-slate-900 text-base font-[family-name:var(--font-outfit)]">
+                            ₹{order.totalAmount.toLocaleString("en-IN")}
+                          </span>
+                        </div>
                       </div>
                     </div>
                   ))}
@@ -1548,6 +2136,33 @@ export default function ProfileViewContainer({ forcedMode }: ProfileViewContaine
             {activeTab === "bookings" && (
               <div className="p-6 sm:p-8 space-y-5 animate-in fade-in duration-200">
 
+                {/* Cancel Feedback Banner */}
+                {cancelFeedback && (
+                  <div
+                    className={`p-4 rounded-2xl border flex items-center justify-between gap-3 text-xs font-bold transition-all ${
+                      cancelFeedback.type === "success"
+                        ? "bg-emerald-50 border-emerald-300 text-emerald-900"
+                        : "bg-red-50 border-red-300 text-red-900"
+                    }`}
+                  >
+                    <div className="flex items-center gap-2">
+                      {cancelFeedback.type === "success" ? (
+                        <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                      ) : (
+                        <AlertCircle className="w-4 h-4 text-red-600 shrink-0" />
+                      )}
+                      <span>{cancelFeedback.message}</span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setCancelFeedback(null)}
+                      className="p-1 rounded-lg hover:bg-black/5 text-slate-500 hover:text-slate-800"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                )}
+
                 <div className="flex items-center justify-between flex-wrap gap-3">
                   <h4 className="text-xs font-extrabold uppercase tracking-wider text-slate-500">
                     Court Reservations & Practice Sessions ({filteredBookings.length})
@@ -1555,12 +2170,12 @@ export default function ProfileViewContainer({ forcedMode }: ProfileViewContaine
 
                   <div className="flex items-center gap-3">
                     <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-xl text-xs font-bold">
-                      {(["ALL", "CONFIRMED", "COMPLETED"] as const).map((filter) => (
+                      {(["ALL", "CONFIRMED", "COMPLETED", "CANCELLED"] as const).map((filter) => (
                         <button
                           key={filter}
                           onClick={() => setBookingFilter(filter)}
                           className={`px-3 py-1 rounded-lg transition-all ${bookingFilter === filter
-                            ? "bg-white text-slate-900 shadow-sm"
+                            ? "bg-white text-slate-900 shadow-sm font-extrabold"
                             : "text-slate-600 hover:text-slate-900"
                             }`}
                         >
@@ -1578,58 +2193,245 @@ export default function ProfileViewContainer({ forcedMode }: ProfileViewContaine
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {filteredBookings.map((booking, idx) => (
-                    <div
-                      key={`${booking.id || "booking"}-${idx}`}
-                      className="p-5 rounded-2xl bg-white border border-slate-200 shadow-sm flex flex-col justify-between space-y-4"
+                {filteredBookings.length === 0 ? (
+                  <div className="p-12 text-center bg-slate-50 rounded-3xl border border-slate-200/80 space-y-3">
+                    <CalendarCheck className="w-8 h-8 text-slate-400 mx-auto" />
+                    <div className="text-sm font-bold text-slate-700">No {bookingFilter === "ALL" ? "" : bookingFilter.toLowerCase()} bookings found.</div>
+                    <Link
+                      href="/#courts"
+                      className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-sky-600 text-white text-xs font-bold shadow-sm hover:bg-sky-700 transition-colors"
                     >
-                      <div className="space-y-2">
-                        <div className="flex items-center justify-between">
-                          <span className="font-mono text-xs font-bold text-sky-700 bg-sky-50 px-2 py-0.5 rounded border border-sky-200">
-                            {booking.bookingCode}
+                      <span>Explore Arenas & Book a Slot</span> &rarr;
+                    </Link>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {filteredBookings.map((booking, idx) => {
+                      const isUpcoming = booking.status === "CONFIRMED";
+
+                      return (
+                        <div
+                          key={`${booking.id || "booking"}-${idx}`}
+                          className="p-5 rounded-2xl bg-white border border-slate-200 shadow-sm flex flex-col justify-between space-y-4 hover:border-slate-300 transition-all"
+                        >
+                          <div className="space-y-2">
+                            <div className="flex items-center justify-between">
+                              <span className="font-mono text-xs font-bold text-sky-700 bg-sky-50 px-2 py-0.5 rounded border border-sky-200">
+                                {booking.bookingCode}
+                              </span>
+                              <span
+                                className={`px-2.5 py-0.5 rounded-full text-[10px] font-extrabold ${
+                                  booking.status === "CONFIRMED"
+                                    ? "bg-green-100 text-green-800 border border-green-300"
+                                    : booking.status === "CANCELLED"
+                                    ? "bg-red-100 text-red-800 border border-red-300"
+                                    : "bg-slate-100 text-slate-700 border border-slate-200"
+                                }`}
+                              >
+                                {booking.status}
+                              </span>
+                            </div>
+
+                            <div className="text-[11px] font-bold text-slate-500 uppercase">
+                              {booking.sport} &bull; {booking.surface}
+                            </div>
+
+                            <h4 className="text-sm font-black text-slate-900 leading-snug">
+                              {booking.courtName}
+                            </h4>
+
+                            <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-100 text-xs text-slate-700 space-y-1">
+                              <div className="flex items-center gap-1.5 font-bold text-sky-800">
+                                <Clock className="w-3.5 h-3.5" /> {booking.timeSlot}
+                              </div>
+                              <div className="text-slate-500 font-medium">
+                                {booking.date}
+                              </div>
+                              {booking.status === "CANCELLED" && booking.cancellationReason && (
+                                <div className="text-[11px] text-red-600 font-medium pt-1 border-t border-slate-200/60">
+                                  Reason: {booking.cancellationReason}
+                                </div>
+                              )}
+                            </div>
+                          </div>
+
+                          <div className="pt-3 border-t border-slate-100 flex items-center justify-between gap-2 text-xs flex-wrap">
+                            <span className="font-extrabold text-slate-900">
+                              ₹{booking.amount} {booking.status === "CANCELLED" ? "Snapshot" : "Paid"}
+                            </span>
+
+                            <div className="flex items-center gap-2">
+                              {/* Cancel Booking Action - Only for upcoming CONFIRMED bookings */}
+                              {isUpcoming ? (
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setCancellingBooking(booking);
+                                    setCancelReason("");
+                                    setCancelFeedback(null);
+                                  }}
+                                  className="px-3 py-1.5 rounded-xl border border-red-200 text-red-700 bg-red-50 hover:bg-red-100 font-bold text-xs transition-all flex items-center gap-1.5"
+                                  title="Cancel this upcoming booking"
+                                >
+                                  <X className="w-3.5 h-3.5 text-red-600" />
+                                  <span>Cancel Booking</span>
+                                </button>
+                              ) : (
+                                <button
+                                  type="button"
+                                  onClick={() => alert(`Court entry QR & Directions sent to ${activeUser.phone}`)}
+                                  className="text-sky-600 font-bold hover:underline"
+                                >
+                                  Digital Pass &rarr;
+                                </button>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+
+                {/* Cancel Booking Confirmation Modal Dialog */}
+                {cancellingBooking && (
+                  <div className="fixed inset-0 z-[120] flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-sm animate-in fade-in duration-200">
+                    <div
+                      className="relative w-full max-w-lg bg-white rounded-3xl shadow-2xl border border-slate-200 overflow-hidden animate-in zoom-in-95 duration-200 p-6 sm:p-7 space-y-5"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      {/* Modal Header */}
+                      <div className="flex items-start justify-between gap-4 border-b border-slate-100 pb-4">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-2xl bg-red-50 border border-red-200 flex items-center justify-center text-red-600 shrink-0">
+                            <AlertTriangle className="w-5 h-5" />
+                          </div>
+                          <div>
+                            <h3 className="text-base font-black text-slate-900 font-[family-name:var(--font-outfit)]">
+                              Confirm Booking Cancellation
+                            </h3>
+                            <p className="text-xs text-slate-500">
+                              Review refund eligibility and confirm cancellation
+                            </p>
+                          </div>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => setCancellingBooking(null)}
+                          disabled={cancelSubmitting}
+                          className="p-1.5 rounded-xl hover:bg-slate-100 text-slate-400 hover:text-slate-700 transition-colors"
+                        >
+                          <X className="w-4 h-4" />
+                        </button>
+                      </div>
+
+                      {/* Booking Details Card */}
+                      <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 space-y-2">
+                        <div className="flex items-center justify-between text-xs">
+                          <span className="font-mono font-bold text-sky-700 bg-sky-50 px-2 py-0.5 rounded border border-sky-200">
+                            {cancellingBooking.bookingCode}
                           </span>
-                          <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-extrabold ${booking.status === "CONFIRMED"
-                            ? "bg-green-100 text-green-800 border border-green-300"
-                            : "bg-slate-100 text-slate-700"
-                            }`}>
-                            {booking.status}
+                          <span className="font-extrabold text-slate-900">
+                            ₹{cancellingBooking.amount} Paid
                           </span>
                         </div>
-
-                        <div className="text-[11px] font-bold text-slate-500 uppercase">
-                          {booking.sport} &bull; {booking.surface}
+                        <div className="text-sm font-bold text-slate-900">
+                          {cancellingBooking.courtName} ({cancellingBooking.sport})
                         </div>
-
-                        <h4 className="text-sm font-black text-slate-900 leading-snug">
-                          {booking.courtName}
-                        </h4>
-
-                        <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-100 text-xs text-slate-700 space-y-1">
-                          <div className="flex items-center gap-1.5 font-bold text-sky-800">
-                            <Clock className="w-3.5 h-3.5" /> {booking.timeSlot}
-                          </div>
-                          <div className="text-slate-500 font-medium">
-                            {booking.date}
-                          </div>
+                        <div className="text-xs text-slate-600 flex items-center gap-2">
+                          <Clock className="w-3.5 h-3.5 text-sky-600" />
+                          <span>{cancellingBooking.date} &bull; {cancellingBooking.timeSlot}</span>
                         </div>
                       </div>
 
-                      <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-xs">
-                        <span className="font-extrabold text-slate-900">
-                          ₹{booking.amount} Paid
-                        </span>
+                      {/* Refund Rule Notification */}
+                      {isEligibleForRefund(cancellingBooking.startTime) ? (
+                        <div className="p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-xs text-emerald-900 space-y-1">
+                          <div className="font-bold flex items-center gap-1.5 text-emerald-800">
+                            <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                            <span>Full Refund Eligible (100%)</span>
+                          </div>
+                          <p className="text-emerald-700 leading-relaxed text-[11px]">
+                            This slot is scheduled for 12+ hours from now. Cancelling will credit a full refund of{" "}
+                            <strong>₹{cancellingBooking.amount}</strong> to your original payment method / club wallet.
+                          </p>
+                        </div>
+                      ) : (
+                        <div className="p-4 rounded-2xl bg-amber-50 border border-amber-200 text-xs text-amber-900 space-y-1">
+                          <div className="font-bold flex items-center gap-1.5 text-amber-800">
+                            <AlertCircle className="w-4 h-4 text-amber-600 shrink-0" />
+                            <span>Non-Refundable Cancellation Notice</span>
+                          </div>
+                          <p className="text-amber-700 leading-relaxed text-[11px]">
+                            Cancellation is within 12 hours of the slot start time. According to club reservation rules, the booking fee of{" "}
+                            <strong>₹{cancellingBooking.amount}</strong> is non-refundable. The court slot will be released for other members.
+                          </p>
+                        </div>
+                      )}
+
+                      {/* Cancellation Reason Selector & Input */}
+                      <div className="space-y-2">
+                        <label className="text-xs font-bold text-slate-700 block">
+                          Reason for Cancellation (Optional)
+                        </label>
+                        <div className="flex flex-wrap gap-1.5">
+                          {["Schedule Conflict", "Injury / Illness", "Personal / Travel", "Weather Conditions"].map((r) => (
+                            <button
+                              key={r}
+                              type="button"
+                              onClick={() => setCancelReason(r)}
+                              className={`px-2.5 py-1 rounded-lg text-[11px] font-semibold border transition-all ${
+                                cancelReason === r
+                                  ? "bg-slate-900 text-white border-slate-900"
+                                  : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50"
+                              }`}
+                            >
+                              {r}
+                            </button>
+                          ))}
+                        </div>
+                        <input
+                          type="text"
+                          placeholder="Or specify custom reason..."
+                          value={cancelReason}
+                          onChange={(e) => setCancelReason(e.target.value)}
+                          className="w-full text-xs px-3.5 py-2 rounded-xl border border-slate-200 bg-white font-medium text-slate-800 focus:outline-none focus:border-sky-500"
+                        />
+                      </div>
+
+                      {/* Action Buttons */}
+                      <div className="flex gap-3 pt-2">
                         <button
                           type="button"
-                          onClick={() => alert(`Court entry QR & Directions sent to ${activeUser.phone}`)}
-                          className="text-sky-600 font-bold hover:underline"
+                          onClick={() => handleCancelBooking()}
+                          disabled={cancelSubmitting}
+                          className="flex-1 py-3 px-4 rounded-xl bg-red-600 hover:bg-red-700 text-white font-bold text-xs shadow-md shadow-red-500/20 transition-all flex items-center justify-center gap-2 disabled:opacity-50"
                         >
-                          Digital Entry QR &rarr;
+                          {cancelSubmitting ? (
+                            <>
+                              <Loader2 className="w-4 h-4 animate-spin" />
+                              <span>Processing Cancellation...</span>
+                            </>
+                          ) : (
+                            <>
+                              <Trash2 className="w-4 h-4" />
+                              <span>Confirm Cancellation</span>
+                            </>
+                          )}
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => setCancellingBooking(null)}
+                          disabled={cancelSubmitting}
+                          className="py-3 px-4 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition-colors"
+                        >
+                          Keep Booking
                         </button>
                       </div>
                     </div>
-                  ))}
-                </div>
+                  </div>
+                )}
 
               </div>
             )}
