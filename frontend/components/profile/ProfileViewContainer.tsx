@@ -49,6 +49,8 @@ import {
   Trash2,
   Camera,
   UploadCloud,
+  XCircle,
+  RefreshCw as RefreshCwIcon,
 } from "lucide-react";
 import {
   useCurrentUser,
@@ -501,6 +503,37 @@ export default function ProfileViewContainer({ forcedMode }: ProfileViewContaine
   const [glanceLoading, setGlanceLoading] = useState(false);
   const [glanceError, setGlanceError] = useState<string | null>(null);
 
+  // ============================================================
+  // OWNER LEAVE APPROVALS STATE
+  // ============================================================
+  interface OwnerLeaveRequest {
+    id: number;
+    employee_id: number;
+    employee_name: string;
+    employee_code: string;
+    department: string;
+    leave_type: string;
+    start_date: string;
+    end_date: string;
+    days_count: number;
+    reason: string;
+    status: "PENDING" | "APPROVED" | "REJECTED" | "CANCELLED";
+    approved_by_name?: string | null;
+    rejection_reason?: string | null;
+    decision_notes?: string | null;
+    decision_at?: string | null;
+    created_at: string;
+  }
+  const [leaveApprovals, setLeaveApprovals] = useState<OwnerLeaveRequest[]>([]);
+  const [leaveApprovalsLoading, setLeaveApprovalsLoading] = useState(false);
+  const [leaveApprovalsFilter, setLeaveApprovalsFilter] = useState<"PENDING" | "ALL">("PENDING");
+  const [leaveDecisionId, setLeaveDecisionId] = useState<number | null>(null);
+  const [leaveDecisionType, setLeaveDecisionType] = useState<"approve" | "reject" | null>(null);
+  const [leaveDecisionNotes, setLeaveDecisionNotes] = useState("");
+  const [leaveDecisionRejReason, setLeaveDecisionRejReason] = useState("");
+  const [leaveDecisionSubmitting, setLeaveDecisionSubmitting] = useState(false);
+  const [leaveDecisionFeedback, setLeaveDecisionFeedback] = useState<{ type: "success" | "error"; text: string } | null>(null);
+
   const fetchGlanceData = useCallback(async () => {
     try {
       setGlanceLoading(true);
@@ -521,6 +554,51 @@ export default function ProfileViewContainer({ forcedMode }: ProfileViewContaine
       setGlanceLoading(false);
     }
   }, []);
+
+  // Fetch all leave requests (owner/admin view)
+  const fetchLeaveApprovals = useCallback(async () => {
+    setLeaveApprovalsLoading(true);
+    try {
+      const res = await apiClient.get<any>("/employees/leave");
+      const list = res?.leave_requests || res?.data?.leave_requests || [];
+      setLeaveApprovals(list);
+    } catch (err: any) {
+      console.warn("Failed to fetch leave approvals:", err);
+    } finally {
+      setLeaveApprovalsLoading(false);
+    }
+  }, []);
+
+  const handleLeaveDecision = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!leaveDecisionId || !leaveDecisionType) return;
+    if (leaveDecisionType === "reject" && !leaveDecisionRejReason.trim()) return;
+    setLeaveDecisionSubmitting(true);
+    setLeaveDecisionFeedback(null);
+    try {
+      if (leaveDecisionType === "approve") {
+        await apiClient.post<any>(`/employees/leave/${leaveDecisionId}/approve`, {
+          decision_notes: leaveDecisionNotes.trim() || undefined,
+        });
+        setLeaveDecisionFeedback({ type: "success", text: "Leave request approved successfully!" });
+      } else {
+        await apiClient.post<any>(`/employees/leave/${leaveDecisionId}/reject`, {
+          rejection_reason: leaveDecisionRejReason.trim(),
+          decision_notes: leaveDecisionNotes.trim() || undefined,
+        });
+        setLeaveDecisionFeedback({ type: "success", text: "Leave request rejected." });
+      }
+      setLeaveDecisionId(null);
+      setLeaveDecisionType(null);
+      setLeaveDecisionNotes("");
+      setLeaveDecisionRejReason("");
+      await fetchLeaveApprovals();
+    } catch (err: any) {
+      setLeaveDecisionFeedback({ type: "error", text: err?.message || "Action failed. Please try again." });
+    } finally {
+      setLeaveDecisionSubmitting(false);
+    }
+  };
 
   const fetchLiveMemberData = useCallback(async () => {
     try {
@@ -603,7 +681,11 @@ export default function ProfileViewContainer({ forcedMode }: ProfileViewContaine
   useEffect(() => {
     fetchLiveMemberData();
     fetchGlanceData();
-  }, [fetchLiveMemberData, fetchGlanceData, user?.id]);
+    // Also fetch leave approvals if owner/admin
+    if (user?.role === "OWNER" || user?.role === "ADMIN") {
+      fetchLeaveApprovals();
+    }
+  }, [fetchLiveMemberData, fetchGlanceData, fetchLeaveApprovals, user?.id, user?.role]);
 
   const activeUser: AuthUserProfile = {
     id: user?.id || 1,
@@ -2124,6 +2206,362 @@ export default function ProfileViewContainer({ forcedMode }: ProfileViewContaine
 
 
                 </div>
+
+                {/* ============================================================ */}
+                {/* OWNER: LEAVE APPROVALS SECTION                               */}
+                {/* ============================================================ */}
+                {(isSuperOwner || activeUser.role === "OWNER" || activeUser.role === "ADMIN") && (
+                  <div className="space-y-4">
+                    {/* Section Header */}
+                    <div className="flex items-center justify-between flex-wrap gap-3">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center shadow-md shadow-amber-400/25">
+                          <CalendarCheck className="w-5 h-5 text-white" />
+                        </div>
+                        <div>
+                          <h3 className="text-lg font-black text-slate-900 font-[family-name:var(--font-outfit)]">Leave Approvals</h3>
+                          <p className="text-xs text-slate-500">Review and manage employee leave requests</p>
+                        </div>
+                        {leaveApprovals.filter(l => l.status === "PENDING").length > 0 && (
+                          <span className="px-2.5 py-1 rounded-full bg-amber-100 text-amber-800 border border-amber-200 text-xs font-extrabold animate-pulse">
+                            {leaveApprovals.filter(l => l.status === "PENDING").length} Pending
+                          </span>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-2">
+                        {/* Filter Toggle */}
+                        <div className="flex rounded-xl border border-slate-200 overflow-hidden bg-white">
+                          {(["PENDING", "ALL"] as const).map(f => (
+                            <button
+                              key={f}
+                              onClick={() => setLeaveApprovalsFilter(f)}
+                              className={`px-3 py-1.5 text-xs font-bold transition-all ${
+                                leaveApprovalsFilter === f
+                                  ? "bg-slate-900 text-white"
+                                  : "text-slate-500 hover:bg-slate-50"
+                              }`}
+                            >
+                              {f === "PENDING" ? "Pending" : "All"}
+                            </button>
+                          ))}
+                        </div>
+                        <button
+                          onClick={fetchLeaveApprovals}
+                          disabled={leaveApprovalsLoading}
+                          className="p-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 transition-all"
+                          title="Refresh"
+                        >
+                          {leaveApprovalsLoading ? (
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                          ) : (
+                            <RefreshCwIcon className="w-4 h-4" />
+                          )}
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Decision Feedback */}
+                    {leaveDecisionFeedback && (
+                      <div className={`p-3.5 rounded-2xl flex items-center justify-between gap-3 text-xs font-bold animate-in fade-in ${
+                        leaveDecisionFeedback.type === "success"
+                          ? "bg-emerald-50 text-emerald-800 border border-emerald-200"
+                          : "bg-red-50 text-red-800 border border-red-200"
+                      }`}>
+                        <div className="flex items-center gap-2">
+                          {leaveDecisionFeedback.type === "success" ? <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" /> : <AlertCircle className="w-4 h-4 text-red-500 shrink-0" />}
+                          <span>{leaveDecisionFeedback.text}</span>
+                        </div>
+                        <button onClick={() => setLeaveDecisionFeedback(null)}><X className="w-4 h-4" /></button>
+                      </div>
+                    )}
+
+                    {/* Approve/Reject Modal Overlay */}
+                    {leaveDecisionId !== null && leaveDecisionType && (() => {
+                      const lv = leaveApprovals.find(l => l.id === leaveDecisionId);
+                      if (!lv) return null;
+                      return (
+                        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-sm animate-in fade-in">
+                          <div className="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-200 space-y-4 animate-in zoom-in-95">
+                            {/* Modal Header */}
+                            <div className="flex items-start justify-between">
+                              <div className="flex items-center gap-3">
+                                <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${
+                                  leaveDecisionType === "approve" ? "bg-emerald-100" : "bg-red-100"
+                                }`}>
+                                  {leaveDecisionType === "approve" ? (
+                                    <CheckCircle2 className="w-5 h-5 text-emerald-600" />
+                                  ) : (
+                                    <XCircle className="w-5 h-5 text-red-500" />
+                                  )}
+                                </div>
+                                <div>
+                                  <h3 className="text-base font-black text-slate-900">
+                                    {leaveDecisionType === "approve" ? "Approve" : "Reject"} Leave Request
+                                  </h3>
+                                  <p className="text-xs text-slate-500 mt-0.5">{lv.employee_name} &bull; {lv.leave_type} Leave</p>
+                                </div>
+                              </div>
+                              <button
+                                onClick={() => { setLeaveDecisionId(null); setLeaveDecisionType(null); setLeaveDecisionNotes(""); setLeaveDecisionRejReason(""); }}
+                                className="text-slate-400 hover:text-slate-600 p-1"
+                              >
+                                <X className="w-4 h-4" />
+                              </button>
+                            </div>
+
+                            {/* Leave Summary */}
+                            {(() => {
+                              const lvTimingMatch = lv.reason?.match(/^\[Timing:\s*([^\]]+)\]\s*([\s\S]*)$/);
+                              const lvDisplayTiming = lvTimingMatch ? lvTimingMatch[1] : null;
+                              const lvDisplayReason = lvTimingMatch ? lvTimingMatch[2] : lv.reason;
+                              const modalAppliedDate = lv.created_at
+                                ? new Date(lv.created_at).toLocaleString("en-IN", {
+                                    day: "numeric",
+                                    month: "short",
+                                    year: "numeric",
+                                    hour: "2-digit",
+                                    minute: "2-digit",
+                                    hour12: true,
+                                  })
+                                : "";
+
+                              return (
+                                <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 text-xs space-y-2">
+                                  <div className="flex justify-between">
+                                    <span className="text-slate-500">Employee:</span>
+                                    <strong className="text-slate-900">{lv.employee_name} ({lv.employee_code})</strong>
+                                  </div>
+                                  <div className="flex justify-between">
+                                    <span className="text-slate-500">Department:</span>
+                                    <strong className="text-slate-900">{lv.department}</strong>
+                                  </div>
+                                  <div className="flex justify-between">
+                                    <span className="text-slate-500">Application Date & Time:</span>
+                                    <strong className="text-slate-800">{modalAppliedDate}</strong>
+                                  </div>
+                                  <div className="flex justify-between">
+                                    <span className="text-slate-500">Duration:</span>
+                                    <strong className="text-slate-900">
+                                      {new Date(lv.start_date + "T00:00:00").toLocaleDateString("en-IN", { day: "numeric", month: "short" })} &mdash; {new Date(lv.end_date + "T00:00:00").toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })} ({lv.days_count} day{lv.days_count !== 1 ? "s" : ""})
+                                    </strong>
+                                  </div>
+                                  {lvDisplayTiming && (
+                                    <div className="flex justify-between items-center">
+                                      <span className="text-slate-500">Timing / Session:</span>
+                                      <span className="px-2 py-0.5 rounded-md bg-indigo-50 border border-indigo-200 text-indigo-700 font-bold text-[11px]">
+                                        {lvDisplayTiming}
+                                      </span>
+                                    </div>
+                                  )}
+                                  <div className="flex justify-between">
+                                    <span className="text-slate-500">Reason:</span>
+                                    <span className="text-slate-800 font-medium text-right max-w-[65%]">{lvDisplayReason}</span>
+                                  </div>
+                                </div>
+                              );
+                            })()}
+
+                            <form onSubmit={handleLeaveDecision} className="space-y-3">
+                              {/* Rejection reason (required for reject) */}
+                              {leaveDecisionType === "reject" && (
+                                <div>
+                                  <label className="text-xs font-extrabold text-slate-700 block mb-1.5">
+                                    Rejection Reason <span className="text-red-400">*</span>
+                                  </label>
+                                  <input
+                                    type="text"
+                                    value={leaveDecisionRejReason}
+                                    onChange={e => setLeaveDecisionRejReason(e.target.value)}
+                                    placeholder="State the reason for rejection..."
+                                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs font-medium text-slate-900 focus:outline-none focus:border-red-400 bg-white"
+                                    required
+                                  />
+                                </div>
+                              )}
+
+                              {/* Optional notes */}
+                              <div>
+                                <label className="text-xs font-extrabold text-slate-700 block mb-1.5">Decision Notes (optional)</label>
+                                <textarea
+                                  rows={2}
+                                  value={leaveDecisionNotes}
+                                  onChange={e => setLeaveDecisionNotes(e.target.value)}
+                                  placeholder="Add any notes for the employee..."
+                                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs font-medium text-slate-900 focus:outline-none focus:border-blue-400 resize-none bg-white"
+                                />
+                              </div>
+
+                              {/* Actions */}
+                              <div className="flex items-center justify-end gap-3 pt-1">
+                                <button
+                                  type="button"
+                                  onClick={() => { setLeaveDecisionId(null); setLeaveDecisionType(null); setLeaveDecisionNotes(""); setLeaveDecisionRejReason(""); }}
+                                  className="px-4 py-2 rounded-xl bg-white border border-slate-300 text-slate-700 font-bold text-xs hover:bg-slate-50 transition-all"
+                                >
+                                  Cancel
+                                </button>
+                                <button
+                                  type="submit"
+                                  disabled={leaveDecisionSubmitting}
+                                  className={`px-5 py-2 rounded-xl font-extrabold text-xs shadow-md transition-all flex items-center gap-2 disabled:opacity-60 ${
+                                    leaveDecisionType === "approve"
+                                      ? "bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white shadow-emerald-500/25"
+                                      : "bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white shadow-red-500/25"
+                                  }`}
+                                >
+                                  {leaveDecisionSubmitting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : null}
+                                  {leaveDecisionSubmitting ? "Processing..." : leaveDecisionType === "approve" ? "Confirm Approval" : "Confirm Rejection"}
+                                </button>
+                              </div>
+                            </form>
+                          </div>
+                        </div>
+                      );
+                    })()}
+
+                    {/* Leave Requests List */}
+                    {leaveApprovalsLoading ? (
+                      <div className="flex items-center justify-center py-8 gap-3 text-slate-400">
+                        <Loader2 className="w-6 h-6 animate-spin text-amber-400" />
+                        <span className="text-sm font-medium">Loading leave requests...</span>
+                      </div>
+                    ) : (() => {
+                      const filtered = leaveApprovalsFilter === "PENDING"
+                        ? leaveApprovals.filter(l => l.status === "PENDING")
+                        : leaveApprovals;
+
+                      if (filtered.length === 0) {
+                        return (
+                          <div className="p-8 rounded-2xl bg-slate-50 border border-slate-200 text-center">
+                            <CheckCircle2 className="w-10 h-10 text-emerald-400 mx-auto mb-2" />
+                            <p className="text-sm font-black text-slate-700">
+                              {leaveApprovalsFilter === "PENDING" ? "No Pending Leave Requests" : "No Leave Requests Found"}
+                            </p>
+                            <p className="text-xs text-slate-400 mt-1">
+                              {leaveApprovalsFilter === "PENDING" ? "All employee leave requests are up to date." : "Employees haven't submitted any leave requests yet."}
+                            </p>
+                          </div>
+                        );
+                      }
+
+                      return (
+                        <div className="space-y-3">
+                          {filtered.map(lv => {
+                            const appliedDate = lv.created_at
+                              ? new Date(lv.created_at).toLocaleString("en-IN", {
+                                  day: "numeric",
+                                  month: "short",
+                                  year: "numeric",
+                                  hour: "2-digit",
+                                  minute: "2-digit",
+                                  hour12: true,
+                                })
+                              : "";
+                            const startFmt = lv.start_date ? new Date(lv.start_date + "T00:00:00").toLocaleDateString("en-IN", { day: "numeric", month: "short" }) : "";
+                            const endFmt = lv.end_date ? new Date(lv.end_date + "T00:00:00").toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" }) : "";
+
+                            const timingMatch = lv.reason?.match(/^\[Timing:\s*([^\]]+)\]\s*([\s\S]*)$/);
+                            const displayTiming = timingMatch ? timingMatch[1] : null;
+                            const displayReason = timingMatch ? timingMatch[2] : lv.reason;
+
+                            const statusBadge = {
+                              PENDING:   "bg-amber-100 text-amber-800 border-amber-200",
+                              APPROVED:  "bg-emerald-100 text-emerald-800 border-emerald-200",
+                              REJECTED:  "bg-red-100 text-red-800 border-red-200",
+                              CANCELLED: "bg-slate-100 text-slate-600 border-slate-200",
+                            }[lv.status] || "bg-slate-100 text-slate-600 border-slate-200";
+
+                            return (
+                              <div key={lv.id} className="p-5 rounded-2xl bg-white border border-slate-200 hover:border-slate-300 hover:shadow-sm transition-all">
+                                <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
+                                  {/* Left: Employee + Leave Info */}
+                                  <div className="flex items-start gap-3 flex-1 min-w-0">
+                                    {/* Avatar */}
+                                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-slate-200 to-slate-300 flex items-center justify-center text-slate-700 font-black text-sm shrink-0">
+                                      {lv.employee_name.split(" ").map(n => n[0]).join("").slice(0, 2).toUpperCase()}
+                                    </div>
+                                    <div className="min-w-0">
+                                      <div className="flex items-center gap-2 flex-wrap">
+                                        <span className="text-sm font-black text-slate-900">{lv.employee_name}</span>
+                                        <span className="text-[10px] font-bold text-slate-400">{lv.employee_code}</span>
+                                        <span className={`text-[10px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded-full border ${statusBadge}`}>
+                                          {lv.status}
+                                        </span>
+                                        {displayTiming && (
+                                          <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-md bg-indigo-50 text-indigo-700 border border-indigo-200">
+                                            <Clock className="w-3 h-3 text-indigo-600" />
+                                            {displayTiming}
+                                          </span>
+                                        )}
+                                      </div>
+                                      <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
+                                        <span className="text-xs text-slate-500 font-medium">{lv.department}</span>
+                                        <span className="text-slate-300">·</span>
+                                        <span className="text-xs font-bold text-blue-700 bg-blue-50 px-1.5 py-0.5 rounded">{lv.leave_type} LEAVE</span>
+                                      </div>
+
+                                      <div className="mt-2 space-y-1 text-xs">
+                                        <div className="flex items-center gap-1.5 text-slate-700">
+                                          <CalendarCheck className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                                          <span><strong>{startFmt}</strong> &mdash; <strong>{endFmt}</strong> &nbsp;·&nbsp; <strong>{lv.days_count} day{lv.days_count !== 1 ? "s" : ""}</strong></span>
+                                        </div>
+                                        <div className="flex items-start gap-1.5 text-slate-600">
+                                          <MessageSquare className="w-3.5 h-3.5 text-slate-400 shrink-0 mt-0.5" />
+                                          <span className="line-clamp-2">{displayReason}</span>
+                                        </div>
+                                        <div className="flex items-center gap-1.5 text-slate-500 font-medium">
+                                          <Clock className="w-3 h-3 shrink-0" />
+                                          <span>Applied on: <strong>{appliedDate}</strong></span>
+                                        </div>
+                                      </div>
+
+                                      {/* Decision Info (approved/rejected) */}
+                                      {lv.status === "APPROVED" && lv.approved_by_name && (
+                                        <div className="mt-2 p-2 rounded-lg bg-emerald-50 border border-emerald-200 text-xs text-emerald-800 font-semibold flex items-center gap-1.5">
+                                          <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                                          Approved by {lv.approved_by_name}
+                                          {lv.decision_at && <span className="text-emerald-600"> · {new Date(lv.decision_at).toLocaleDateString("en-IN", { day: "numeric", month: "short" })}</span>}
+                                        </div>
+                                      )}
+                                      {lv.status === "REJECTED" && lv.rejection_reason && (
+                                        <div className="mt-2 p-2 rounded-lg bg-red-50 border border-red-200 text-xs text-red-800 font-semibold flex items-center gap-1.5">
+                                          <XCircle className="w-3.5 h-3.5 text-red-500 shrink-0" />
+                                          Rejection reason: {lv.rejection_reason}
+                                        </div>
+                                      )}
+                                    </div>
+                                  </div>
+
+                                  {/* Right: Action Buttons (only for pending) */}
+                                  {lv.status === "PENDING" && (
+                                    <div className="flex items-center gap-2 shrink-0">
+                                      <button
+                                        type="button"
+                                        onClick={() => { setLeaveDecisionId(lv.id); setLeaveDecisionType("approve"); setLeaveDecisionNotes(""); setLeaveDecisionRejReason(""); }}
+                                        className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs shadow-sm shadow-emerald-500/20 transition-all"
+                                      >
+                                        <CheckCircle2 className="w-3.5 h-3.5" />
+                                        Approve
+                                      </button>
+                                      <button
+                                        type="button"
+                                        onClick={() => { setLeaveDecisionId(lv.id); setLeaveDecisionType("reject"); setLeaveDecisionNotes(""); setLeaveDecisionRejReason(""); }}
+                                        className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-red-50 hover:bg-red-100 text-red-700 border border-red-200 hover:border-red-300 font-extrabold text-xs transition-all"
+                                      >
+                                        <XCircle className="w-3.5 h-3.5" />
+                                        Reject
+                                      </button>
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      );
+                    })()}
+                  </div>
+                )}
 
                 {/* Upcoming Fixtures — Minimal */}
                 <div className="space-y-3">

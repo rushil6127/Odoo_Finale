@@ -183,8 +183,28 @@ def get_employee(employee_id: int) -> Employee:
 
 
 def get_employee_by_user_id(user_id: int) -> Optional[Employee]:
-    """Retrieve employee linked to a User account."""
-    return Employee.query.filter_by(user_id=user_id).first()
+    """Retrieve employee linked to a User account (auto-provisions if missing for staff/coach/owner)."""
+    emp = Employee.query.filter_by(user_id=user_id).first()
+    if not emp:
+        from backend.app.auth.models import User
+        user = db.session.get(User, user_id)
+        if user:
+            emp = Employee(
+                employee_code=f"EMP-{user.id:04d}",
+                user_id=user.id,
+                first_name=user.first_name or "Staff",
+                last_name=user.last_name or "Employee",
+                email=user.email,
+                department=user.department or "Operations",
+                designation=(user.role.value if hasattr(user.role, "value") else str(user.role)).replace("_", " ").title(),
+                employment_type=EmploymentType.FULL_TIME,
+                status=EmployeeStatus.ACTIVE,
+                hire_date=date.today(),
+                bank_account_info={},
+            )
+            db.session.add(emp)
+            db.session.commit()
+    return emp
 
 
 def list_employees(

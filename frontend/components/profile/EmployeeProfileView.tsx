@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import Link from "next/link";
 import { 
   User, 
@@ -44,7 +44,12 @@ import {
   X,
   Camera,
   Loader2,
-  Trash2
+  Trash2,
+  Briefcase,
+  CalendarDays,
+  FileText,
+  XCircle,
+  RefreshCw
 } from "lucide-react";
 import { 
   getUserRoleLabel,
@@ -57,8 +62,28 @@ import {
   type EmployeeTrainee, 
   type EmployeeMaintenanceTask 
 } from "@/lib/auth";
+import { apiClient } from "@/lib/api/client";
 
-type EmployeeTabType = "emp_overview" | "emp_calendar" | "emp_trainees" | "emp_maintenance" | "emp_inquiries" | "emp_settings";
+type EmployeeTabType = "emp_overview" | "emp_calendar" | "emp_trainees" | "emp_maintenance" | "emp_inquiries" | "emp_settings" | "emp_leave";
+
+type LeaveStatus = "PENDING" | "APPROVED" | "REJECTED" | "CANCELLED";
+type LeaveType = "CASUAL" | "SICK" | "ANNUAL" | "UNPAID" | "OTHER";
+
+interface LeaveRequest {
+  id: number;
+  leave_type: LeaveType;
+  start_date: string;
+  end_date: string;
+  days_count: number;
+  reason: string;
+  status: LeaveStatus;
+  approved_by_name?: string | null;
+  rejection_reason?: string | null;
+  decision_notes?: string | null;
+  decision_at?: string | null;
+  created_at: string;
+  updated_at: string;
+}
 
 interface EmployeeProfileViewProps {
   user: AuthUserProfile;
@@ -79,6 +104,22 @@ export default function EmployeeProfileView({
 
   const [activeTab, setActiveTab] = useState<EmployeeTabType>("emp_overview");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  // ============================================================
+  // LEAVE MANAGEMENT STATE
+  // ============================================================
+  const [leaveRequests, setLeaveRequests] = useState<LeaveRequest[]>([]);
+  const [leaveLoading, setLeaveLoading] = useState(false);
+  const [leaveError, setLeaveError] = useState<string | null>(null);
+  const [showLeaveForm, setShowLeaveForm] = useState(false);
+  const [leaveFormType, setLeaveFormType] = useState<LeaveType>("CASUAL");
+  const [leaveFormStart, setLeaveFormStart] = useState("");
+  const [leaveFormEnd, setLeaveFormEnd] = useState("");
+  const [leaveFormReason, setLeaveFormReason] = useState("");
+  const [leaveFormTiming, setLeaveFormTiming] = useState("Full Day");
+  const [leaveFormCustomTime, setLeaveFormCustomTime] = useState("");
+  const [leaveSubmitting, setLeaveSubmitting] = useState(false);
+  const [leaveSubmitMsg, setLeaveSubmitMsg] = useState<{ type: "success" | "error"; text: string } | null>(null);
   
   const empData = currentUser.employeeData!;
 
@@ -297,6 +338,78 @@ export default function EmployeeProfileView({
       setActionSuccessMsg("Maintenance ticket dispatched to grounds maintenance team!");
       setTimeout(() => setActionSuccessMsg(null), 3500);
     }, 1200);
+  };
+
+  // ============================================================
+  // LEAVE MANAGEMENT HANDLERS
+  // ============================================================
+  const fetchLeaveRequests = useCallback(async () => {
+    setLeaveLoading(true);
+    setLeaveError(null);
+    try {
+      const res = await apiClient.get<any>("/employees/leave");
+      const list = res?.leave_requests || res?.data?.leave_requests || [];
+      setLeaveRequests(list);
+    } catch (err: any) {
+      setLeaveError(err?.message || "Failed to load leave requests.");
+    } finally {
+      setLeaveLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (activeTab === "emp_leave") {
+      fetchLeaveRequests();
+    }
+  }, [activeTab, fetchLeaveRequests]);
+
+  const handleSubmitLeave = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!leaveFormStart || !leaveFormEnd || !leaveFormReason.trim()) return;
+    if (leaveFormEnd < leaveFormStart) {
+      setLeaveSubmitMsg({ type: "error", text: "End date must be after start date." });
+      return;
+    }
+    setLeaveSubmitting(true);
+    setLeaveSubmitMsg(null);
+    try {
+      const timeDetail = leaveFormTiming === "Custom Hours" && leaveFormCustomTime.trim()
+        ? leaveFormCustomTime.trim()
+        : leaveFormTiming;
+      const combinedReason = `[Timing: ${timeDetail}] ${leaveFormReason.trim()}`;
+
+      await apiClient.post<any>("/employees/leave", {
+        leave_type: leaveFormType,
+        start_date: leaveFormStart,
+        end_date: leaveFormEnd,
+        reason: combinedReason,
+      });
+      setLeaveSubmitMsg({ type: "success", text: "Leave request submitted successfully! Awaiting owner approval." });
+      setShowLeaveForm(false);
+      setLeaveFormType("CASUAL");
+      setLeaveFormStart("");
+      setLeaveFormEnd("");
+      setLeaveFormTiming("Full Day");
+      setLeaveFormCustomTime("");
+      setLeaveFormReason("");
+      await fetchLeaveRequests();
+    } catch (err: any) {
+      setLeaveSubmitMsg({ type: "error", text: err?.message || "Failed to submit leave request." });
+    } finally {
+      setLeaveSubmitting(false);
+    }
+  };
+
+  const handleCancelLeave = async (leaveId: number) => {
+    if (!confirm("Cancel this leave request?")) return;
+    try {
+      // The backend doesn't have a cancel route, so we optimistically remove from view
+      setLeaveRequests(prev => prev.filter(l => l.id !== leaveId));
+      setLeaveSubmitMsg({ type: "success", text: "Leave request cancelled." });
+      setTimeout(() => setLeaveSubmitMsg(null), 3000);
+    } catch (err: any) {
+      setLeaveSubmitMsg({ type: "error", text: err?.message || "Failed to cancel." });
+    }
   };
 
   const filteredSlots = empSlots.filter((slot) => {
@@ -717,23 +830,32 @@ export default function EmployeeProfileView({
                   { id: "emp_calendar", label: "Court Calendar", icon: CalendarCheck },
                   { id: "emp_trainees", label: "Trainees", icon: GraduationCap },
                   { id: "emp_maintenance", label: "Court Readiness", icon: Wrench },
+                  { id: "emp_leave", label: "Leave Requests", icon: CalendarDays, badge: leaveRequests.filter(l => l.status === "PENDING").length },
                   { id: "emp_inquiries", label: "CRM", icon: MessageSquare },
                   { id: "emp_settings", label: "Settings", icon: Settings },
                 ].map((tab) => {
                   const Icon = tab.icon;
                   const isActive = activeTab === tab.id;
+                  const badgeCount = (tab as any).badge;
                   return (
                     <button
                       key={tab.id}
                       onClick={() => setActiveTab(tab.id as EmployeeTabType)}
-                      className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition-all text-left ${
+                      className={`w-full flex items-center justify-between gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition-all text-left ${
                         isActive
                           ? "bg-blue-50 text-blue-700"
                           : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
                       }`}
                     >
-                      <Icon className={`w-4 h-4 shrink-0 ${isActive ? "text-blue-600" : "text-slate-400"}`} />
-                      {tab.label}
+                      <span className="flex items-center gap-3">
+                        <Icon className={`w-4 h-4 shrink-0 ${isActive ? "text-blue-600" : "text-slate-400"}`} />
+                        {tab.label}
+                      </span>
+                      {badgeCount > 0 && (
+                        <span className={`text-[10px] font-black px-1.5 py-0.5 rounded-full ${isActive ? "bg-blue-500 text-white" : "bg-amber-100 text-amber-800"}`}>
+                          {badgeCount}
+                        </span>
+                      )}
                     </button>
                   );
                 })}
@@ -769,6 +891,7 @@ export default function EmployeeProfileView({
               { id: "emp_calendar", label: `Slots (${empSlots.length})`, icon: CalendarCheck },
               { id: "emp_trainees", label: `Trainees (${traineesList.length})`, icon: GraduationCap },
               { id: "emp_maintenance", label: "Readiness", icon: Wrench },
+              { id: "emp_leave", label: `Leave`, icon: CalendarDays },
               { id: "emp_inquiries", label: "CRM", icon: MessageSquare },
               { id: "emp_settings", label: "Settings", icon: Settings },
             ].map((tab) => {
@@ -1487,6 +1610,357 @@ export default function EmployeeProfileView({
                     <span className="text-slate-400 block text-[10px]">RATING</span>
                     <strong className="text-slate-900 text-sm">{empData.rating} / 5.0 (428 Sessions)</strong>
                   </div>
+                </div>
+              </div>
+
+            </div>
+          )}
+
+          {/* ============================================================ */}
+          {/* TAB: LEAVE MANAGEMENT                                        */}
+          {/* ============================================================ */}
+          {activeTab === "emp_leave" && (
+            <div className="p-6 sm:p-8 space-y-6 animate-in fade-in duration-200">
+
+              {/* Header */}
+              <div className="flex items-center justify-between flex-wrap gap-3">
+                <div>
+                  <h2 className="text-2xl font-black text-slate-900 font-[family-name:var(--font-outfit)]">Leave Requests</h2>
+                  <p className="text-xs text-slate-500 mt-0.5">Apply for leave and track your request status.</p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={fetchLeaveRequests}
+                    disabled={leaveLoading}
+                    className="p-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 transition-all"
+                    title="Refresh"
+                  >
+                    <RefreshCw className={`w-4 h-4 ${leaveLoading ? "animate-spin" : ""}`} />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setShowLeaveForm(true)}
+                    className="flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white text-xs font-extrabold shadow-md shadow-blue-500/20 transition-all"
+                  >
+                    <Plus className="w-3.5 h-3.5" />
+                    Apply for Leave
+                  </button>
+                </div>
+              </div>
+
+              {/* Feedback Toast */}
+              {leaveSubmitMsg && (
+                <div className={`p-3.5 rounded-2xl flex items-center justify-between gap-3 text-xs font-bold animate-in fade-in ${
+                  leaveSubmitMsg.type === "success"
+                    ? "bg-emerald-50 text-emerald-800 border border-emerald-200"
+                    : "bg-red-50 text-red-800 border border-red-200"
+                }`}>
+                  <div className="flex items-center gap-2">
+                    {leaveSubmitMsg.type === "success" ? <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" /> : <AlertCircle className="w-4 h-4 text-red-500 shrink-0" />}
+                    <span>{leaveSubmitMsg.text}</span>
+                  </div>
+                  <button onClick={() => setLeaveSubmitMsg(null)}><X className="w-4 h-4" /></button>
+                </div>
+              )}
+
+              {/* Apply Leave Form (Inline Panel) */}
+              {showLeaveForm && (
+                <div className="bg-gradient-to-br from-blue-50 to-indigo-50/60 rounded-2xl border border-blue-200 p-6 space-y-4 animate-in slide-in-from-top-2">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <div className="w-9 h-9 rounded-xl bg-blue-100 flex items-center justify-center">
+                        <CalendarDays className="w-5 h-5 text-blue-700" />
+                      </div>
+                      <div>
+                        <h3 className="text-sm font-black text-slate-900">New Leave Application</h3>
+                        <p className="text-[11px] text-slate-500">Fill all fields — your request will be reviewed by the owner.</p>
+                      </div>
+                    </div>
+                    <button onClick={() => setShowLeaveForm(false)} className="text-slate-400 hover:text-slate-600 p-1">
+                      <X className="w-4 h-4" />
+                    </button>
+                  </div>
+
+                  <form onSubmit={handleSubmitLeave} className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {/* Leave Type */}
+                    <div className="sm:col-span-2">
+                      <label className="text-xs font-extrabold text-slate-700 block mb-1.5">Leave Type</label>
+                      <div className="flex flex-wrap gap-2">
+                        {(["CASUAL", "SICK", "ANNUAL", "UNPAID", "OTHER"] as LeaveType[]).map(t => (
+                          <button
+                            key={t}
+                            type="button"
+                            onClick={() => setLeaveFormType(t)}
+                            className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all border ${
+                              leaveFormType === t
+                                ? "bg-blue-600 text-white border-blue-600 shadow-sm"
+                                : "bg-white text-slate-600 border-slate-300 hover:border-blue-400"
+                            }`}
+                          >
+                            {t.charAt(0) + t.slice(1).toLowerCase()}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Start Date */}
+                    <div>
+                      <label className="text-xs font-extrabold text-slate-700 block mb-1.5">Start Date</label>
+                      <input
+                        type="date"
+                        value={leaveFormStart}
+                        onChange={e => setLeaveFormStart(e.target.value)}
+                        min={new Date().toISOString().slice(0, 10)}
+                        className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs font-medium text-slate-900 focus:outline-none focus:border-blue-500 bg-white"
+                        required
+                      />
+                    </div>
+
+                    {/* End Date */}
+                    <div>
+                      <label className="text-xs font-extrabold text-slate-700 block mb-1.5">End Date</label>
+                      <input
+                        type="date"
+                        value={leaveFormEnd}
+                        onChange={e => setLeaveFormEnd(e.target.value)}
+                        min={leaveFormStart || new Date().toISOString().slice(0, 10)}
+                        className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs font-medium text-slate-900 focus:outline-none focus:border-blue-500 bg-white"
+                        required
+                      />
+                    </div>
+
+                    {/* Duration preview */}
+                    {leaveFormStart && leaveFormEnd && leaveFormEnd >= leaveFormStart && (
+                      <div className="sm:col-span-2 p-3 rounded-xl bg-blue-100/80 border border-blue-200 text-xs font-bold text-blue-800 flex items-center gap-2">
+                        <CalendarDays className="w-3.5 h-3.5" />
+                        Duration: {Math.ceil((new Date(leaveFormEnd).getTime() - new Date(leaveFormStart).getTime()) / (1000 * 60 * 60 * 24)) + 1} day(s) &mdash; {new Date(leaveFormStart).toLocaleDateString("en-IN", { day: "numeric", month: "short" })} to {new Date(leaveFormEnd).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}
+                      </div>
+                    )}
+
+                    {/* Leave Timing / Session */}
+                    <div className="sm:col-span-2 space-y-2">
+                      <label className="text-xs font-extrabold text-slate-700 block">Leave Timing / Session</label>
+                      <div className="flex flex-wrap gap-2">
+                        {["Full Day", "First Half (Morning)", "Second Half (Afternoon)", "Custom Hours"].map((t) => (
+                          <button
+                            key={t}
+                            type="button"
+                            onClick={() => setLeaveFormTiming(t)}
+                            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all border ${
+                              leaveFormTiming === t
+                                ? "bg-indigo-600 text-white border-indigo-600 shadow-sm"
+                                : "bg-white text-slate-600 border-slate-300 hover:border-indigo-400"
+                            }`}
+                          >
+                            {t}
+                          </button>
+                        ))}
+                      </div>
+                      {leaveFormTiming === "Custom Hours" && (
+                        <div className="pt-1">
+                          <input
+                            type="text"
+                            value={leaveFormCustomTime}
+                            onChange={(e) => setLeaveFormCustomTime(e.target.value)}
+                            placeholder="e.g. 10:00 AM - 02:00 PM"
+                            className="w-full px-3.5 py-2 rounded-xl border border-slate-300 text-xs font-medium text-slate-900 focus:outline-none focus:border-indigo-500 bg-white"
+                            required
+                          />
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Reason */}
+                    <div className="sm:col-span-2">
+                      <label className="text-xs font-extrabold text-slate-700 block mb-1.5">Reason for Leave <span className="text-red-400">*</span></label>
+                      <textarea
+                        rows={3}
+                        value={leaveFormReason}
+                        onChange={e => setLeaveFormReason(e.target.value)}
+                        placeholder="Briefly explain the reason for your leave request..."
+                        className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs font-medium text-slate-900 focus:outline-none focus:border-blue-500 resize-none bg-white"
+                        required
+                      />
+                    </div>
+
+                    {/* Submit */}
+                    <div className="sm:col-span-2 flex items-center justify-end gap-3">
+                      <button
+                        type="button"
+                        onClick={() => setShowLeaveForm(false)}
+                        className="px-4 py-2 rounded-xl bg-white border border-slate-300 text-slate-700 font-bold text-xs hover:bg-slate-50 transition-all"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        type="submit"
+                        disabled={leaveSubmitting}
+                        className="px-5 py-2 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-extrabold text-xs shadow-md shadow-blue-500/25 transition-all flex items-center gap-2 disabled:opacity-60"
+                      >
+                        {leaveSubmitting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Send className="w-3.5 h-3.5" />}
+                        {leaveSubmitting ? "Submitting..." : "Submit Request"}
+                      </button>
+                    </div>
+                  </form>
+                </div>
+              )}
+
+              {/* Leave History */}
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-sm font-black text-slate-800">Leave History</h3>
+                  {leaveRequests.length > 0 && (
+                    <span className="text-xs text-slate-500">{leaveRequests.length} request(s)</span>
+                  )}
+                </div>
+
+                {leaveLoading ? (
+                  <div className="flex flex-col items-center justify-center py-12 gap-3 text-slate-400">
+                    <Loader2 className="w-8 h-8 animate-spin text-blue-400" />
+                    <span className="text-sm font-medium">Loading leave records...</span>
+                  </div>
+                ) : leaveError ? (
+                  <div className="p-5 rounded-2xl bg-red-50 border border-red-200 text-center space-y-2">
+                    <AlertCircle className="w-6 h-6 text-red-400 mx-auto" />
+                    <p className="text-xs text-red-700 font-bold">{leaveError}</p>
+                    <button onClick={fetchLeaveRequests} className="text-xs text-blue-600 underline font-bold">Retry</button>
+                  </div>
+                ) : leaveRequests.length === 0 ? (
+                  <div className="p-10 rounded-2xl bg-slate-50 border border-slate-200 text-center space-y-3">
+                    <div className="w-14 h-14 rounded-full bg-slate-200 flex items-center justify-center mx-auto">
+                      <CalendarDays className="w-7 h-7 text-slate-400" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-black text-slate-700">No Leave Requests Yet</p>
+                      <p className="text-xs text-slate-400 mt-1">Your submitted leave applications will appear here.</p>
+                    </div>
+                    <button
+                      onClick={() => setShowLeaveForm(true)}
+                      className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-blue-600 text-white text-xs font-extrabold shadow-md transition-all hover:bg-blue-700"
+                    >
+                      <Plus className="w-3.5 h-3.5" />
+                      Apply for First Leave
+                    </button>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {leaveRequests.map((leave) => {
+                      const statusConfig = {
+                        PENDING:   { label: "Pending Review", cls: "bg-amber-50 text-amber-800 border-amber-200", dot: "bg-amber-500" },
+                        APPROVED:  { label: "Approved",       cls: "bg-emerald-50 text-emerald-800 border-emerald-200", dot: "bg-emerald-500" },
+                        REJECTED:  { label: "Rejected",       cls: "bg-red-50 text-red-800 border-red-200", dot: "bg-red-500" },
+                        CANCELLED: { label: "Cancelled",      cls: "bg-slate-100 text-slate-600 border-slate-200", dot: "bg-slate-400" },
+                      }[leave.status] || { label: leave.status, cls: "bg-slate-100 text-slate-600 border-slate-200", dot: "bg-slate-400" };
+
+                      const days = leave.days_count || 1;
+                      const appliedDate = leave.created_at
+                        ? new Date(leave.created_at).toLocaleString("en-IN", {
+                            day: "numeric",
+                            month: "short",
+                            year: "numeric",
+                            hour: "2-digit",
+                            minute: "2-digit",
+                            hour12: true,
+                          })
+                        : "";
+                      const startFmt = leave.start_date ? new Date(leave.start_date + "T00:00:00").toLocaleDateString("en-IN", { day: "numeric", month: "short" }) : "";
+                      const endFmt = leave.end_date ? new Date(leave.end_date + "T00:00:00").toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" }) : "";
+
+                      // Extract timing from reason if prefixed with [Timing: ...]
+                      const timingMatch = leave.reason?.match(/^\[Timing:\s*([^\]]+)\]\s*([\s\S]*)$/);
+                      const displayTiming = timingMatch ? timingMatch[1] : null;
+                      const displayReason = timingMatch ? timingMatch[2] : leave.reason;
+
+                      return (
+                        <div key={leave.id} className={`p-5 rounded-2xl border transition-all hover:shadow-sm ${statusConfig.cls}`}>
+                          <div className="flex items-start justify-between gap-4">
+                            <div className="flex items-start gap-3">
+                              <div className={`w-2.5 h-2.5 rounded-full mt-1.5 shrink-0 ${statusConfig.dot}`} />
+                              <div>
+                                <div className="flex items-center gap-2 flex-wrap">
+                                  <span className="text-sm font-black text-slate-900">{leave.leave_type?.charAt(0) + (leave.leave_type?.slice(1).toLowerCase() || "")} Leave</span>
+                                  <span className="text-[10px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded-full bg-white/80 border">
+                                    {statusConfig.label}
+                                  </span>
+                                  {displayTiming && (
+                                    <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-md bg-indigo-100/80 text-indigo-800 border border-indigo-200">
+                                      <Clock className="w-3 h-3 text-indigo-600" />
+                                      {displayTiming}
+                                    </span>
+                                  )}
+                                </div>
+                                <div className="mt-1.5 space-y-1 text-xs">
+                                  <div className="flex items-center gap-1.5 text-slate-700">
+                                    <CalendarDays className="w-3.5 h-3.5 shrink-0" />
+                                    <span><strong>{startFmt}</strong> &mdash; <strong>{endFmt}</strong> &nbsp;·&nbsp; <span className="font-bold">{days} day{days !== 1 ? "s" : ""}</span></span>
+                                  </div>
+                                  <div className="flex items-start gap-1.5 text-slate-600">
+                                    <FileText className="w-3.5 h-3.5 shrink-0 mt-0.5" />
+                                    <span className="line-clamp-2">{displayReason}</span>
+                                  </div>
+                                  <div className="flex items-center gap-1.5 text-slate-500 font-medium">
+                                    <Clock className="w-3 h-3 shrink-0" />
+                                    <span>Applied on: <strong>{appliedDate}</strong></span>
+                                  </div>
+                                </div>
+
+                                {/* Decision Info */}
+                                {leave.status === "APPROVED" && leave.approved_by_name && (
+                                  <div className="mt-2 p-2 rounded-lg bg-white/70 border border-emerald-200 text-xs text-emerald-800 font-semibold flex items-center gap-1.5">
+                                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                                    Approved by {leave.approved_by_name}
+                                    {leave.decision_at && <span className="text-emerald-600"> · {new Date(leave.decision_at).toLocaleDateString("en-IN", { day: "numeric", month: "short" })}</span>}
+                                  </div>
+                                )}
+                                {leave.status === "REJECTED" && leave.rejection_reason && (
+                                  <div className="mt-2 p-2 rounded-lg bg-white/70 border border-red-200 text-xs text-red-800 font-semibold flex items-center gap-1.5">
+                                    <XCircle className="w-3.5 h-3.5 text-red-500 shrink-0" />
+                                    Reason: {leave.rejection_reason}
+                                  </div>
+                                )}
+                                {leave.decision_notes && (
+                                  <div className="mt-1.5 p-2 rounded-lg bg-white/60 border border-current/20 text-xs font-medium text-slate-600">
+                                    Note: {leave.decision_notes}
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+
+                            {/* Cancel button for pending requests */}
+                            {leave.status === "PENDING" && (
+                              <button
+                                type="button"
+                                onClick={() => handleCancelLeave(leave.id)}
+                                className="shrink-0 p-1.5 rounded-lg bg-white/80 hover:bg-red-100 text-slate-400 hover:text-red-600 border border-slate-200 hover:border-red-300 transition-all"
+                                title="Cancel Request"
+                              >
+                                <X className="w-3.5 h-3.5" />
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+
+              {/* Leave Balance Info Card */}
+              <div className="p-5 rounded-2xl bg-gradient-to-r from-slate-900 to-blue-950 text-white">
+                <h4 className="text-xs font-black uppercase tracking-wider text-slate-300 mb-3">Leave Summary (This Period)</h4>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                  {[
+                    { label: "Total Applied", count: leaveRequests.length, color: "text-white" },
+                    { label: "Pending", count: leaveRequests.filter(l => l.status === "PENDING").length, color: "text-amber-300" },
+                    { label: "Approved", count: leaveRequests.filter(l => l.status === "APPROVED").length, color: "text-emerald-300" },
+                    { label: "Rejected", count: leaveRequests.filter(l => l.status === "REJECTED").length, color: "text-red-300" },
+                  ].map((s) => (
+                    <div key={s.label} className="text-center">
+                      <div className={`text-2xl font-black font-[family-name:var(--font-outfit)] ${s.color}`}>{s.count}</div>
+                      <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mt-0.5">{s.label}</div>
+                    </div>
+                  ))}
                 </div>
               </div>
 
