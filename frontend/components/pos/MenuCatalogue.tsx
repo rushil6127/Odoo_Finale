@@ -5,16 +5,50 @@ import { Plus, Search } from "lucide-react";
 import { PosMenuCategory, PosMenuItem } from "./types";
 
 const ITEM_IMAGES: Record<string, string> = {
-  "B01": "https://images.unsplash.com/photo-1497935586351-b67a49e012bf?w=150&q=80", // Espresso
+  // Backend Seeded Item Codes
+  "BEV-ESP": "https://images.unsplash.com/photo-1510591509098-f4fdc6d0ff04?w=150&q=80",
+  "BEV-COOL": "https://images.unsplash.com/photo-1513558161293-cdaf765ed2fd?w=150&q=80",
+  "BEV-PROT": "https://images.unsplash.com/photo-1553530666-ba11a7da3888?w=150&q=80",
+  "FOOD-BOWL": "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=150&q=80",
+  "FOOD-WRAP": "https://images.unsplash.com/photo-1626700051175-6818013e1d4f?w=150&q=80",
+  "FOOD-PANEER": "https://images.unsplash.com/photo-1528735602780-2552fd46c7af?w=150&q=80",
+
+  "B01": "https://images.unsplash.com/photo-1510591509098-f4fdc6d0ff04?w=150&q=80", // Espresso
   "B02": "https://images.unsplash.com/photo-1572442388796-11668a67e53d?w=150&q=80", // Latte
   "B03": "https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?w=150&q=80", // Cold Brew
   "S01": "https://images.unsplash.com/photo-1573080496219-bb080dd4f877?w=150&q=80", // Fries
   "S02": "https://images.unsplash.com/photo-1582169505937-b9992bd01ed9?w=150&q=80", // Nachos
   "S03": "https://images.unsplash.com/photo-1639024471283-03518883512d?w=150&q=80", // Onion Rings
-  "M01": "https://images.unsplash.com/photo-1528735602780-2552fd46c7af?w=150&q=80", // Sandwich
+  "M01": "https://images.unsplash.com/photo-1509722747041-616f39b57569?w=150&q=80", // Sandwich
   "M02": "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=150&q=80", // Burger
   "M03": "https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=150&q=80", // Salad
 };
+
+function getPosItemImageUrl(item: PosMenuItem): string | null {
+  if (item.code && ITEM_IMAGES[item.code]) return ITEM_IMAGES[item.code];
+  const nameLower = (item.name || "").toLowerCase();
+  const codeLower = (item.code || "").toLowerCase();
+
+  if (nameLower.includes("espresso") || codeLower.includes("esp")) {
+    return "https://images.unsplash.com/photo-1510591509098-f4fdc6d0ff04?w=150&q=80";
+  }
+  if (nameLower.includes("cooler") || nameLower.includes("citrus") || nameLower.includes("electrolyte") || codeLower.includes("cool")) {
+    return "https://images.unsplash.com/photo-1513558161293-cdaf765ed2fd?w=150&q=80";
+  }
+  if (nameLower.includes("smoothie") || nameLower.includes("protein") || codeLower.includes("prot")) {
+    return "https://images.unsplash.com/photo-1553530666-ba11a7da3888?w=150&q=80";
+  }
+  if (nameLower.includes("wrap") || codeLower.includes("wrap")) {
+    return "https://images.unsplash.com/photo-1626700051175-6818013e1d4f?w=150&q=80";
+  }
+  if (nameLower.includes("paneer") || nameLower.includes("tikka") || codeLower.includes("paneer")) {
+    return "https://images.unsplash.com/photo-1528735602780-2552fd46c7af?w=150&q=80";
+  }
+  if (nameLower.includes("bowl") || nameLower.includes("quinoa") || codeLower.includes("bowl")) {
+    return "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=150&q=80";
+  }
+  return null;
+}
 
 interface MenuCatalogueProps {
   categories: PosMenuCategory[];
@@ -97,8 +131,8 @@ export default function MenuCatalogue({ categories, menuItems, onAddItem, disabl
                 }`}
               >
                 <div className="flex items-center gap-4">
-                  {ITEM_IMAGES[item.code] ? (
-                    <img src={ITEM_IMAGES[item.code]} alt={item.name} className="w-12 h-12 rounded-xl object-cover shadow-sm shrink-0 border border-slate-200" />
+                  {getPosItemImageUrl(item) ? (
+                    <img src={getPosItemImageUrl(item)!} alt={item.name} className="w-12 h-12 rounded-xl object-cover shadow-sm shrink-0 border border-slate-200" />
                   ) : (
                     <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-sky-50 to-indigo-50 text-sky-600 flex items-center justify-center border border-sky-100 shrink-0 font-black uppercase text-sm shadow-sm group-hover:shadow-md transition-shadow">
                       {item.name.substring(0, 2)}

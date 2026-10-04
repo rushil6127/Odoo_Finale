@@ -49,19 +49,35 @@ interface CafeMenuItem {
 }
 
 const ITEM_IMAGES: Record<string, string> = {
-  B01: "https://images.unsplash.com/photo-1497935586351-b67a49e012bf?auto=format&fit=crop&w=600&q=80", // Espresso
-  B02: "https://images.unsplash.com/photo-1572442388796-11668a67e53d?auto=format&fit=crop&w=600&q=80", // Latte
-  B03: "https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?auto=format&fit=crop&w=600&q=80", // Cold Brew
-  B04: "https://images.unsplash.com/photo-1553530666-ba11a7da3888?auto=format&fit=crop&w=600&q=80", // Whey Smoothie
-  S01: "https://images.unsplash.com/photo-1573080496219-bb080dd4f877?auto=format&fit=crop&w=600&q=80", // Fries
-  S02: "https://images.unsplash.com/photo-1582169505937-b9992bd01ed9?auto=format&fit=crop&w=600&q=80", // Nachos
-  S03: "https://images.unsplash.com/photo-1639024471283-03518883512d?auto=format&fit=crop&w=600&q=80", // Onion Rings
-  M01: "https://images.unsplash.com/photo-1528735602780-2552fd46c7af?auto=format&fit=crop&w=600&q=80", // Sandwich
-  M02: "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&w=600&q=80", // Burger
-  M03: "https://images.unsplash.com/photo-1512621776951-a57141f2eefd?auto=format&fit=crop&w=600&q=80", // Salad
+  // Backend Seeded Item Codes
+  "BEV-ESP": "https://images.unsplash.com/photo-1510591509098-f4fdc6d0ff04?auto=format&fit=crop&w=600&q=80",
+  "BEV-COOL": "https://images.unsplash.com/photo-1513558161293-cdaf765ed2fd?auto=format&fit=crop&w=600&q=80",
+  "BEV-PROT": "https://images.unsplash.com/photo-1553530666-ba11a7da3888?auto=format&fit=crop&w=600&q=80",
+  "FOOD-BOWL": "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=600&q=80",
+  "FOOD-WRAP": "https://images.unsplash.com/photo-1626700051175-6818013e1d4f?auto=format&fit=crop&w=600&q=80",
+  "FOOD-PANEER": "https://images.unsplash.com/photo-1528735602780-2552fd46c7af?auto=format&fit=crop&w=600&q=80",
+
+  // Additional Codes
+  B01: "https://images.unsplash.com/photo-1510591509098-f4fdc6d0ff04?auto=format&fit=crop&w=600&q=80",
+  B02: "https://images.unsplash.com/photo-1572442388796-11668a67e53d?auto=format&fit=crop&w=600&q=80",
+  B03: "https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?auto=format&fit=crop&w=600&q=80",
+  B04: "https://images.unsplash.com/photo-1553530666-ba11a7da3888?auto=format&fit=crop&w=600&q=80",
+  S01: "https://images.unsplash.com/photo-1573080496219-bb080dd4f877?auto=format&fit=crop&w=600&q=80",
+  S02: "https://images.unsplash.com/photo-1582169505937-b9992bd01ed9?auto=format&fit=crop&w=600&q=80",
+  S03: "https://images.unsplash.com/photo-1639024471283-03518883512d?auto=format&fit=crop&w=600&q=80",
+  M01: "https://images.unsplash.com/photo-1509722747041-616f39b57569?auto=format&fit=crop&w=600&q=80",
+  M02: "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&w=600&q=80",
+  M03: "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=600&q=80",
 };
 
 const ITEM_TAGS: Record<string, { badge: string; color: string }> = {
+  "BEV-ESP": { badge: "Specialty Roast", color: "bg-amber-100 text-amber-900 border-amber-200" },
+  "BEV-COOL": { badge: "Electrolyte Hydration", color: "bg-sky-100 text-sky-900 border-sky-200" },
+  "BEV-PROT": { badge: "30g Whey Isolate", color: "bg-emerald-100 text-emerald-900 border-emerald-200" },
+  "FOOD-BOWL": { badge: "Superfood Quinoa", color: "bg-teal-100 text-teal-900 border-teal-200" },
+  "FOOD-WRAP": { badge: "Grilled Chicken", color: "bg-orange-100 text-orange-900 border-orange-200" },
+  "FOOD-PANEER": { badge: "High-Protein Paneer", color: "bg-lime-100 text-lime-900 border-lime-200" },
+
   B01: { badge: "Specialty Roast", color: "bg-amber-100 text-amber-900 border-amber-200" },
   B02: { badge: "Barista Favorite", color: "bg-orange-100 text-orange-900 border-orange-200" },
   B03: { badge: "Nitro Chilled", color: "bg-sky-100 text-sky-900 border-sky-200" },
@@ -73,6 +89,54 @@ const ITEM_TAGS: Record<string, { badge: string; color: string }> = {
   M02: { badge: "Brioche & Avocado", color: "bg-purple-100 text-purple-900 border-purple-200" },
   M03: { badge: "High-Protein Superfood", color: "bg-teal-100 text-teal-900 border-teal-200" },
 };
+
+function getMenuItemImageUrl(item: CafeMenuItem): string {
+  if (item.code && ITEM_IMAGES[item.code]) return ITEM_IMAGES[item.code];
+  const nameLower = (item.name || "").toLowerCase();
+  const codeLower = (item.code || "").toLowerCase();
+
+  if (nameLower.includes("espresso") || codeLower.includes("esp")) {
+    return "https://images.unsplash.com/photo-1510591509098-f4fdc6d0ff04?auto=format&fit=crop&w=600&q=80";
+  }
+  if (nameLower.includes("cooler") || nameLower.includes("citrus") || nameLower.includes("electrolyte") || codeLower.includes("cool")) {
+    return "https://images.unsplash.com/photo-1513558161293-cdaf765ed2fd?auto=format&fit=crop&w=600&q=80";
+  }
+  if (nameLower.includes("smoothie") || nameLower.includes("protein") || codeLower.includes("prot")) {
+    return "https://images.unsplash.com/photo-1553530666-ba11a7da3888?auto=format&fit=crop&w=600&q=80";
+  }
+  if (nameLower.includes("wrap") || codeLower.includes("wrap")) {
+    return "https://images.unsplash.com/photo-1626700051175-6818013e1d4f?auto=format&fit=crop&w=600&q=80";
+  }
+  if (nameLower.includes("paneer") || nameLower.includes("tikka") || codeLower.includes("paneer")) {
+    return "https://images.unsplash.com/photo-1528735602780-2552fd46c7af?auto=format&fit=crop&w=600&q=80";
+  }
+  if (nameLower.includes("bowl") || nameLower.includes("quinoa") || codeLower.includes("bowl")) {
+    return "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=600&q=80";
+  }
+  if (nameLower.includes("burger")) {
+    return "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&w=600&q=80";
+  }
+  if (nameLower.includes("sandwich")) {
+    return "https://images.unsplash.com/photo-1509722747041-616f39b57569?auto=format&fit=crop&w=600&q=80";
+  }
+  if (nameLower.includes("fries")) {
+    return "https://images.unsplash.com/photo-1573080496219-bb080dd4f877?auto=format&fit=crop&w=600&q=80";
+  }
+  if (nameLower.includes("nachos")) {
+    return "https://images.unsplash.com/photo-1582169505937-b9992bd01ed9?auto=format&fit=crop&w=600&q=80";
+  }
+  if (nameLower.includes("onion")) {
+    return "https://images.unsplash.com/photo-1639024471283-03518883512d?auto=format&fit=crop&w=600&q=80";
+  }
+  if (nameLower.includes("latte") || nameLower.includes("cappuccino")) {
+    return "https://images.unsplash.com/photo-1572442388796-11668a67e53d?auto=format&fit=crop&w=600&q=80";
+  }
+  if (nameLower.includes("cold brew") || nameLower.includes("nitro")) {
+    return "https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?auto=format&fit=crop&w=600&q=80";
+  }
+
+  return "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=600&q=80";
+}
 
 const FALLBACK_CATEGORIES: CafeCategory[] = [
   { id: 1, name: "Beverages & Coffee", slug: "beverages", display_order: 1 },
@@ -393,9 +457,7 @@ export default function CafePage() {
                   badge: "Chef Specialty",
                   color: "bg-lime-100 text-lime-900 border-lime-200",
                 };
-                const imgUrl =
-                  ITEM_IMAGES[item.code] ||
-                  "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=600&q=80";
+                const imgUrl = getMenuItemImageUrl(item);
 
                 return (
                   <div
