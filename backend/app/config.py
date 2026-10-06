@@ -166,6 +166,8 @@ class TestingConfig(BaseConfig):
     CELERY_TASK_EAGER_PROPAGATES = True
     RATELIMIT_STORAGE_URI = "memory://"
     RATELIMIT_ENABLED = True
+    RAZORPAY_KEY_ID = None
+    RAZORPAY_KEY_SECRET = None
 
 
 class ProductionConfig(BaseConfig):
