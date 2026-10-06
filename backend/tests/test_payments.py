@@ -695,31 +695,43 @@ def test_member_list_payments_is_scoped(client, member_user, other_member_user, 
 def test_missing_gateway_configuration_fails_online_without_breaking_offline(app, db_session, member_user):
     """When Razorpay keys are missing, ONLINE payments fail cleanly, while CASH/CARD/UPI still work."""
     user, member, ms, booking = member_user
-    # Instantiate RazorpayProvider with None keys
-    unconfigured_prov = RazorpayProvider(key_id=None, key_secret=None)
+    # Clear Razorpay keys from the app config to simulate missing credentials.
+    # RAZORPAY_KEY_* env vars may be set locally (real Test-Mode keys), causing the provider
+    # __init__ config-fallback to resolve a valid key even when None is passed explicitly.
+    original_key_id = app.config.pop("RAZORPAY_KEY_ID", None)
+    original_key_secret = app.config.pop("RAZORPAY_KEY_SECRET", None)
+    try:
+        # Now the provider finds no keys in either the argument or config
+        unconfigured_prov = RazorpayProvider(key_id=None, key_secret=None)
 
-    # ONLINE initiation fails with GATEWAY_NOT_CONFIGURED
-    with pytest.raises(ValidationException) as exc_info:
-        create_or_initiate_payment(
+        # ONLINE initiation fails with GATEWAY_NOT_CONFIGURED
+        with pytest.raises(ValidationException) as exc_info:
+            create_or_initiate_payment(
+                item_type="BOOKING",
+                item_id=booking.id,
+                amount=Decimal("400.00"),
+                payment_method="ONLINE",
+                user_id=user.id,
+                provider=unconfigured_prov,
+            )
+        assert "not configured" in str(exc_info.value)
+
+        # CASH payment still succeeds without gateway dependency!
+        cash_pay = create_or_initiate_payment(
             item_type="BOOKING",
             item_id=booking.id,
             amount=Decimal("400.00"),
-            payment_method="ONLINE",
+            payment_method="CASH",
             user_id=user.id,
-            provider=unconfigured_prov,
         )
-    assert "not configured" in str(exc_info.value)
-
-    # CASH payment still succeeds without gateway dependency!
-    cash_pay = create_or_initiate_payment(
-        item_type="BOOKING",
-        item_id=booking.id,
-        amount=Decimal("400.00"),
-        payment_method="CASH",
-        user_id=user.id,
-    )
-    assert cash_pay.status == PaymentStatus.PENDING
-    assert cash_pay.payment_method == PaymentMethod.CASH
+        assert cash_pay.status == PaymentStatus.PENDING
+        assert cash_pay.payment_method == PaymentMethod.CASH
+    finally:
+        # Restore config so other tests are not affected
+        if original_key_id is not None:
+            app.config["RAZORPAY_KEY_ID"] = original_key_id
+        if original_key_secret is not None:
+            app.config["RAZORPAY_KEY_SECRET"] = original_key_secret
 
 
 def test_invalid_state_transitions(app, db_session, member_user, front_desk_user):

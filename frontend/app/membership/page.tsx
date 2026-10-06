@@ -34,6 +34,7 @@ import {
 import { useCurrentUser, setStoredUser, isOwner, getRoleProfilePath } from "@/lib/auth";
 import { apiClient } from "@/lib/api/client";
 import Navbar from "@/components/landing/Navbar";
+import { openRazorpayCheckout } from "@/lib/razorpay";
 
 interface PlanBenefitDetails {
   tier_level?: number;
@@ -284,32 +285,6 @@ function MembershipContent() {
     return d > 0 ? d : 0;
   };
 
-  const loadRazorpayScript = (): Promise<boolean> => {
-    return new Promise((resolve) => {
-      if (typeof window === "undefined") {
-        resolve(false);
-        return;
-      }
-      if ((window as any).Razorpay) {
-        resolve(true);
-        return;
-      }
-      const existingScript = document.querySelector('script[src="https://checkout.razorpay.com/v1/checkout.js"]');
-      if (existingScript) {
-        existingScript.addEventListener("load", () => resolve(true));
-        existingScript.addEventListener("error", () => resolve(false));
-        setTimeout(() => resolve(!!(window as any).Razorpay), 1500);
-        return;
-      }
-      const script = document.createElement("script");
-      script.src = "https://checkout.razorpay.com/v1/checkout.js";
-      script.async = true;
-      script.onload = () => resolve(true);
-      script.onerror = () => resolve(false);
-      document.body.appendChild(script);
-    });
-  };
-
   const handleSubscribe = async (plan: Plan) => {
     const token = typeof window !== "undefined" ? localStorage.getItem("cc_token") : null;
     if (!token && !isAuthenticated) {
@@ -340,59 +315,48 @@ function MembershipContent() {
         isDowngrade: res.is_downgrade,
       });
 
-      // Ensure Razorpay SDK is ready
-      const isSdkLoaded = await loadRazorpayScript();
-
-      if (isSdkLoaded && typeof window !== "undefined" && (window as any).Razorpay) {
-        try {
-          const opts = {
-            key: res.razorpay_key_id,
-            amount: Math.round(res.amount * 100),
-            currency: res.currency || "INR",
-            name: "The Champions Club",
-            description: `${plan.name} Annual Pass`,
-            order_id: res.razorpay_order_id,
-            prefill: {
-              name: user?.name || user?.full_name || "Member",
-              email: user?.email || "",
-              contact: user?.phone || "",
-            },
-            theme: { color: "#0ea5e9" },
-            handler: async (r: any) => {
-              await handleVerify({
-                plan,
-                orderId: r.razorpay_order_id || res.razorpay_order_id,
-                paymentId: r.razorpay_payment_id,
-                signature: r.razorpay_signature,
-                amount: res.amount,
-              });
-            },
-            modal: {
-              ondismiss: () => {
-                setProcessingPlan(null);
-                setIsProcessing(false);
-              },
-            },
-          };
-          const rzp = new (window as any).Razorpay(opts);
-          rzp.on("payment.failed", (r: any) => {
-            setError(r.error?.description || "Payment failed.");
-            setProcessingPlan(null);
-            setIsProcessing(false);
+      // Delegate to the shared Razorpay helper (handles SDK loading + checkout).
+      const result = await openRazorpayCheckout({
+        keyId: res.razorpay_key_id,
+        amountRupees: res.amount,
+        currency: res.currency || "INR",
+        orderId: res.razorpay_order_id,
+        name: "The Champions Club",
+        description: `${plan.name} Annual Pass`,
+        prefill: {
+          name: user?.name || user?.full_name || "Member",
+          email: user?.email || "",
+          contact: user?.phone || "",
+        },
+        onSuccess: async (r) => {
+          await handleVerify({
+            plan,
+            orderId: r.razorpay_order_id,
+            paymentId: r.razorpay_payment_id,
+            signature: r.razorpay_signature,
+            amount: res.amount,
           });
-          rzp.open();
-        } catch (err: any) {
-          setError(err?.message || "Failed to open Razorpay Checkout.");
+        },
+        onDismiss: () => {
           setProcessingPlan(null);
           setIsProcessing(false);
-        }
-      } else {
-        if (res.razorpay_order_id.startsWith("order_rzp_")) {
-          setShowCheckoutModal(true);
-        } else {
-          setError("Razorpay Checkout SDK is not available. Please check your connection and retry.");
-        }
+        },
+        onFailure: (err) => {
+          setError(err.description || "Payment failed.");
+          setProcessingPlan(null);
+          setIsProcessing(false);
+        },
+      });
+
+      if (result === "mock_order") {
+        // Dev-fallback: backend has no real gateway credentials.
+        setShowCheckoutModal(true);
+      } else if (result === "sdk_missing") {
+        setError("Razorpay Checkout SDK failed to load. Please check your connection and retry.");
+        setProcessingPlan(null);
+        setIsProcessing(false);
       }
+      // "opened" → modal is open; state changes happen via onSuccess/onDismiss/onFailure
     } catch (e: any) {
       setError(e?.message || "Failed to initiate payment.");
     } finally {
