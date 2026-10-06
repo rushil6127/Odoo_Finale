@@ -81,6 +81,7 @@ export default function CheckoutModal({
   const [customerEmail, setCustomerEmail] = useState("");
   const [deliveryAddress, setDeliveryAddress] = useState("");
   const [notes, setNotes] = useState("");
+  const [paymentMethod, setPaymentMethod] = useState<"ONLINE" | "CASH">("ONLINE");
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
@@ -127,7 +128,7 @@ export default function CheckoutModal({
         customer_email: customerEmail.trim() || undefined,
         delivery_address: fulfillmentType === "DELIVERY" ? deliveryAddress.trim() : undefined,
         notes: notes.trim() || undefined,
-        payment_method: "ONLINE",
+        payment_method: paymentMethod,
         items: items.map((item) => ({
           product_id: item.productId,
           quantity: item.quantity,
@@ -249,6 +250,68 @@ export default function CheckoutModal({
                   <h4 className="font-black text-xs">Club Courier Delivery</h4>
                   <p className="text-[10px] text-slate-500 mt-0.5">
                     Direct to residence address
+                  </p>
+                </div>
+              </button>
+            </div>
+          </div>
+
+          {/* Payment Method Toggle */}
+          <div className="space-y-2 pt-2">
+            <label className="font-bold text-slate-700 block">
+              Payment Method:
+            </label>
+            <div className="grid grid-cols-2 gap-3">
+              <button
+                type="button"
+                onClick={() => setPaymentMethod("CASH")}
+                className={`p-3.5 rounded-2xl border text-left flex items-start gap-3 transition-all ${
+                  paymentMethod === "CASH"
+                    ? "bg-sky-50 border-sky-400 text-sky-950 ring-2 ring-sky-500/20 shadow-xs"
+                    : "bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100"
+                }`}
+              >
+                <div
+                  className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 ${
+                    paymentMethod === "CASH"
+                      ? "bg-sky-600 text-white"
+                      : "bg-slate-200 text-slate-600"
+                  }`}
+                >
+                  <Store className="w-4 h-4" />
+                </div>
+                <div>
+                  <h4 className="font-black text-xs">
+                    {fulfillmentType === "DELIVERY" ? "Cash on Delivery" : "Pay at Counter"}
+                  </h4>
+                  <p className="text-[10px] text-slate-500 mt-0.5">
+                    Pay via cash/card {fulfillmentType === "DELIVERY" ? "on delivery" : "at desk"}
+                  </p>
+                </div>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setPaymentMethod("ONLINE")}
+                className={`p-3.5 rounded-2xl border text-left flex items-start gap-3 transition-all ${
+                  paymentMethod === "ONLINE"
+                    ? "bg-sky-50 border-sky-400 text-sky-950 ring-2 ring-sky-500/20 shadow-xs"
+                    : "bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100"
+                }`}
+              >
+                <div
+                  className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 ${
+                    paymentMethod === "ONLINE"
+                      ? "bg-sky-600 text-white"
+                      : "bg-slate-200 text-slate-600"
+                  }`}
+                >
+                  <Lock className="w-4 h-4" />
+                </div>
+                <div>
+                  <h4 className="font-black text-xs">Pay Online</h4>
+                  <p className="text-[10px] text-slate-500 mt-0.5">
+                    Secure checkout via Razorpay
                   </p>
                 </div>
               </button>
@@ -382,7 +445,7 @@ export default function CheckoutModal({
               ) : (
                 <>
                   <Lock className="w-4 h-4" />
-                  <span>Place Order & Proceed to Payment (₹{estimatedTotal.toLocaleString()})</span>
+                  <span>{paymentMethod === "ONLINE" ? "Place Order & Proceed to Payment" : "Place Order & Confirm"} (₹{estimatedTotal.toLocaleString()})</span>
                   <ArrowRight className="w-4 h-4" />
                 </>
               )}
