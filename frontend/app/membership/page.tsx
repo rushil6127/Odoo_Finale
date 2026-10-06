@@ -284,6 +284,32 @@ function MembershipContent() {
     return d > 0 ? d : 0;
   };
 
+  const loadRazorpayScript = (): Promise<boolean> => {
+    return new Promise((resolve) => {
+      if (typeof window === "undefined") {
+        resolve(false);
+        return;
+      }
+      if ((window as any).Razorpay) {
+        resolve(true);
+        return;
+      }
+      const existingScript = document.querySelector('script[src="https://checkout.razorpay.com/v1/checkout.js"]');
+      if (existingScript) {
+        existingScript.addEventListener("load", () => resolve(true));
+        existingScript.addEventListener("error", () => resolve(false));
+        setTimeout(() => resolve(!!(window as any).Razorpay), 1500);
+        return;
+      }
+      const script = document.createElement("script");
+      script.src = "https://checkout.razorpay.com/v1/checkout.js";
+      script.async = true;
+      script.onload = () => resolve(true);
+      script.onerror = () => resolve(false);
+      document.body.appendChild(script);
+    });
+  };
+
   const handleSubscribe = async (plan: Plan) => {
     const token = typeof window !== "undefined" ? localStorage.getItem("cc_token") : null;
     if (!token && !isAuthenticated) {
@@ -314,7 +340,10 @@ function MembershipContent() {
         isDowngrade: res.is_downgrade,
       });
 
-      if (typeof window !== "undefined" && (window as any).Razorpay) {
+      // Ensure Razorpay SDK is ready
+      const isSdkLoaded = await loadRazorpayScript();
+
+      if (isSdkLoaded && typeof window !== "undefined" && (window as any).Razorpay) {
         try {
           const opts = {
             key: res.razorpay_key_id,
@@ -333,24 +362,36 @@ function MembershipContent() {
               await handleVerify({
                 plan,
                 orderId: r.razorpay_order_id || res.razorpay_order_id,
-                paymentId: r.razorpay_payment_id || `pay_${Date.now()}`,
-                signature: r.razorpay_signature || "sig",
+                paymentId: r.razorpay_payment_id,
+                signature: r.razorpay_signature,
                 amount: res.amount,
               });
             },
-            modal: { ondismiss: () => setProcessingPlan(null) },
+            modal: {
+              ondismiss: () => {
+                setProcessingPlan(null);
+                setIsProcessing(false);
+              },
+            },
           };
           const rzp = new (window as any).Razorpay(opts);
           rzp.on("payment.failed", (r: any) => {
             setError(r.error?.description || "Payment failed.");
             setProcessingPlan(null);
+            setIsProcessing(false);
           });
           rzp.open();
-        } catch {
-          setShowCheckoutModal(true);
+        } catch (err: any) {
+          setError(err?.message || "Failed to open Razorpay Checkout.");
+          setProcessingPlan(null);
+          setIsProcessing(false);
         }
       } else {
-        setShowCheckoutModal(true);
+        if (res.razorpay_order_id.startsWith("order_rzp_")) {
+          setShowCheckoutModal(true);
+        } else {
+          setError("Razorpay Checkout SDK is not available. Please check your connection and retry.");
+        }
       }
     } catch (e: any) {
       setError(e?.message || "Failed to initiate payment.");
@@ -864,15 +905,20 @@ function MembershipContent() {
 
               <div className="space-y-2.5">
                 <button
-                  onClick={() =>
-                    handleVerify({
-                      plan: checkoutOrder.plan,
-                      orderId: checkoutOrder.orderId,
-                      paymentId: `pay_rzp_${Date.now()}`,
-                      signature: "rzp_verified_sig",
-                      amount: checkoutOrder.amount,
-                    })
-                  }
+                  onClick={async () => {
+                    if (checkoutOrder.orderId.startsWith("order_rzp_")) {
+                      handleVerify({
+                        plan: checkoutOrder.plan,
+                        orderId: checkoutOrder.orderId,
+                        paymentId: `pay_rzp_${Date.now()}`,
+                        signature: "rzp_verified_sig",
+                        amount: checkoutOrder.amount,
+                      });
+                    } else {
+                      setShowCheckoutModal(false);
+                      await handleSubscribe(checkoutOrder.plan);
+                    }
+                  }}
                   disabled={isProcessing}
                   className="w-full py-4 px-4 rounded-xl bg-sky-600 hover:bg-sky-700 text-white font-extrabold text-xs transition-all shadow-md shadow-sky-500/25 flex items-center justify-center gap-2.5 cursor-pointer disabled:opacity-60"
                 >

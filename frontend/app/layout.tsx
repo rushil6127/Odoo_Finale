@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Script from "next/script";
 import { Inter, Outfit, Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
 
@@ -34,6 +35,10 @@ export default function RootLayout({
     <html lang="en" className={`${inter.variable} ${outfit.variable} ${plusJakarta.variable} h-full scroll-smooth`}>
       <body className="min-h-full flex flex-col antialiased bg-white text-slate-900 font-sans">
         {children}
+        <Script
+          src="https://checkout.razorpay.com/v1/checkout.js"
+          strategy="beforeInteractive"
+        />
       </body>
     </html>
   );
