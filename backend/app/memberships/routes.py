@@ -188,8 +188,8 @@ def create_subscription_order():
     public_key = getattr(provider, "key_id", None) or current_app.config.get("RAZORPAY_KEY_ID")
 
     order_id = None
-    try:
-        if getattr(provider, "key_id", None) and getattr(provider, "key_secret", None):
+    if getattr(provider, "key_id", None) and getattr(provider, "key_secret", None):
+        try:
             receipt_ref = f"rcpt_mem_{uuid.uuid4().hex[:8]}"
             order_data = provider.create_order(
                 amount_paise=amount_paise,
@@ -204,10 +204,13 @@ def create_subscription_order():
                 },
             )
             order_id = order_data.get("id")
-    except Exception:
-        order_id = None
+        except Exception as e:
+            current_app.logger.error(f"Razorpay order creation failed: {e}")
+            raise ValidationException("Failed to create Razorpay order. Please try again later.")
 
     if not order_id:
+        if not (current_app.config.get("TESTING") or current_app.config.get("DEBUG")):
+            raise ValidationException("Payment gateway is not configured for production.")
         order_id = f"order_rzp_{uuid.uuid4().hex[:14]}"
     if not public_key:
         public_key = "rzp_test_championsclubdemo"
@@ -274,6 +277,10 @@ def verify_subscription_payment():
         razorpay_payment_id = f"pay_{uuid.uuid4().hex[:14]}"
     if not razorpay_order_id:
         razorpay_order_id = f"order_{uuid.uuid4().hex[:14]}"
+
+    if razorpay_order_id.startswith("order_rzp_"):
+        if not (current_app.config.get("TESTING") or current_app.config.get("DEBUG")):
+            raise ValidationException("Mock orders are not allowed in production.", code="MOCK_NOT_ALLOWED")
 
     # Verify signature if real provider credentials configured
     provider = get_payment_provider()

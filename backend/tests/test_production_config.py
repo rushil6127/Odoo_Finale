@@ -63,6 +63,7 @@ def test_production_config_requires_redis_for_rate_limiting(monkeypatch):
 
 def test_production_config_loads_with_valid_env(monkeypatch):
     """Production configuration succeeds and populates properly when all required env vars are present."""
+    monkeypatch.delenv("RATELIMIT_STORAGE_URI", raising=False)
     monkeypatch.setenv("SECRET_KEY", "valid-prod-flask-secret-key-min-32-chars")
     monkeypatch.setenv("JWT_SECRET_KEY", "valid-prod-jwt-secret-key-min-32-chars")
     monkeypatch.setenv("CORS_ORIGINS", "https://club.champions.com, https://members.champions.com")
@@ -82,8 +83,14 @@ def test_production_config_loads_with_valid_env(monkeypatch):
     assert app.config["TESTING"] is False
 
 
-def test_development_and_testing_configs_preserve_safe_defaults():
+def test_development_and_testing_configs_preserve_safe_defaults(monkeypatch):
     """Development and Testing configs maintain convenient and safe local defaults."""
+    # DevelopmentConfig class attributes are evaluated at import time.
+    # We must patch the class attribute directly to avoid local .env leaks.
+    from backend.app.config import DevelopmentConfig, TestingConfig
+    monkeypatch.setattr(DevelopmentConfig, "RATELIMIT_STORAGE_URI", "memory://")
+    monkeypatch.setattr(DevelopmentConfig, "CORS_ORIGINS", ["http://localhost:3000"])
+    
     dev_app = Flask(__name__)
     dev_app.config.from_object(DevelopmentConfig)
     assert dev_app.config["DEBUG"] is True
