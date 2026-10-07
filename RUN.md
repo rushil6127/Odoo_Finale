@@ -149,9 +149,36 @@ npm run build
 
 ## 💳 Payments & Razorpay Integration
 
-The app supports both online Razorpay payment processing and dev/offline fallbacks:
-* **Online Mode:** Provide `RAZORPAY_KEY_ID` and `RAZORPAY_KEY_SECRET` in `backend/.env`.
-* **Dev/Demo Mode:** When Razorpay credentials are unset or in test mode, the platform safely exercises mock payment flows without breaking offline operations (`CASH`, `UPI`, `CARD`).
+The application features full end-to-end Razorpay integration across **Membership Subscriptions**, **Court Bookings**, and **Pro-Shop Orders**.
+
+### 1. Integration Highlights
+* **Shared Frontend SDK:** Centralized in [`frontend/lib/razorpay.ts`](file:///frontend/lib/razorpay.ts) — handles SDK script injection, modal trigger, and response handoff.
+* **Backend Signature Verification:** All online transactions enforce server-side **HMAC-SHA256 signature verification** (`order_id|payment_id` against `RAZORPAY_KEY_SECRET`). The client success callback is never blindly trusted.
+* **Webhooks & Idempotency:** Webhook listener at `/api/v1/payments/webhook` safely handles `payment.captured`, `payment.failed`, and `refund.processed` events with duplicate detection.
+
+### 2. Environment Configuration
+To use live Razorpay test credentials, configure:
+
+**Backend (`backend/.env`):**
+```env
+RAZORPAY_KEY_ID=rzp_test_your_key_id
+RAZORPAY_KEY_SECRET=your_key_secret
+RAZORPAY_WEBHOOK_SECRET=your_webhook_secret
+```
+
+**Frontend (`frontend/.env.local` - Optional):**
+```env
+NEXT_PUBLIC_RAZORPAY_KEY_ID=rzp_test_your_key_id
+```
+
+### 3. Dual-Mode Operation
+* **Dev / Offline Mode (Default):** If real keys are omitted or placeholders are used, the system automatically uses mock and offline payment rails (`CASH`, `UPI`, `CARD`) with pre-configured demo verification. You can test complete checkouts without an active Razorpay merchant account.
+* **Test Mode:** With valid `rzp_test_...` credentials, the official Razorpay modal opens with support for test Cards, UPI IDs, and Net Banking.
+
+### 4. Running Payment Tests:
+```powershell
+.venv\Scripts\pytest backend/tests/test_payments.py backend/tests/test_shop_payment_options.py -v
+```
 
 ---
 
