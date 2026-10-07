@@ -188,7 +188,13 @@ def create_subscription_order():
     public_key = getattr(provider, "key_id", None) or current_app.config.get("RAZORPAY_KEY_ID")
 
     order_id = None
-    if getattr(provider, "key_id", None) and getattr(provider, "key_secret", None):
+    has_real_keys = (
+        getattr(provider, "key_id", None)
+        and getattr(provider, "key_secret", None)
+        and "placeholder" not in str(provider.key_id).lower()
+        and "placeholder" not in str(provider.key_secret).lower()
+    )
+    if has_real_keys:
         try:
             receipt_ref = f"rcpt_mem_{uuid.uuid4().hex[:8]}"
             order_data = provider.create_order(
