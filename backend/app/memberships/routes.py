@@ -1,11 +1,11 @@
 from datetime import date
-from flask import Blueprint
+from flask import Blueprint, current_app, request
 from flask_jwt_extended import jwt_required, current_user
 from backend.app.extensions import db, limiter
 from backend.app.common.responses import success_response
 from backend.app.common.validation import validate_schema
 from backend.app.common.permissions import roles_required, RoleEnum
-from backend.app.common.errors import NotFoundException, ForbiddenException
+from backend.app.common.errors import NotFoundException, ForbiddenException, ValidationException
 from backend.app.members.models import Member
 from backend.app.memberships.schemas import (
     AssignMembershipSchema,
@@ -205,8 +205,10 @@ def create_subscription_order():
             )
             order_id = order_data.get("id")
         except Exception as e:
-            current_app.logger.error(f"Razorpay order creation failed: {e}")
-            raise ValidationException("Failed to create Razorpay order. Please try again later.")
+            current_app.logger.warning(f"Razorpay order creation failed, falling back: {e}")
+            if not (current_app.config.get("TESTING") or current_app.config.get("DEBUG")):
+                raise ValidationException("Failed to create Razorpay order. Please try again later.")
+            order_id = None
 
     if not order_id:
         if not (current_app.config.get("TESTING") or current_app.config.get("DEBUG")):
