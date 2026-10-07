@@ -124,6 +124,24 @@ async function request<T>(
 
   if (!response.ok || !json.success) {
     const errorResponse = json as { success: false; error?: { code?: string; message?: string } };
+    
+    // Auto-clean stale or invalid token on 401
+    if (response.status === 401 && typeof window !== "undefined") {
+      const code = errorResponse.error?.code;
+      const msg = errorResponse.error?.message || "";
+      if (
+        code === "INVALID_TOKEN" ||
+        code === "TOKEN_EXPIRED" ||
+        code === "UNAUTHORIZED" ||
+        msg.toLowerCase().includes("signature")
+      ) {
+        localStorage.removeItem("cc_token");
+        localStorage.removeItem("cc_user");
+        localStorage.removeItem("champions_club_active_user");
+        window.dispatchEvent(new Event("cc_auth_state_changed"));
+      }
+    }
+
     throw new ApiError(
       response.status,
       errorResponse.error?.code ?? "UNKNOWN_ERROR",
