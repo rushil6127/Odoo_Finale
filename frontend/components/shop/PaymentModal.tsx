@@ -15,6 +15,7 @@ import {
   Ban,
 } from "lucide-react";
 import { apiClient } from "@/lib/api/client";
+import { openRazorpayCheckout } from "@/lib/razorpay";
 import type { CreatedOrderResponse } from "./CheckoutModal";
 
 interface PaymentInitiationData {
@@ -113,60 +114,58 @@ export default function PaymentModal({
   );
 
   // 2. Open Razorpay Checkout Dialog
-  const openRazorpayCheckout = useCallback(
-    (payment: PaymentInitiationData, currentOrder: CreatedOrderResponse) => {
-      const keyId =
-        payment.razorpay_key_id ||
-        process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID ||
-        "rzp_test_club_default";
+  const handleOpenRazorpay = useCallback(
+    async (payment: PaymentInitiationData, currentOrder: CreatedOrderResponse) => {
+      const keyId = payment.razorpay_key_id || process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || "rzp_test_club_default";
 
-      if (typeof window !== "undefined" && (window as any).Razorpay) {
-        try {
-          const options = {
-            key: keyId,
-            amount: Math.round(payment.amount * 100),
-            currency: payment.currency || "INR",
-            name: "Champions Club Pro Shop",
-            description: `Order ${currentOrder.order_reference}`,
-            order_id: payment.gateway_order_id,
-            prefill: {
-              name: currentOrder.customer_name,
-              email: currentOrder.customer_email || "",
-              contact: currentOrder.customer_phone || "",
-            },
-            theme: { color: "#0284c7" },
-            handler: async (response: {
-              razorpay_order_id: string;
-              razorpay_payment_id: string;
-              razorpay_signature: string;
-            }) => {
-              await handleVerifyOnlinePayment(
-                response.razorpay_order_id || payment.gateway_order_id,
-                response.razorpay_payment_id || `pay_${Date.now()}`,
-                response.razorpay_signature || "test_signature",
-                currentOrder
-              );
-            },
-            modal: {
-              ondismiss: () => {
-                setVerificationError(
-                  "Payment window closed before completion. You can retry payment now or cancel this order to release reserved stock."
-                );
-              },
-            },
-          };
-
-          const rzp = new (window as any).Razorpay(options);
-          rzp.on("payment.failed", (resp: any) => {
-            setVerificationError(
-              resp?.error?.description ||
-                "Online payment failed. Please try again or choose another card."
+      try {
+        const result = await openRazorpayCheckout({
+          keyId: keyId,
+          amountRupees: payment.amount,
+          currency: payment.currency,
+          orderId: payment.gateway_order_id,
+          name: "Champions Club Pro Shop",
+          description: `Order ${currentOrder.order_reference}`,
+          prefill: {
+            name: currentOrder.customer_name,
+            email: currentOrder.customer_email || "",
+            contact: currentOrder.customer_phone || "",
+          },
+          themeColor: "#0284c7",
+          onSuccess: async (response) => {
+            await handleVerifyOnlinePayment(
+              response.razorpay_order_id,
+              response.razorpay_payment_id,
+              response.razorpay_signature,
+              currentOrder
             );
-          });
-          rzp.open();
-        } catch (err: any) {
-          console.warn("Razorpay SDK launch error, using fallback verification trigger:", err);
+          },
+          onDismiss: () => {
+            setVerificationError(
+              "Payment window closed before completion. You can retry payment now or cancel this order to release reserved stock."
+            );
+          },
+          onFailure: (error) => {
+            setVerificationError(
+              error.description || "Online payment failed. Please try again or choose another card."
+            );
+          },
+        });
+
+        if (result === "sdk_missing") {
+          setVerificationError("Razorpay SDK failed to load. Please check your connection and retry.");
+        } else if (result === "mock_order") {
+          // In dev mode with no real credentials, skip to verify with mock data
+          await handleVerifyOnlinePayment(
+            payment.gateway_order_id,
+            `pay_rzp_mock_${Date.now()}`,
+            "rzp_mock_signature",
+            currentOrder
+          );
         }
+      } catch (err: any) {
+        console.warn("Razorpay SDK launch error:", err);
+        setVerificationError("Failed to launch payment gateway.");
       }
     },
     [handleVerifyOnlinePayment]
@@ -189,7 +188,7 @@ export default function PaymentModal({
 
         if (res && res.gateway_order_id) {
           setPaymentData(res);
-          openRazorpayCheckout(res, currentOrder);
+          handleOpenRazorpay(res, currentOrder);
         } else {
           throw new Error("Unable to obtain online gateway parameters from server.");
         }
@@ -199,7 +198,7 @@ export default function PaymentModal({
         setIsInitiating(false);
       }
     },
-    [openRazorpayCheckout]
+    [handleOpenRazorpay]
   );
 
   // 4. Cancel Order & Restore Inventory
@@ -327,36 +326,22 @@ export default function PaymentModal({
               <div className="flex items-center justify-between text-[11px] font-bold text-slate-600">
                 <span className="flex items-center gap-1.5 text-sky-700">
                   <Zap className="w-3.5 h-3.5" />
-                  <span>Razorpay Test Gateway Mode</span>
+                  <span>Razorpay Checkout</span>
                 </span>
                 <span className="font-mono text-[10px] text-slate-500">
                   Order ID: {paymentData.gateway_order_id.slice(0, 16)}...
                 </span>
               </div>
               <p className="text-[11px] text-slate-600">
-                If the payment pop-up was blocked by your browser, launch checkout or simulate test settlement:
+                If the payment pop-up was blocked by your browser, launch checkout manually:
               </p>
               <div className="flex gap-2 pt-1">
                 <button
                   type="button"
-                  onClick={() => openRazorpayCheckout(paymentData, order)}
+                  onClick={() => handleOpenRazorpay(paymentData, order)}
                   className="flex-1 py-2.5 px-3 rounded-xl text-xs font-black bg-slate-900 hover:bg-slate-800 text-white transition-all shadow-sm"
                 >
                   Launch Razorpay Modal
-                </button>
-                <button
-                  type="button"
-                  onClick={() =>
-                    handleVerifyOnlinePayment(
-                      paymentData.gateway_order_id,
-                      `pay_test_${Date.now()}`,
-                      "sig_test_verified",
-                      order
-                    )
-                  }
-                  className="flex-1 py-2.5 px-3 rounded-xl text-xs font-black bg-emerald-600 hover:bg-emerald-500 text-white transition-all shadow-md shadow-emerald-600/20"
-                >
-                  Verify Payment (Test Mode)
                 </button>
               </div>
             </div>
