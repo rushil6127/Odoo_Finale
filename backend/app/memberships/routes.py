@@ -1,11 +1,11 @@
 from datetime import date
-from flask import Blueprint
+from flask import Blueprint, current_app, request
 from flask_jwt_extended import jwt_required, current_user
 from backend.app.extensions import db, limiter
 from backend.app.common.responses import success_response
 from backend.app.common.validation import validate_schema
 from backend.app.common.permissions import roles_required, RoleEnum
-from backend.app.common.errors import NotFoundException, ForbiddenException
+from backend.app.common.errors import NotFoundException, ForbiddenException, ValidationException
 from backend.app.members.models import Member
 from backend.app.memberships.schemas import (
     AssignMembershipSchema,
@@ -188,8 +188,14 @@ def create_subscription_order():
     public_key = getattr(provider, "key_id", None) or current_app.config.get("RAZORPAY_KEY_ID")
 
     order_id = None
-    try:
-        if getattr(provider, "key_id", None) and getattr(provider, "key_secret", None):
+    has_real_keys = (
+        getattr(provider, "key_id", None)
+        and getattr(provider, "key_secret", None)
+        and "placeholder" not in str(provider.key_id).lower()
+        and "placeholder" not in str(provider.key_secret).lower()
+    )
+    if has_real_keys:
+        try:
             receipt_ref = f"rcpt_mem_{uuid.uuid4().hex[:8]}"
             order_data = provider.create_order(
                 amount_paise=amount_paise,
@@ -204,10 +210,15 @@ def create_subscription_order():
                 },
             )
             order_id = order_data.get("id")
-    except Exception:
-        order_id = None
+        except Exception as e:
+            current_app.logger.warning(f"Razorpay order creation failed, falling back: {e}")
+            if not (current_app.config.get("TESTING") or current_app.config.get("DEBUG")):
+                raise ValidationException("Failed to create Razorpay order. Please try again later.")
+            order_id = None
 
     if not order_id:
+        if not (current_app.config.get("TESTING") or current_app.config.get("DEBUG")):
+            raise ValidationException("Payment gateway is not configured for production.")
         order_id = f"order_rzp_{uuid.uuid4().hex[:14]}"
     if not public_key:
         public_key = "rzp_test_championsclubdemo"
@@ -274,6 +285,10 @@ def verify_subscription_payment():
         razorpay_payment_id = f"pay_{uuid.uuid4().hex[:14]}"
     if not razorpay_order_id:
         razorpay_order_id = f"order_{uuid.uuid4().hex[:14]}"
+
+    if razorpay_order_id.startswith("order_rzp_"):
+        if not (current_app.config.get("TESTING") or current_app.config.get("DEBUG")):
+            raise ValidationException("Mock orders are not allowed in production.", code="MOCK_NOT_ALLOWED")
 
     # Verify signature if real provider credentials configured
     provider = get_payment_provider()

@@ -801,8 +801,9 @@ export default function ProfileViewContainer({ forcedMode }: ProfileViewContaine
       setAvatarSuccessMsg("Profile photo updated and saved to database!");
       setTimeout(() => setAvatarSuccessMsg(""), 4000);
     } catch (err: any) {
-      console.error("Failed to upload avatar:", err);
-      setAvatarErrorMsg(err?.message || "Failed to update profile photo.");
+      console.warn("Avatar upload issue:", err?.message);
+      const isAuthErr = err?.status === 401 || err?.message?.toLowerCase().includes("signature") || err?.message?.toLowerCase().includes("token");
+      setAvatarErrorMsg(isAuthErr ? "Your session has expired. Please log in again to update your profile photo." : (err?.message || "Failed to update profile photo."));
       setTimeout(() => setAvatarErrorMsg(""), 4000);
     } finally {
       setAvatarUploading(false);

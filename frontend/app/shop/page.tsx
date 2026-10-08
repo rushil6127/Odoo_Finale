@@ -339,7 +339,14 @@ export default function ProShopPage() {
   const handleOrderCreated = (createdOrder: CreatedOrderResponse) => {
     setIsCheckoutOpen(false);
     setActiveOrder(createdOrder);
-    setIsPaymentOpen(true);
+    
+    if (createdOrder.payment_method === "CASH") {
+      clearCart();
+      setIsConfirmationOpen(true);
+      fetchShopData();
+    } else {
+      setIsPaymentOpen(true);
+    }
   };
 
   const handlePaymentSuccess = (confirmedOrder: CreatedOrderResponse) => {

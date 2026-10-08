@@ -139,6 +139,10 @@ def create_shop_order(
     enum_order_type = OrderType(order_type.upper().strip())
     enum_fulfillment = FulfillmentType(fulfillment_type.upper().strip())
 
+    if enum_order_type == OrderType.ONLINE:
+        if payment_method and payment_method.upper().strip() not in ("CASH", "ONLINE"):
+            raise ValidationException("Invalid payment method for online orders.")
+
     # 1. Delivery address validation: delivery requires an address, pickup does not.
     if enum_fulfillment == FulfillmentType.DELIVERY:
         if not delivery_address or not delivery_address.strip():
@@ -322,8 +326,8 @@ def create_shop_order(
                 notes=f"Payment for Shop Order {order.order_reference}",
             )
 
-            # If counter sale with immediate settlement (CASH, CARD, UPI)
             if enum_order_type == OrderType.COUNTER and chosen_method in ("CASH", "CARD", "UPI"):
+                # Existing counter manual payment
                 confirm_manual_payment(
                     payment_id=payment.id,
                     staff_user=requesting_user,
@@ -333,10 +337,18 @@ def create_shop_order(
                 order.payment_method = chosen_method
                 order.status = ShopOrderStatus.CONFIRMED
 
-            elif enum_order_type == OrderType.ONLINE or chosen_method == "ONLINE":
+            else:
+                # Online orders (CASH or ONLINE)
                 order.payment_status = "PENDING"
-                order.payment_method = "ONLINE"
-                order.status = ShopOrderStatus.PENDING
+                order.payment_method = chosen_method
+                
+                # For PICKUP + CASH (Pay at Counter) or DELIVERY + CASH (COD)
+                # We start as PENDING payment. Order status is CONFIRMED for CASH since it doesn't wait for gateway.
+                # For ONLINE, it stays PENDING until Razorpay verifies.
+                if chosen_method == "CASH":
+                    order.status = ShopOrderStatus.CONFIRMED
+                else:
+                    order.status = ShopOrderStatus.PENDING
 
             db.session.commit()
 
