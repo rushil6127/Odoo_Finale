@@ -124,6 +124,17 @@ async function request<T>(
 
   if (!response.ok || !json.success) {
     const errorResponse = json as { success: false; error?: { code?: string; message?: string } };
+    
+    // Automatically handle token expiration
+    if (response.status === 401 && errorResponse.error?.code === "TOKEN_EXPIRED") {
+      if (typeof window !== "undefined") {
+        localStorage.removeItem("cc_token");
+        localStorage.removeItem("cc_user");
+        localStorage.removeItem("cc_role");
+        window.location.href = "/login";
+      }
+    }
+    
     throw new ApiError(
       response.status,
       errorResponse.error?.code ?? "UNKNOWN_ERROR",
